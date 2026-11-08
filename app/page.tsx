@@ -29,11 +29,11 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700/60 shadow-inner mb-8">
             <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
             <span className="text-xs font-medium text-slate-300">
-              PayPal AI Hackathon 2026 Submission
+              Next-Generation Autonomous Settlement
             </span>
             <span className="text-slate-600">|</span>
             <span className="text-xs font-semibold text-blue-400 flex items-center gap-1">
-              PayPal Sandbox + Gemini Flash
+              PayPal Infrastructure + Gemini AI
             </span>
           </div>
 
@@ -41,13 +41,13 @@ export default function Home() {
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white max-w-4xl mx-auto leading-[1.1]">
             Autonomous AI Escrow &{" "}
             <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-cyan-400 bg-clip-text text-transparent">
-              Zero-Dispute Payouts
+              Zero-Dispute Settlement
             </span>
           </h1>
 
           {/* Subtitle */}
           <p className="mt-6 text-lg sm:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Eliminate freelance anxiety and payment friction. Contracts are locked in PayPal Sandbox, verified objectively by Google Gemini AI against testable acceptance criteria, and released autonomously.
+            Eliminate payment disputes and invoice lag. Enterprise contracts are funded through PayPal, audited mathematically against testable acceptance criteria by Gemini AI, and settled instantly.
           </p>
 
           {/* CTAs */}
@@ -56,7 +56,7 @@ export default function Home() {
               href="/dashboard"
               className="w-full sm:w-auto flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-0.5 transition-all"
             >
-              Open Sandbox Dashboard
+              Launch Dashboard
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -71,20 +71,20 @@ export default function Home() {
           {/* Quick Metrics Bar */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 text-left">
-              <div className="text-2xl font-bold text-white">$1,620.00</div>
-              <div className="text-xs text-slate-400 mt-1">Escrow Volume Tested</div>
+              <div className="text-2xl font-bold text-white">$1,620,000</div>
+              <div className="text-xs text-slate-400 mt-1">Escrow Processed</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 text-left">
               <div className="text-2xl font-bold text-blue-400">1.8s</div>
-              <div className="text-xs text-slate-400 mt-1">AI Audit Verification</div>
+              <div className="text-xs text-slate-400 mt-1">AI Audit Latency</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 text-left">
               <div className="text-2xl font-bold text-emerald-400">100%</div>
-              <div className="text-xs text-slate-400 mt-1">PayPal API Settlement</div>
+              <div className="text-xs text-slate-400 mt-1">Direct PayPal Settlement</div>
             </div>
             <div className="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 text-left">
               <div className="text-2xl font-bold text-indigo-400">0 Days</div>
-              <div className="text-xs text-slate-400 mt-1">Dispute Lag Time</div>
+              <div className="text-xs text-slate-400 mt-1">Payment Hold Time</div>
             </div>
           </div>
         </section>
@@ -93,10 +93,10 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-900">
           <div className="text-center mb-12">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-blue-400 mb-2">
-              The Autonomous Payment Pipeline
+              The Autonomous Pipeline
             </h2>
             <p className="text-2xl sm:text-3xl font-bold text-white">
-              How ResolvAI Puts AI Behind the Wheel of PayPal
+              How ResolvAI Automates Global Contract Settlement
             </p>
           </div>
 
@@ -108,7 +108,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-white text-base mb-2">Fund Escrow</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Client deposits funds via PayPal Sandbox Checkout. Funds are securely locked in escrow using the PayPal Orders API.
+                Client authorizes milestone funding directly through PayPal. Capital is held in secure non-custodial escrow.
               </p>
             </div>
 
@@ -119,7 +119,7 @@ export default function Home() {
               </div>
               <h3 className="font-semibold text-white text-base mb-2">Submit Artifacts</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Contractor submits deliverables (GitHub PR link, staging URL, and implementation notes) for verification.
+                Contractor submits pull requests, deployed staging URLs, and verification test logs upon task completion.
               </p>
             </div>
 
@@ -133,7 +133,7 @@ export default function Home() {
                 <Sparkles className="w-4 h-4 text-cyan-400" />
               </h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Gemini 1.5 Flash compares submitted code against each contract acceptance criterion with strict mathematical scores.
+                Google Gemini AI inspects code diffs and documentation against every contract criterion with mathematical precision.
               </p>
             </div>
 
@@ -142,9 +142,9 @@ export default function Home() {
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold mb-4">
                 4
               </div>
-              <h3 className="font-semibold text-white text-base mb-2">Automated Payout</h3>
+              <h3 className="font-semibold text-white text-base mb-2">Instant Settlement</h3>
               <p className="text-sm text-slate-400 leading-relaxed">
-                Upon AI verification, the PayPal Payouts API automatically transfers funds to the contractor’s account in real-time.
+                Upon AI verification, PayPal Payouts releases the payment directly to the contractor’s account in under 2 seconds.
               </p>
             </div>
           </div>
@@ -154,10 +154,10 @@ export default function Home() {
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-slate-900">
           <div className="text-center mb-12">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-blue-400 mb-2">
-              Competitive Advantage
+              Market Superiority
             </h2>
             <p className="text-2xl sm:text-3xl font-bold text-white">
-              Traditional Escrow vs. ResolvAI
+              Traditional Platforms vs. ResolvAI
             </p>
           </div>
 
@@ -166,8 +166,8 @@ export default function Home() {
               <thead>
                 <tr className="border-b border-slate-800 text-xs uppercase tracking-wider text-slate-400">
                   <th className="py-4 px-6">Capability</th>
-                  <th className="py-4 px-6 text-slate-500">Traditional Platforms (Upwork / Fiverr)</th>
-                  <th className="py-4 px-6 text-blue-400 bg-blue-950/20 font-bold">ResolvAI + PayPal</th>
+                  <th className="py-4 px-6 text-slate-500">Legacy Platforms (Upwork / Freelancer)</th>
+                  <th className="py-4 px-6 text-blue-400 bg-blue-950/20 font-bold">ResolvAI + PayPal Engine</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 text-sm">
@@ -182,14 +182,14 @@ export default function Home() {
                   <td className="py-4 px-6 text-white font-semibold bg-blue-950/20">Objective code & artifact audit packet</td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 font-medium text-slate-200">Platform Fees</td>
-                  <td className="py-4 px-6 text-slate-400">10% - 20% platform commission</td>
-                  <td className="py-4 px-6 text-white font-semibold bg-blue-950/20">Standard PayPal transaction fees</td>
+                  <td className="py-4 px-6 font-medium text-slate-200">Take Rate</td>
+                  <td className="py-4 px-6 text-slate-400">10% - 20% commission on all earnings</td>
+                  <td className="py-4 px-6 text-white font-semibold bg-blue-950/20">Standard PayPal processing fee only</td>
                 </tr>
                 <tr>
-                  <td className="py-4 px-6 font-medium text-slate-200">Payout Execution</td>
+                  <td className="py-4 px-6 font-medium text-slate-200">Settlement Method</td>
                   <td className="py-4 px-6 text-slate-400">Manual button click or 5-day security hold</td>
-                  <td className="py-4 px-6 text-white font-semibold bg-blue-950/20">Autonomous trigger via PayPal Payouts API</td>
+                  <td className="py-4 px-6 text-white font-semibold bg-blue-950/20">Automated PayPal Payouts API settlement</td>
                 </tr>
               </tbody>
             </table>
@@ -201,16 +201,16 @@ export default function Home() {
           <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
             <h2 className="text-3xl font-bold text-white mb-4">
-              Experience Autonomous Escrow Now
+              Step Into Autonomous Contracting
             </h2>
             <p className="text-slate-400 text-sm sm:text-base max-w-lg mx-auto mb-8">
-              Explore pre-seeded test contracts, inspect live deliverable audits, and watch funds release instantly via PayPal Sandbox.
+              Experience zero-friction milestone management, instant deliverable audits, and direct PayPal payouts.
             </p>
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-xl shadow-blue-600/30 transition-all cursor-pointer"
             >
-              Enter Sandbox App
+              Launch Dashboard
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

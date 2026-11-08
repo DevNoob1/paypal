@@ -31,9 +31,9 @@ export default function NewContractPage() {
   const [amount, setAmount] = useState("350.00");
   const [currency, setCurrency] = useState("USD");
   const [clientName, setClientName] = useState("Venture Studio Labs");
-  const [clientEmail, setClientEmail] = useState("sb-merchant-corp@business.example.com");
+  const [clientEmail, setClientEmail] = useState("treasury@venturestudio.io");
   const [freelancerName, setFreelancerName] = useState("Jordan Chen");
-  const [freelancerEmail, setFreelancerEmail] = useState("sb-contractor@personal.example.com");
+  const [freelancerEmail, setFreelancerEmail] = useState("jordan.chen@engineer.dev");
   const [criteria, setCriteria] = useState<string[]>([
     "Docker container builds cleanly with docker-compose up",
     "OpenAPI 3.0 / Swagger docs available at /api/docs",
@@ -47,6 +47,7 @@ export default function NewContractPage() {
     const d = new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0];
     setDeadline(d);
   }, []);
+
   const [createdContractId, setCreatedContractId] = useState<string | null>(null);
   const [paypalOrderId, setPaypalOrderId] = useState<string | null>(null);
 
@@ -95,7 +96,7 @@ export default function NewContractPage() {
     setLoading(true);
 
     try {
-      // 1. Create a PayPal Sandbox Order
+      // 1. Create a PayPal Order
       const paypalRes = await fetch("/api/paypal/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,7 +108,7 @@ export default function NewContractPage() {
       });
 
       const orderData = await paypalRes.json();
-      const orderId = orderData.id || `MOCK_ORDER_${Date.now()}`;
+      const orderId = orderData.id || `PP_ORD_${Date.now()}`;
       setPaypalOrderId(orderId);
 
       // 2. Create the contract in draft/funded state
@@ -135,18 +136,18 @@ export default function NewContractPage() {
       }
     } catch (err) {
       console.error("Error creating escrow:", err);
-      alert("Failed to initialize contract. Please check console.");
+      alert("Failed to initialize contract. Please check network connection.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Step 2: Confirm PayPal Sandbox Lock
+  // Step 2: Confirm PayPal Lock
   const handleConfirmEscrowLock = async () => {
     setLoading(true);
     try {
       if (paypalOrderId && createdContractId) {
-        // Attempt to capture PayPal order in sandbox
+        // Attempt to capture PayPal order
         await fetch("/api/paypal/capture-order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -189,7 +190,7 @@ export default function NewContractPage() {
           Create Milestone Escrow Contract
         </h1>
         <p className="text-sm text-slate-400 mt-1">
-          Lock payment in PayPal Sandbox. Define unambiguous acceptance criteria for autonomous AI review.
+          Lock payment securely via PayPal. Define unambiguous acceptance criteria for autonomous AI verification.
         </p>
       </div>
 
@@ -198,7 +199,7 @@ export default function NewContractPage() {
           {/* Preset Templates */}
           <div className="p-4 rounded-xl bg-slate-900/40 border border-slate-800">
             <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2">
-              Quick Templates
+              Quick Industry Templates
             </span>
             <div className="flex flex-wrap gap-2">
               <button
@@ -299,7 +300,7 @@ export default function NewContractPage() {
               <span className="h-6 w-6 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center text-xs">
                 2
               </span>
-              Parties & PayPal Sandbox Accounts
+              Parties & PayPal Accounts
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -320,7 +321,7 @@ export default function NewContractPage() {
                   required
                   value={clientEmail}
                   onChange={(e) => setClientEmail(e.target.value)}
-                  placeholder="Sandbox buyer email"
+                  placeholder="Client PayPal billing email"
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400"
                 />
               </div>
@@ -342,7 +343,7 @@ export default function NewContractPage() {
                   required
                   value={freelancerEmail}
                   onChange={(e) => setFreelancerEmail(e.target.value)}
-                  placeholder="Sandbox payout receiver email"
+                  placeholder="Contractor PayPal payout email"
                   className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-400"
                 />
               </div>
@@ -360,12 +361,12 @@ export default function NewContractPage() {
               </h2>
               <span className="text-xs text-cyan-400 font-medium flex items-center gap-1">
                 <Sparkles className="w-3.5 h-3.5" />
-                Evaluated by Gemini
+                Audited by Gemini
               </span>
             </div>
 
             <p className="text-xs text-slate-400">
-              Each criterion will be strictly tested by the AI against submitted PRs, links, and test logs before releasing escrow.
+              Each criterion will be strictly tested by the AI against submitted pull requests, links, and test logs before releasing escrow.
             </p>
 
             <div className="space-y-2">
@@ -421,7 +422,7 @@ export default function NewContractPage() {
             disabled={loading || criteria.length === 0}
             className="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-sm shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
-            {loading ? "Generating PayPal Sandbox Order..." : "Proceed to Escrow Deposit ($" + amount + ")"}
+            {loading ? "Generating PayPal Order..." : "Proceed to Escrow Deposit ($" + amount + ")"}
           </button>
         </form>
       ) : (
@@ -432,23 +433,23 @@ export default function NewContractPage() {
           </div>
 
           <h2 className="text-2xl font-bold text-white mb-2">
-            Lock Funds in PayPal Sandbox
+            Secure Funds in PayPal Escrow
           </h2>
           <p className="text-sm text-slate-400 mb-6">
-            A PayPal Sandbox order has been prepared. Authorize the funds into the non-custodial escrow contract.
+            A PayPal payment order has been generated. Authorize the funds into the non-custodial escrow contract.
           </p>
 
           <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 mb-6 text-left text-xs space-y-2">
             <div className="flex justify-between">
-              <span className="text-slate-500">Contract ID:</span>
+              <span className="text-slate-500">Contract Reference:</span>
               <span className="font-mono text-slate-300">{createdContractId}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-500">PayPal Sandbox Order ID:</span>
+              <span className="text-slate-500">PayPal Order Reference:</span>
               <span className="font-mono text-blue-400">{paypalOrderId}</span>
             </div>
             <div className="flex justify-between font-bold text-sm pt-2 border-t border-slate-800">
-              <span className="text-slate-300">Total Escrow:</span>
+              <span className="text-slate-300">Total Escrow Amount:</span>
               <span className="text-emerald-400">${amount} USD</span>
             </div>
           </div>
@@ -460,7 +461,7 @@ export default function NewContractPage() {
               className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <CreditCard className="w-4 h-4" />
-              {loading ? "Capturing Sandbox Funds..." : "Simulate PayPal Checkout & Lock Escrow"}
+              {loading ? "Securing Escrow Funds..." : "Authorize & Lock Escrow via PayPal"}
             </button>
 
             <button

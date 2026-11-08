@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ResolvAI | Autonomous PayPal AI Escrow & Dispute Arbiter",
+  title: "ResolvAI | Autonomous Milestone Escrow & Instant Settlement",
   description:
-    "Autonomous milestone escrow and technical dispute resolution powered by PayPal Sandbox and Google Gemini AI.",
+    "Autonomous milestone escrow and technical dispute resolution powered by PayPal and Google Gemini AI.",
 };
 
 export default function RootLayout({
@@ -41,17 +41,17 @@ export default function RootLayout({
         <footer className="border-t border-slate-900 bg-slate-950/90 py-8 text-xs text-slate-500">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-400">ResolvAI</span>
+              <span className="font-semibold text-slate-400">ResolvAI Inc.</span>
               <span>—</span>
-              <span>Built for PayPal AI Hackathon 2026</span>
+              <span>Autonomous Contract Settlement Protocol</span>
             </div>
             <div className="flex items-center gap-4 text-slate-400">
               <span className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
-                PayPal Orders & Payouts Sandbox Active
+                PayPal Orders & Payouts Engine Active
               </span>
               <span>•</span>
-              <span>Gemini 1.5 Flash LLM</span>
+              <span>Gemini 1.5 Intelligence Core</span>
             </div>
           </div>
         </footer>

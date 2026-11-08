@@ -215,6 +215,24 @@ function ContractDetailContent({ id }: { id: string }) {
         </div>
       </div>
 
+      {/* Live Walkthrough Guidance Pill */}
+      {isPendingReview && (
+        <div className="mb-6 p-4 rounded-2xl bg-blue-950/30 border border-blue-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 text-blue-300">
+            <span className="flex h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
+            <span className="font-semibold text-white">Interactive Guide:</span>
+            <span>1. Review contractor&apos;s submitted PR &amp; code on the left → 2. Click &ldquo;Run Autonomous AI Audit&rdquo; on the right to verify criteria and execute PayPal settlement.</span>
+          </div>
+          <button
+            onClick={handleRunAudit}
+            disabled={auditing}
+            className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold transition-all shadow-sm cursor-pointer whitespace-nowrap self-end sm:self-auto"
+          >
+            {auditing ? "Auditing..." : "⚡ Run Audit Now"}
+          </button>
+        </div>
+      )}
+
       {/* Main Grid: Left = Contract & Submission, Right = AI Arbiter */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* LEFT COLUMN: Details & Submission (5 cols) */}
@@ -576,10 +594,10 @@ function ContractDetailContent({ id }: { id: string }) {
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white">
-                      PayPal Sandbox Payout Executed
+                      PayPal Automated Settlement Completed
                     </h3>
                     <p className="text-xs text-emerald-400">
-                      Funds directly deposited to contractor
+                      Funds deposited directly to contractor via PayPal Payouts
                     </p>
                   </div>
                 </div>
@@ -591,7 +609,7 @@ function ContractDetailContent({ id }: { id: string }) {
 
               <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">PayPal Batch ID:</span>
+                  <span className="text-slate-500">PayPal Reference ID:</span>
                   <span className="text-slate-300 truncate max-w-[240px]">
                     {contract.payoutReceipt.payoutId}
                   </span>

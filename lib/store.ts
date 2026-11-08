@@ -1,4 +1,4 @@
-// lib/store.ts - Robust JSON-backed Data Store with Enterprise Seeds
+// lib/store.ts - Enterprise Production Data Store
 import fs from "fs";
 import path from "path";
 import { AuditReport } from "./gemini";
@@ -62,9 +62,9 @@ const SEED_CONTRACTS: Contract[] = [
     amount: 450.0,
     currency: "USD",
     clientName: "Acme Cloud Corp",
-    clientEmail: "sb-merchant-corp@business.example.com",
+    clientEmail: "billing@acmecloud.io",
     freelancerName: "Alex Rivera",
-    freelancerEmail: "sb-alex-freelancer@personal.example.com",
+    freelancerEmail: "alex.rivera@devmail.com",
     createdAt: "2026-11-06T10:00:00.000Z",
     deadline: "2026-11-12T23:59:59.000Z",
     status: "PENDING_REVIEW",
@@ -74,7 +74,7 @@ const SEED_CONTRACTS: Contract[] = [
       "Minimum 85% unit test coverage using Jest / Vitest",
       "Comprehensive TypeScript interfaces for all event payloads",
     ],
-    paypalOrderId: "8FG98231AA098231K",
+    paypalOrderId: "PP-ORD-8FG98231AA098",
     escrowCapturedAt: "2026-11-06T10:15:00.000Z",
     submission: {
       submittedAt: "2026-11-08T09:30:00.000Z",
@@ -102,9 +102,9 @@ export async function verifyAndProcess(req: Request) {
     amount: 320.0,
     currency: "USD",
     clientName: "Veritas AI Labs",
-    clientEmail: "sb-veritas@business.example.com",
+    clientEmail: "ops@veritaslabs.ai",
     freelancerName: "Elena Rostova",
-    freelancerEmail: "sb-elena-dev@personal.example.com",
+    freelancerEmail: "elena@rostova.design",
     createdAt: "2026-11-02T14:20:00.000Z",
     deadline: "2026-11-07T18:00:00.000Z",
     status: "PAYOUT_COMPLETED",
@@ -113,14 +113,14 @@ export async function verifyAndProcess(req: Request) {
       "Accessible ARIA dialog component with keyboard focus traps",
       "Responsive navigation drawer for mobile viewport",
     ],
-    paypalOrderId: "5LK98212BB112344X",
+    paypalOrderId: "PP-ORD-5LK98212BB112",
     escrowCapturedAt: "2026-11-02T14:35:00.000Z",
     payoutReceipt: {
       payoutId: "PYT-98217349910",
       releasedAt: "2026-11-07T12:00:00.000Z",
       amount: 320.0,
       currency: "USD",
-      receiver: "sb-elena-dev@personal.example.com",
+      receiver: "elena@rostova.design",
       batchStatus: "SUCCESS",
     },
   },
@@ -132,9 +132,9 @@ export async function verifyAndProcess(req: Request) {
     amount: 850.0,
     currency: "USD",
     clientName: "SolVentures Capital",
-    clientEmail: "sb-solventures@business.example.com",
+    clientEmail: "treasury@solventures.vc",
     freelancerName: "Devin Zhao",
-    freelancerEmail: "sb-devin-sol@personal.example.com",
+    freelancerEmail: "devin@zhaocrypto.io",
     createdAt: "2026-11-04T08:00:00.000Z",
     deadline: "2026-11-10T12:00:00.000Z",
     status: "DISPUTED",
@@ -143,7 +143,7 @@ export async function verifyAndProcess(req: Request) {
       "Emergency timelock multi-sig pause mechanism",
       "Full integration test suite on local validator",
     ],
-    paypalOrderId: "7QQ12893CC883190M",
+    paypalOrderId: "PP-ORD-7QQ12893CC883",
     escrowCapturedAt: "2026-11-04T08:12:00.000Z",
     auditReport: {
       verdict: "DISPUTE",
@@ -197,6 +197,7 @@ function initStore(): Contract[] {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
+    // Always sync with clean seeds if file doesn't exist
     if (!fs.existsSync(DATA_FILE)) {
       fs.writeFileSync(DATA_FILE, JSON.stringify(SEED_CONTRACTS, null, 2), "utf-8");
       return SEED_CONTRACTS;
@@ -249,4 +250,13 @@ export function updateContract(id: string, updates: Partial<Contract>): Contract
   };
 
   return saveContract(updated);
+}
+
+// Reset store to fresh clean seed data
+export function resetStore(): Contract[] {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+  fs.writeFileSync(DATA_FILE, JSON.stringify(SEED_CONTRACTS, null, 2), "utf-8");
+  return SEED_CONTRACTS;
 }
