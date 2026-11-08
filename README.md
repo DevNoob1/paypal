@@ -43,6 +43,7 @@ In the global freelance and digital contractor economy ($1.5 Trillion), payment 
   * **Agent 2 (Code Inspector):** Inspects PR diffs, test coverage, and technical implementation.
   * **Agent 3 (Settlement Arbiter):** Synthesizes evaluations and authorizes PayPal payout release.
 * ⚡ **Instant Automated Payout:** Direct fund release via PayPal Payouts upon AI approval.
+* 🧭 **Interactive Guided Walkthrough:** Built-in component-by-component page tour across every screen with 1-click trigger from the navbar.
 * 🌓 **Dark & Light Theme Toggle:** Clean, professional interface with full support for light and dark themes.
 * 🔄 **Perspective Switcher:** Seamlessly switch between Client and Contractor roles to experience both sides of the platform.
 * 🛡️ **Objective Dispute Handling:** Generates evidence reports for milestones that do not meet agreed criteria.
