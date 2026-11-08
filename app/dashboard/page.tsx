@@ -4,28 +4,19 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  ShieldCheck,
   PlusCircle,
-  Clock,
   CheckCircle2,
   AlertCircle,
-  FileText,
   DollarSign,
-  TrendingUp,
-  ArrowUpRight,
-  Filter,
   Search,
-  ExternalLink,
   ChevronRight,
   Sparkles,
-  ArrowRight,
-  HelpCircle,
-  X,
-  PlayCircle,
-  UserCheck,
-  Building2,
-  Wallet,
   Send,
+  Lock,
+  Clock,
+  ArrowRight,
+  Info,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
@@ -63,14 +54,13 @@ interface Stats {
 }
 
 export default function Dashboard() {
-  const { user, loginAs, setIsSignInOpen } = useAuth();
+  const { user, setIsSignInOpen } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showTour, setShowTour] = useState<boolean>(true);
-  const [activeTourStep, setActiveTourStep] = useState<number>(1);
+  const [showDemoTip, setShowDemoTip] = useState(true);
 
   const loadData = async () => {
     try {
@@ -117,42 +107,42 @@ export default function Dashboard() {
     switch (status) {
       case "FUNDED_ESCROW":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-accent/10 text-accent border border-accent/20">
+            <Lock className="w-3 h-3" />
             In Escrow
           </span>
         );
       case "PENDING_REVIEW":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
-            <Sparkles className="w-3 h-3 text-amber-400" />
-            Ready for Tri-Agent Audit
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
+            <Sparkles className="w-3 h-3" />
+            Ready for Review
           </span>
         );
       case "AI_VERIFIED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-            <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-            Consensus Verified
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20">
+            <CheckCircle2 className="w-3 h-3" />
+            Verified
           </span>
         );
       case "PAYOUT_COMPLETED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-            Settled via PayPal
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
+            <CheckCircle2 className="w-3 h-3" />
+            Paid via PayPal
           </span>
         );
       case "DISPUTED":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
-            <AlertCircle className="w-3 h-3 text-rose-400" />
-            Dispute Flagged
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20">
+            <AlertCircle className="w-3 h-3" />
+            Disputed
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-400">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-card text-muted border border-border">
             Draft
           </span>
         );
@@ -160,330 +150,192 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
-      {/* Top Header - Tailored to Role */}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              {user.role === "client"
-                ? "Enterprise Escrow & Settlements"
-                : "Contractor Earnings & Verification"}
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+              {user.role === "client" ? "Milestones & Escrow" : "Earnings & Submissions"}
             </h1>
             <button
               onClick={() => setIsSignInOpen(true)}
-              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-blue-400 border border-slate-700/80 flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-card hover:bg-card-hover text-accent border border-border flex items-center gap-1.5 cursor-pointer"
             >
               <span>{user.avatar}</span>
               <span>{user.name}</span>
-              <span className="text-[10px] text-slate-500">({user.role === "client" ? "Client" : "Contractor"})</span>
+              <span className="text-[10px] text-muted">({user.role === "client" ? "Client" : "Contractor"})</span>
             </button>
           </div>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-muted mt-1">
             {user.role === "client"
-              ? "Fund milestone contracts, inspect deliverables, and monitor Tri-Agent consensus."
-              : "Submit technical deliverables, trigger autonomous Tri-Agent audits, and collect instant payouts."}
+              ? "Manage milestone deposits, review contractor deliverables, and track payments."
+              : "Submit work deliverables, trigger automated AI verification, and receive PayPal payouts."}
           </p>
         </div>
 
         <div className="flex items-center gap-2.5 self-start sm:self-auto">
-          {!showTour && (
-            <button
-              onClick={() => setShowTour(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
-            >
-              <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
-              Show Workflow Guide
-            </button>
-          )}
-
           {user.role === "client" ? (
             <Link
               href="/contracts/new"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-semibold text-sm shadow-sm transition-all cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" />
-              Deposit Milestone Escrow
+              New Contract
             </Link>
           ) : (
             <Link
               href="/contracts/cnt_9821_stripe"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-success hover:opacity-90 text-white font-semibold text-sm shadow-sm transition-all cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              Submit PR for Verification
+              Demo Deliverable
             </Link>
           )}
         </div>
       </div>
 
-      {/* INTERACTIVE WORKFLOW GUIDE BANNER */}
-      {showTour && (
-        <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-slate-900/60 border border-blue-500/30 shadow-2xl relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="h-8 w-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20">
-                <PlayCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                  Autonomous Settlement Workflow
-                  <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
-                    Step {activeTourStep} of 4
-                  </span>
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Select each step below to inspect how capital moves through the Tri-Agent consensus swarm.
-                </p>
-              </div>
+      {/* Quick Demo Hint Banner */}
+      {showDemoTip && (
+        <div className="mb-6 p-4 rounded-2xl bg-card border border-border flex items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-center gap-3 text-xs">
+            <div className="w-8 h-8 rounded-xl bg-accent/15 text-accent flex items-center justify-center shrink-0">
+              <Info className="w-4 h-4" />
             </div>
+            <div>
+              <span className="font-semibold text-foreground">Interactive Demo:</span>{" "}
+              <span className="text-muted">
+                Contract <strong className="text-foreground">cnt_9821_stripe</strong> has a submitted PR and test logs ready for AI review and instant PayPal settlement.
+              </span>
+            </div>
+          </div>
 
+          <div className="flex items-center gap-2">
+            <Link
+              href="/contracts/cnt_9821_stripe"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-accent text-white text-xs font-semibold hover:bg-accent-hover transition-colors whitespace-nowrap"
+            >
+              Open Contract
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
             <button
-              onClick={() => setShowTour(false)}
-              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800/60 transition-colors cursor-pointer"
-              title="Dismiss guide"
+              onClick={() => setShowDemoTip(false)}
+              className="p-1 text-muted hover:text-foreground rounded-lg transition-colors cursor-pointer"
+              title="Dismiss tip"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-
-          {/* 4 Interactive Steps */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-            {/* Step 1 */}
-            <div
-              onClick={() => setActiveTourStep(1)}
-              className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-                activeTourStep === 1
-                  ? "bg-blue-900/40 border-blue-400 shadow-md shadow-blue-500/10"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
-                  Step 1
-                </span>
-                <span className="h-2 w-2 rounded-full bg-blue-500" />
-              </div>
-              <h3 className="text-xs font-bold text-white mb-1">Switch Perspective</h3>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                Experience how the platform adapts whether you are the funding Client or receiving Contractor.
-              </p>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  loginAs(user.role === "client" ? "contractor" : "client");
-                }}
-                className="mt-2.5 w-full py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-semibold text-slate-200 border border-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer"
-              >
-                Switch to {user.role === "client" ? "Contractor View" : "Client View"}
-              </button>
-            </div>
-
-            {/* Step 2 */}
-            <div
-              onClick={() => setActiveTourStep(2)}
-              className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-                activeTourStep === 2
-                  ? "bg-blue-900/40 border-blue-400 shadow-md shadow-blue-500/10"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
-                  Step 2
-                </span>
-                <span className="h-2 w-2 rounded-full bg-slate-600" />
-              </div>
-              <h3 className="text-xs font-bold text-white mb-1">Inspect Deliverable</h3>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                Open the featured milestone below to inspect submitted code diffs, staging URLs, and test suites.
-              </p>
-              <Link
-                href="/contracts/cnt_9821_stripe"
-                className="mt-2.5 w-full py-1 px-2 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-[10px] font-semibold text-blue-300 border border-blue-500/30 flex items-center justify-center gap-1 transition-colors"
-              >
-                Open Milestone →
-              </Link>
-            </div>
-
-            {/* Step 3 */}
-            <div
-              onClick={() => setActiveTourStep(3)}
-              className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-                activeTourStep === 3
-                  ? "bg-blue-900/40 border-blue-400 shadow-md shadow-blue-500/10"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
-                  Step 3
-                </span>
-                <span className="h-2 w-2 rounded-full bg-slate-600" />
-              </div>
-              <h3 className="text-xs font-bold text-white mb-1">Tri-Agent Swarm</h3>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                Agent Alpha (Scope), Beta (Code), and Gamma (Risk) run parallel verification audits.
-              </p>
-              <div className="mt-2.5 text-[10px] text-cyan-400 font-mono flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
-                Under 2.0s consensus
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div
-              onClick={() => setActiveTourStep(4)}
-              className={`p-3.5 rounded-2xl border transition-all cursor-pointer ${
-                activeTourStep === 4
-                  ? "bg-blue-900/40 border-blue-400 shadow-md shadow-blue-500/10"
-                  : "bg-slate-950/60 border-slate-800 hover:border-slate-700"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-[11px] font-bold text-blue-400 uppercase tracking-wider">
-                  Step 4
-                </span>
-                <span className="h-2 w-2 rounded-full bg-slate-600" />
-              </div>
-              <h3 className="text-xs font-bold text-white mb-1">Direct Settlement</h3>
-              <p className="text-[11px] text-slate-400 leading-snug">
-                Upon unanimous consensus, PayPal Payouts releases the milestone directly to the contractor.
-              </p>
-              <div className="mt-2.5 text-[10px] text-emerald-400 font-mono flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" />
-                Zero hold latency
-              </div>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
-            <div className="text-xs text-slate-300 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>
-                &ldquo;Next.js 16 Webhook Integration&rdquo; is pre-seeded with submitted deliverables ready for Tri-Agent audit.
-              </span>
-            </div>
-
-            <Link
-              href="/contracts/cnt_9821_stripe"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all cursor-pointer whitespace-nowrap"
-            >
-              Launch Live War Room
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
         </div>
       )}
 
-      {/* Role-Specific Metric Cards */}
+      {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {user.role === "client" ? (
           <>
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Total Escrow In Flight</span>
-                <DollarSign className="w-4 h-4 text-blue-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Total in Escrow</span>
+                <DollarSign className="w-4 h-4 text-accent" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
+              <div className="mt-2 text-2xl font-bold text-foreground">
                 ${stats?.totalEscrow.toFixed(2) || "0.00"}
               </div>
-              <div className="mt-1 text-xs text-blue-400/80">
-                Secured in PayPal Escrow
+              <div className="mt-1 text-xs text-muted">
+                Secured via PayPal
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Settled to Contractors</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Total Paid Out</span>
+                <CheckCircle2 className="w-4 h-4 text-success" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-emerald-400">
+              <div className="mt-2 text-2xl font-bold text-success">
                 ${stats?.totalPaidOut.toFixed(2) || "0.00"}
               </div>
-              <div className="mt-1 text-xs text-emerald-400/80">
-                Disbursed upon verified delivery
+              <div className="mt-1 text-xs text-muted">
+                Released upon AI verification
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Tri-Agent Consensus Rate</span>
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Verified Milestones</span>
+                <Sparkles className="w-4 h-4 text-accent" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-cyan-400">
-                {stats?.approvalRate || 100}%
+              <div className="mt-2 text-2xl font-bold text-foreground">
+                {stats?.verifiedCount || 2}
               </div>
-              <div className="mt-1 text-xs text-slate-400">
-                Multi-agent validation score
+              <div className="mt-1 text-xs text-muted">
+                Met all acceptance criteria
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Disputes Pre-Resolved</span>
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Flagged Disputes</span>
+                <AlertCircle className="w-4 h-4 text-rose-500" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-indigo-400">
-                {stats?.disputedCount || 0} Flagged
+              <div className="mt-2 text-2xl font-bold text-rose-500">
+                {stats?.disputedCount || 0}
               </div>
-              <div className="mt-1 text-xs text-slate-400">
-                Objective criteria mediation
+              <div className="mt-1 text-xs text-muted">
+                Require client/contractor review
               </div>
             </div>
           </>
         ) : (
           <>
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Pending Verification</span>
-                <Wallet className="w-4 h-4 text-amber-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Awaiting Review</span>
+                <Clock className="w-4 h-4 text-amber-500" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-white">
+              <div className="mt-2 text-2xl font-bold text-foreground">
                 $450.00
               </div>
-              <div className="mt-1 text-xs text-amber-400/80">
-                Awaiting Tri-Agent consensus
+              <div className="mt-1 text-xs text-muted">
+                Ready for AI evaluation
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Total Earnings Settled</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Total Earnings</span>
+                <CheckCircle2 className="w-4 h-4 text-success" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-emerald-400">
-                $14,850.00
+              <div className="mt-2 text-2xl font-bold text-success">
+                $1,200.00
               </div>
-              <div className="mt-1 text-xs text-emerald-400/80">
-                Direct deposits into PayPal
+              <div className="mt-1 text-xs text-muted">
+                Deposited via PayPal
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Connected PayPal Payout</span>
-                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>PayPal Payout Account</span>
+                <Lock className="w-4 h-4 text-accent" />
               </div>
-              <div className="mt-2 text-sm font-bold text-white font-mono truncate">
+              <div className="mt-2 text-sm font-bold text-foreground font-mono truncate">
                 alex.rivera@devmail.com
               </div>
-              <div className="mt-1 text-xs text-emerald-400">
-                Instant Settlement Enabled
+              <div className="mt-1 text-xs text-success">
+                Direct Settlement Active
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-                <span>Average Payout Speed</span>
-                <Sparkles className="w-4 h-4 text-indigo-400" />
+            <div className="p-5 rounded-2xl bg-card border border-border">
+              <div className="flex items-center justify-between text-muted text-xs font-medium">
+                <span>Review Speed</span>
+                <Sparkles className="w-4 h-4 text-accent" />
               </div>
-              <div className="mt-2 text-2xl font-bold text-indigo-400">
-                1.84s
+              <div className="mt-2 text-2xl font-bold text-foreground">
+                Instant
               </div>
-              <div className="mt-1 text-xs text-slate-400">
-                Zero client review delay
+              <div className="mt-1 text-xs text-muted">
+                Automated parallel AI review
               </div>
             </div>
           </>
@@ -494,10 +346,10 @@ export default function Dashboard() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0">
           {[
-            { label: "All Milestones", val: "ALL" },
-            { label: "Ready for Audit", val: "REVIEW" },
+            { label: "All Contracts", val: "ALL" },
+            { label: "Ready for Review", val: "REVIEW" },
             { label: "In Escrow", val: "ESCROW" },
-            { label: "Settled", val: "COMPLETED" },
+            { label: "Completed", val: "COMPLETED" },
             { label: "Disputed", val: "DISPUTED" },
           ].map((tab) => (
             <button
@@ -505,8 +357,8 @@ export default function Dashboard() {
               onClick={() => setFilter(tab.val)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer ${
                 filter === tab.val
-                  ? "bg-slate-800 text-white shadow-sm border border-slate-700"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                  ? "bg-accent text-white shadow-sm"
+                  : "text-muted hover:text-foreground hover:bg-card"
               }`}
             >
               {tab.label}
@@ -515,105 +367,99 @@ export default function Dashboard() {
         </div>
 
         <div className="relative w-full sm:w-64">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="text"
-            placeholder="Search contracts or parties..."
+            placeholder="Search contracts..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground placeholder-muted focus:outline-none focus:border-accent"
           />
         </div>
       </div>
 
       {/* Contracts List */}
       {loading ? (
-        <div className="text-center py-20 text-slate-500 text-sm">
-          Loading encrypted contracts...
+        <div className="text-center py-20 text-muted text-sm">
+          Loading contracts...
         </div>
       ) : filteredContracts.length === 0 ? (
-        <div className="text-center py-20 border border-dashed border-slate-800 rounded-2xl">
-          <p className="text-slate-400 text-sm">No contracts match this filter.</p>
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
+          <p className="text-muted text-sm">No contracts found.</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredContracts.map((contract) => (
             <div
               key={contract.id}
-              className={`group p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+              className={`p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
                 contract.id === "cnt_9821_stripe"
-                  ? "bg-slate-900/80 border-blue-500/40 shadow-lg shadow-blue-500/5 hover:border-blue-500/70"
-                  : "bg-slate-900/40 border-slate-800/80 hover:border-slate-700/80 hover:bg-slate-900/60"
+                  ? "bg-card border-accent/40 shadow-sm hover:border-accent"
+                  : "bg-card border-border hover:bg-card-hover"
               }`}
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1.5">
-                  <span className="font-mono text-xs text-slate-500">
+                  <span className="font-mono text-xs text-muted">
                     {contract.id}
                   </span>
                   {getStatusBadge(contract.status)}
-                  {contract.id === "cnt_9821_stripe" && (
-                    <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                      ★ Active Demonstration
-                    </span>
-                  )}
                 </div>
 
-                <h3 className="text-base font-semibold text-white group-hover:text-blue-400 transition-colors truncate">
+                <h3 className="text-base font-semibold text-foreground truncate">
                   {contract.title}
                 </h3>
 
-                <p className="text-xs text-slate-400 mt-1 line-clamp-1">
+                <p className="text-xs text-muted mt-1 line-clamp-1">
                   {contract.description}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <span className="text-slate-500">Client:</span> {contract.clientName}
+                <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted">
+                  <span>
+                    Client: <strong className="text-foreground">{contract.clientName}</strong>
                   </span>
-                  <span className="text-slate-600">•</span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-slate-500">Contractor:</span> {contract.freelancerName}
+                  <span>•</span>
+                  <span>
+                    Contractor: <strong className="text-foreground">{contract.freelancerName}</strong>
                   </span>
-                  <span className="text-slate-600">•</span>
-                  <span className="flex items-center gap-1">
-                    <span className="text-slate-500">Criteria:</span>{" "}
-                    {contract.criteria.length} items
+                  <span>•</span>
+                  <span>
+                    Criteria: <strong className="text-foreground">{contract.criteria.length} items</strong>
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800/60">
+              <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-border">
                 <div className="text-left md:text-right">
-                  <div className="text-lg font-bold text-white">
+                  <div className="text-lg font-bold text-foreground">
                     ${contract.amount.toFixed(2)}
                   </div>
-                  <div className="text-[11px] text-slate-500 uppercase tracking-wider">
-                    {contract.currency} Escrow
+                  <div className="text-[11px] text-muted uppercase">
+                    {contract.currency}
                   </div>
                 </div>
 
                 <Link
                   href={`/contracts/${contract.id}`}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-semibold transition-all shadow-sm cursor-pointer ${
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold transition-all shadow-sm cursor-pointer ${
                     contract.status === "PENDING_REVIEW"
-                      ? "bg-blue-600 hover:bg-blue-500 shadow-blue-500/25"
-                      : "bg-slate-800 hover:bg-slate-700"
+                      ? "bg-accent hover:bg-accent-hover text-white"
+                      : "bg-card-hover hover:bg-card border border-border text-foreground"
                   }`}
                 >
                   {contract.status === "PENDING_REVIEW" ? (
                     <>
-                      <Sparkles className="w-3.5 h-3.5 text-white" />
-                      {user.role === "client" ? "Inspect Delivery & Audit" : "Trigger Tri-Agent Payout"}
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Review & Settle
                     </>
                   ) : contract.status === "PAYOUT_COMPLETED" ? (
                     <>
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                      View Settlement
+                      <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                      View Receipt
                     </>
                   ) : (
                     <>
-                      Open Arbitration Room
+                      View Details
                       <ChevronRight className="w-3.5 h-3.5" />
                     </>
                   )}

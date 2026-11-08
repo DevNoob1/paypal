@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/Navbar";
 import { AuthProvider } from "@/components/AuthContext";
+import { ThemeProvider } from "@/components/ThemeContext";
 import { SignInModal } from "@/components/SignInModal";
 
 const geistSans = Geist({
@@ -18,9 +19,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ResolvAI | Autonomous Escrow & Settlement Protocol",
+  title: "ResolvAI — Autonomous AI Escrow & Milestone Payments",
   description:
-    "Enterprise milestone escrow and autonomous dispute resolution powered by multi-agent consensus and PayPal financial rails.",
+    "Milestone escrow and automated deliverable verification powered by AI agents and PayPal.",
 };
 
 export default function RootLayout({
@@ -32,34 +33,37 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-slate-950 text-slate-100 selection:bg-blue-600 selection:text-white">
-        <AuthProvider>
-          <Suspense fallback={<div className="h-16 border-b border-slate-800 bg-slate-950" />}>
-            <Navbar />
-          </Suspense>
-          <main className="flex-1 flex flex-col">{children}</main>
-          <SignInModal />
+      <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-accent selection:text-white">
+        <ThemeProvider>
+          <AuthProvider>
+            <Suspense fallback={<div className="h-16 border-b border-border bg-background" />}>
+              <Navbar />
+            </Suspense>
+            <main className="flex-1 flex flex-col">{children}</main>
+            <SignInModal />
 
-          {/* Enterprise Footer */}
-          <footer className="border-t border-slate-900 bg-slate-950/90 py-8 text-xs text-slate-500">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-400">ResolvAI Inc.</span>
-                <span>—</span>
-                <span>Autonomous Multi-Agent Settlement Protocol</span>
+            {/* Clean Professional Footer */}
+            <footer className="border-t border-border bg-card/50 py-6 text-xs text-muted">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-foreground">ResolvAI</span>
+                  <span>—</span>
+                  <span>Automated Milestone Escrow & Verification</span>
+                </div>
+                <div className="flex items-center gap-4 text-muted">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full bg-success inline-block"></span>
+                    PayPal Payment Rails
+                  </span>
+                  <span>•</span>
+                  <span>AI Multi-Agent Review</span>
+                </div>
               </div>
-              <div className="flex items-center gap-4 text-slate-400">
-                <span className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
-                  PayPal Orders & Payouts Engine Active
-                </span>
-                <span>•</span>
-                <span>Tri-Agent Consensus Network</span>
-              </div>
-            </div>
-          </footer>
-        </AuthProvider>
+            </footer>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
