@@ -23,7 +23,11 @@ import {
   X,
   PlayCircle,
   UserCheck,
+  Building2,
+  Wallet,
+  Send,
 } from "lucide-react";
+import { useAuth } from "@/components/AuthContext";
 
 interface Contract {
   id: string;
@@ -59,14 +63,14 @@ interface Stats {
 }
 
 export default function Dashboard() {
+  const { user, loginAs, setIsSignInOpen } = useAuth();
   const [contracts, setContracts] = useState<Contract[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState("");
-  const [role, setRole] = useState<string>("client");
-  const [activeTourStep, setActiveTourStep] = useState<number>(1);
   const [showTour, setShowTour] = useState<boolean>(true);
+  const [activeTourStep, setActiveTourStep] = useState<number>(1);
 
   const loadData = async () => {
     try {
@@ -85,22 +89,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const currentRole = localStorage.getItem("resolvai_role") || "client";
-    setRole(currentRole);
-
-    const handleRoleChange = () => {
-      setRole(localStorage.getItem("resolvai_role") || "client");
-    };
-    window.addEventListener("role_changed", handleRoleChange);
-    return () => window.removeEventListener("role_changed", handleRoleChange);
   }, []);
-
-  const toggleRole = () => {
-    const next = role === "client" ? "freelancer" : "client";
-    setRole(next);
-    localStorage.setItem("resolvai_role", next);
-    window.dispatchEvent(new Event("role_changed"));
-  };
 
   const filteredContracts = contracts.filter((c) => {
     const matchesFilter =
@@ -137,14 +126,14 @@ export default function Dashboard() {
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20 animate-pulse">
             <Sparkles className="w-3 h-3 text-amber-400" />
-            Ready for AI Audit
+            Ready for Tri-Agent Audit
           </span>
         );
       case "AI_VERIFIED":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
             <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-            AI Verified
+            Consensus Verified
           </span>
         );
       case "PAYOUT_COMPLETED":
@@ -172,19 +161,28 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
-      {/* Top Header */}
+      {/* Top Header - Tailored to Role */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Enterprise Escrow & Settlements
+              {user.role === "client"
+                ? "Enterprise Escrow & Settlements"
+                : "Contractor Earnings & Verification"}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono uppercase bg-slate-800 text-slate-400 border border-slate-700">
-              Perspective: {role}
-            </span>
+            <button
+              onClick={() => setIsSignInOpen(true)}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-blue-400 border border-slate-700/80 flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>{user.avatar}</span>
+              <span>{user.name}</span>
+              <span className="text-[10px] text-slate-500">({user.role === "client" ? "Client" : "Contractor"})</span>
+            </button>
           </div>
           <p className="text-sm text-slate-400 mt-1">
-            Manage contract milestones, inspect AI audit results, and execute automated PayPal settlements.
+            {user.role === "client"
+              ? "Fund milestone contracts, inspect deliverables, and monitor Tri-Agent consensus."
+              : "Submit technical deliverables, trigger autonomous Tri-Agent audits, and collect instant payouts."}
           </p>
         </div>
 
@@ -195,21 +193,31 @@ export default function Dashboard() {
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 text-xs font-medium transition-colors cursor-pointer"
             >
               <HelpCircle className="w-3.5 h-3.5 text-blue-400" />
-              Show Guide
+              Show Workflow Guide
             </button>
           )}
 
-          <Link
-            href="/contracts/new"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 transition-all cursor-pointer"
-          >
-            <PlusCircle className="w-4 h-4" />
-            Create Milestone Escrow
-          </Link>
+          {user.role === "client" ? (
+            <Link
+              href="/contracts/new"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 transition-all cursor-pointer"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Deposit Milestone Escrow
+            </Link>
+          ) : (
+            <Link
+              href="/contracts/cnt_9821_stripe"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-sm shadow-lg shadow-emerald-600/25 transition-all cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+              Submit PR for Verification
+            </Link>
+          )}
         </div>
       </div>
 
-      {/* INTERACTIVE GUIDED WALKTHROUGH BANNER ("WELCOME & STEPS") */}
+      {/* INTERACTIVE WORKFLOW GUIDE BANNER */}
       {showTour && (
         <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-blue-950/40 via-indigo-950/30 to-slate-900/60 border border-blue-500/30 shadow-2xl relative overflow-hidden">
           <div className="flex items-center justify-between mb-4">
@@ -219,13 +227,13 @@ export default function Dashboard() {
               </div>
               <div>
                 <h2 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
-                  Welcome to ResolvAI — Interactive Guided Tour
+                  Autonomous Settlement Workflow
                   <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full border border-blue-500/30">
                     Step {activeTourStep} of 4
                   </span>
                 </h2>
                 <p className="text-xs text-slate-400">
-                  Follow these 4 steps to experience how autonomous contracting and settlement work.
+                  Select each step below to inspect how capital moves through the Tri-Agent consensus swarm.
                 </p>
               </div>
             </div>
@@ -239,7 +247,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          {/* 4 Interactive Step Cards */}
+          {/* 4 Interactive Steps */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
             {/* Step 1 */}
             <div
@@ -256,20 +264,19 @@ export default function Dashboard() {
                 </span>
                 <span className="h-2 w-2 rounded-full bg-blue-500" />
               </div>
-              <h3 className="text-xs font-bold text-white mb-1">Select Perspective</h3>
+              <h3 className="text-xs font-bold text-white mb-1">Switch Perspective</h3>
               <p className="text-[11px] text-slate-400 leading-snug">
-                Switch between Client (buyer) and Contractor (vendor) view using the toggle button.
+                Experience how the platform adapts whether you are the funding Client or receiving Contractor.
               </p>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleRole();
+                  loginAs(user.role === "client" ? "contractor" : "client");
                 }}
                 className="mt-2.5 w-full py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-semibold text-slate-200 border border-slate-700 flex items-center justify-center gap-1 transition-colors cursor-pointer"
               >
-                <UserCheck className="w-3 h-3 text-blue-400" />
-                Current: {role} (Click to switch)
+                Switch to {user.role === "client" ? "Contractor View" : "Client View"}
               </button>
             </div>
 
@@ -288,15 +295,15 @@ export default function Dashboard() {
                 </span>
                 <span className="h-2 w-2 rounded-full bg-slate-600" />
               </div>
-              <h3 className="text-xs font-bold text-white mb-1">Open Ready Contract</h3>
+              <h3 className="text-xs font-bold text-white mb-1">Inspect Deliverable</h3>
               <p className="text-[11px] text-slate-400 leading-snug">
-                Click on the highlighted contract below: &ldquo;Next.js 16 Webhook Integration&rdquo;.
+                Open the featured milestone below to inspect submitted code diffs, staging URLs, and test suites.
               </p>
               <Link
                 href="/contracts/cnt_9821_stripe"
                 className="mt-2.5 w-full py-1 px-2 rounded-lg bg-blue-600/30 hover:bg-blue-600/50 text-[10px] font-semibold text-blue-300 border border-blue-500/30 flex items-center justify-center gap-1 transition-colors"
               >
-                Inspect Milestone →
+                Open Milestone →
               </Link>
             </div>
 
@@ -315,13 +322,13 @@ export default function Dashboard() {
                 </span>
                 <span className="h-2 w-2 rounded-full bg-slate-600" />
               </div>
-              <h3 className="text-xs font-bold text-white mb-1">Run AI Verification</h3>
+              <h3 className="text-xs font-bold text-white mb-1">Tri-Agent Swarm</h3>
               <p className="text-[11px] text-slate-400 leading-snug">
-                Hit &ldquo;Run Autonomous AI Audit&rdquo;. Gemini evaluates HMAC security and unit tests.
+                Agent Alpha (Scope), Beta (Code), and Gamma (Risk) run parallel verification audits.
               </p>
               <div className="mt-2.5 text-[10px] text-cyan-400 font-mono flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                Under 2s evaluation
+                Under 2.0s consensus
               </div>
             </div>
 
@@ -340,23 +347,22 @@ export default function Dashboard() {
                 </span>
                 <span className="h-2 w-2 rounded-full bg-slate-600" />
               </div>
-              <h3 className="text-xs font-bold text-white mb-1">Instant Settlement</h3>
+              <h3 className="text-xs font-bold text-white mb-1">Direct Settlement</h3>
               <p className="text-[11px] text-slate-400 leading-snug">
-                Funds are immediately deposited to the contractor via PayPal Payouts with a batch receipt.
+                Upon unanimous consensus, PayPal Payouts releases the milestone directly to the contractor.
               </p>
               <div className="mt-2.5 text-[10px] text-emerald-400 font-mono flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3" />
-                Zero manual hold
+                Zero hold latency
               </div>
             </div>
           </div>
 
-          {/* Quick Action CTA inside banner */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
             <div className="text-xs text-slate-300 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>
-                Recommended contract is ready with submitted code deliverables for immediate testing.
+                &ldquo;Next.js 16 Webhook Integration&rdquo; is pre-seeded with submitted deliverables ready for Tri-Agent audit.
               </span>
             </div>
 
@@ -364,71 +370,128 @@ export default function Dashboard() {
               href="/contracts/cnt_9821_stripe"
               className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-600/30 transition-all cursor-pointer whitespace-nowrap"
             >
-              Start Walkthrough with Live Contract
+              Launch Live War Room
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
       )}
 
-      {/* Financial Metrics Cards */}
+      {/* Role-Specific Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Escrow In Flight</span>
-            <DollarSign className="w-4 h-4 text-blue-400" />
-          </div>
-          <div className="mt-2 text-2xl font-bold text-white">
-            ${stats?.totalEscrow.toFixed(2) || "0.00"}
-          </div>
-          <div className="mt-1 text-xs text-blue-400/80 flex items-center gap-1">
-            <span>Locked in Smart Escrow</span>
-          </div>
-        </div>
+        {user.role === "client" ? (
+          <>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Total Escrow In Flight</span>
+                <DollarSign className="w-4 h-4 text-blue-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-white">
+                ${stats?.totalEscrow.toFixed(2) || "0.00"}
+              </div>
+              <div className="mt-1 text-xs text-blue-400/80">
+                Secured in PayPal Escrow
+              </div>
+            </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Settled to Contractors</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="mt-2 text-2xl font-bold text-emerald-400">
-            ${stats?.totalPaidOut.toFixed(2) || "0.00"}
-          </div>
-          <div className="mt-1 text-xs text-emerald-400/80">
-            Direct PayPal Payouts
-          </div>
-        </div>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Settled to Contractors</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-emerald-400">
+                ${stats?.totalPaidOut.toFixed(2) || "0.00"}
+              </div>
+              <div className="mt-1 text-xs text-emerald-400/80">
+                Disbursed upon verified delivery
+              </div>
+            </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>AI Auto-Approval Rate</span>
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div className="mt-2 text-2xl font-bold text-cyan-400">
-            {stats?.approvalRate || 100}%
-          </div>
-          <div className="mt-1 text-xs text-slate-400">
-            Multimodal Gemini verification
-          </div>
-        </div>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Tri-Agent Consensus Rate</span>
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-cyan-400">
+                {stats?.approvalRate || 100}%
+              </div>
+              <div className="mt-1 text-xs text-slate-400">
+                Multi-agent validation score
+              </div>
+            </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Disputes Prevented</span>
-            <ShieldCheck className="w-4 h-4 text-indigo-400" />
-          </div>
-          <div className="mt-2 text-2xl font-bold text-indigo-400">
-            {stats?.disputedCount || 0} Flagged
-          </div>
-          <div className="mt-1 text-xs text-slate-400">
-            Objective criteria mediation
-          </div>
-        </div>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Disputes Pre-Resolved</span>
+                <ShieldCheck className="w-4 h-4 text-indigo-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-indigo-400">
+                {stats?.disputedCount || 0} Flagged
+              </div>
+              <div className="mt-1 text-xs text-slate-400">
+                Objective criteria mediation
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Pending Verification</span>
+                <Wallet className="w-4 h-4 text-amber-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-white">
+                $450.00
+              </div>
+              <div className="mt-1 text-xs text-amber-400/80">
+                Awaiting Tri-Agent consensus
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Total Earnings Settled</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-emerald-400">
+                $14,850.00
+              </div>
+              <div className="mt-1 text-xs text-emerald-400/80">
+                Direct deposits into PayPal
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Connected PayPal Payout</span>
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+              </div>
+              <div className="mt-2 text-sm font-bold text-white font-mono truncate">
+                alex.rivera@devmail.com
+              </div>
+              <div className="mt-1 text-xs text-emerald-400">
+                Instant Settlement Enabled
+              </div>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+              <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
+                <span>Average Payout Speed</span>
+                <Sparkles className="w-4 h-4 text-indigo-400" />
+              </div>
+              <div className="mt-2 text-2xl font-bold text-indigo-400">
+                1.84s
+              </div>
+              <div className="mt-1 text-xs text-slate-400">
+                Zero client review delay
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Filters and Search */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
-        {/* Filter Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-2 sm:pb-0">
           {[
             { label: "All Milestones", val: "ALL" },
@@ -451,7 +514,6 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Search Input */}
         <div className="relative w-full sm:w-64">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
           <input
@@ -467,17 +529,11 @@ export default function Dashboard() {
       {/* Contracts List */}
       {loading ? (
         <div className="text-center py-20 text-slate-500 text-sm">
-          Loading contracts from PayPal network...
+          Loading encrypted contracts...
         </div>
       ) : filteredContracts.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-slate-800 rounded-2xl">
           <p className="text-slate-400 text-sm">No contracts match this filter.</p>
-          <Link
-            href="/contracts/new"
-            className="mt-3 inline-flex items-center gap-1.5 text-xs text-blue-400 hover:underline"
-          >
-            Create your first milestone escrow →
-          </Link>
         </div>
       ) : (
         <div className="space-y-3">
@@ -490,7 +546,6 @@ export default function Dashboard() {
                   : "bg-slate-900/40 border-slate-800/80 hover:border-slate-700/80 hover:bg-slate-900/60"
               }`}
             >
-              {/* Left Column: Title & Parties */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1.5">
                   <span className="font-mono text-xs text-slate-500">
@@ -499,7 +554,7 @@ export default function Dashboard() {
                   {getStatusBadge(contract.status)}
                   {contract.id === "cnt_9821_stripe" && (
                     <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30">
-                      ★ Featured Demo Contract
+                      ★ Active Demonstration
                     </span>
                   )}
                 </div>
@@ -528,7 +583,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Right Column: Amount & Action */}
               <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 pt-3 md:pt-0 border-slate-800/60">
                 <div className="text-left md:text-right">
                   <div className="text-lg font-bold text-white">
@@ -550,7 +604,7 @@ export default function Dashboard() {
                   {contract.status === "PENDING_REVIEW" ? (
                     <>
                       <Sparkles className="w-3.5 h-3.5 text-white" />
-                      Run AI Audit & Pay
+                      {user.role === "client" ? "Inspect Delivery & Audit" : "Trigger Tri-Agent Payout"}
                     </>
                   ) : contract.status === "PAYOUT_COMPLETED" ? (
                     <>
@@ -559,7 +613,7 @@ export default function Dashboard() {
                     </>
                   ) : (
                     <>
-                      Open Arbitration
+                      Open Arbitration Room
                       <ChevronRight className="w-3.5 h-3.5" />
                     </>
                   )}

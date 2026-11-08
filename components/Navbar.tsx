@@ -3,35 +3,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 import {
   ShieldCheck,
   PlusCircle,
   LayoutDashboard,
-  UserCheck,
-  Sparkles,
+  User,
+  ArrowRight,
+  LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
-  const [role, setRole] = useState<"client" | "freelancer">("client");
-
-  useEffect(() => {
-    const saved = localStorage.getItem("resolvai_role");
-    if (saved === "client" || saved === "freelancer") {
-      setRole(saved);
-    }
-  }, []);
-
-  const toggleRole = () => {
-    const next = role === "client" ? "freelancer" : "client";
-    setRole(next);
-    localStorage.setItem("resolvai_role", next);
-    window.dispatchEvent(new Event("role_changed"));
-  };
+  const { user, setIsSignInOpen } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-6">
@@ -45,7 +33,7 @@ export function Navbar() {
               <span className="font-bold text-lg text-white tracking-tight flex items-center gap-1.5">
                 Resolv<span className="text-blue-400">AI</span>
                 <span className="text-[10px] uppercase font-semibold tracking-wider px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  Protocol
+                  Enterprise
                 </span>
               </span>
             </div>
@@ -62,25 +50,28 @@ export function Navbar() {
               }`}
             >
               <LayoutDashboard className="w-4 h-4" />
-              Dashboard
+              {user.role === "client" ? "Escrow Management" : "My Milestones"}
             </Link>
-            <Link
-              href="/contracts/new"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                pathname === "/contracts/new"
-                  ? "bg-slate-800 text-white"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
-              }`}
-            >
-              <PlusCircle className="w-4 h-4" />
-              New Escrow
-            </Link>
+
+            {user.role === "client" && (
+              <Link
+                href="/contracts/new"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  pathname === "/contracts/new"
+                    ? "bg-slate-800 text-white"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                }`}
+              >
+                <PlusCircle className="w-4 h-4" />
+                Deposit Escrow
+              </Link>
+            )}
           </nav>
         </div>
 
-        {/* Right Actions: Protocol Status + Perspective Switcher */}
+        {/* Right Actions: Protocol Status + User Switcher */}
         <div className="flex items-center gap-3">
-          {/* Live Protocol Indicator */}
+          {/* Active Settlement Badge */}
           <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -89,23 +80,36 @@ export function Navbar() {
             PayPal Settlement: Active
           </div>
 
-          {/* Perspective Toggle */}
+          {/* User Account / Role Switcher Button */}
           <button
-            onClick={toggleRole}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/60 text-xs font-medium text-slate-300 transition-all cursor-pointer"
-            title="Click to toggle perspective"
+            onClick={() => setIsSignInOpen(true)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs text-white transition-all cursor-pointer"
           >
-            <UserCheck className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-slate-400">View:</span>
-            <span className="font-semibold text-white capitalize">{role}</span>
+            <span className="text-sm">{user.avatar}</span>
+            <div className="text-left hidden sm:block">
+              <div className="font-semibold text-white leading-tight">{user.name}</div>
+              <div className="text-[10px] text-slate-400 leading-tight">
+                {user.role === "client" ? "Enterprise Client" : "Contractor"}
+              </div>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-1" />
           </button>
 
-          <Link
-            href="/contracts/new"
-            className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/25 transition-all"
-          >
-            Create Escrow
-          </Link>
+          {user.role === "client" ? (
+            <Link
+              href="/contracts/new"
+              className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-md shadow-blue-600/25 transition-all"
+            >
+              New Agreement
+            </Link>
+          ) : (
+            <Link
+              href="/contracts/cnt_9821_stripe"
+              className="hidden lg:flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-600/25 transition-all"
+            >
+              Submit Deliverable
+            </Link>
+          )}
         </div>
       </div>
     </header>
