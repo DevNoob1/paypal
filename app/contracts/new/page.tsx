@@ -192,7 +192,7 @@ export default function NewContractPage() {
       {step === "DETAILS" ? (
         <form onSubmit={handleProceedToPayment} className="space-y-6">
           {/* Preset Templates */}
-          <div className="p-4 rounded-2xl bg-card border border-border">
+          <div data-tour="contract-templates" className="p-4 rounded-2xl bg-card border border-border">
             <span className="text-xs font-semibold text-muted uppercase tracking-wider block mb-2">
               Sample Templates
             </span>
@@ -222,7 +222,7 @@ export default function NewContractPage() {
           </div>
 
           {/* Section 1: Overview */}
-          <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
+          <div data-tour="scope-budget" className="p-6 rounded-2xl bg-card border border-border space-y-4">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <span className="h-6 w-6 rounded-lg bg-accent/15 text-accent flex items-center justify-center text-xs font-bold">
                 1
@@ -290,7 +290,7 @@ export default function NewContractPage() {
           </div>
 
           {/* Section 2: Parties */}
-          <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
+          <div data-tour="contract-parties" className="p-6 rounded-2xl bg-card border border-border space-y-4">
             <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
               <span className="h-6 w-6 rounded-lg bg-accent/15 text-accent flex items-center justify-center text-xs font-bold">
                 2
@@ -346,7 +346,7 @@ export default function NewContractPage() {
           </div>
 
           {/* Section 3: Acceptance Criteria */}
-          <div className="p-6 rounded-2xl bg-card border border-border space-y-4">
+          <div data-tour="acceptance-criteria" className="p-6 rounded-2xl bg-card border border-border space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
                 <span className="h-6 w-6 rounded-lg bg-accent/15 text-accent flex items-center justify-center text-xs font-bold">
@@ -412,13 +412,15 @@ export default function NewContractPage() {
           </div>
 
           {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading || criteria.length === 0}
-            className="w-full py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-50 text-white font-semibold text-sm shadow-sm transition-all cursor-pointer"
-          >
-            {loading ? "Generating PayPal Escrow Order..." : `Proceed to Deposit Escrow ($${amount} USD)`}
-          </button>
+          <div data-tour="deposit-escrow-btn">
+            <button
+              type="submit"
+              disabled={loading || criteria.length === 0}
+              className="w-full py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-50 text-white font-semibold text-sm shadow-sm transition-all cursor-pointer"
+            >
+              {loading ? "Generating PayPal Escrow Order..." : `Proceed to Deposit Escrow ($${amount} USD)`}
+            </button>
+          </div>
         </form>
       ) : (
         /* ESCROW CONFIRMATION */

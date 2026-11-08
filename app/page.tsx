@@ -23,42 +23,45 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-12 sm:pt-24 sm:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-card border border-border shadow-sm mb-6">
-            <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
-            <span className="text-xs font-medium text-foreground">
-              Automated Milestone Escrow
-            </span>
-            <span className="text-border">|</span>
-            <span className="text-xs font-semibold text-accent">
-              Powered by PayPal Rails
-            </span>
+          {/* Badge & Title */}
+          <div data-tour="hero">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-card border border-border shadow-sm mb-6">
+              <span className="flex h-2 w-2 rounded-full bg-accent animate-pulse" />
+              <span className="text-xs font-medium text-foreground">
+                Automated Milestone Escrow
+              </span>
+              <span className="text-border">|</span>
+              <span className="text-xs font-semibold text-accent">
+                Powered by PayPal Rails
+              </span>
+            </div>
+
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground max-w-4xl mx-auto leading-[1.15]">
+              Milestone Escrow with{" "}
+              <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent">
+                Automated AI Verification
+              </span>
+            </h1>
+
+            <p className="mt-5 text-base sm:text-lg text-muted max-w-2xl mx-auto leading-relaxed">
+              Eliminate payment disputes and invoice delays. Milestone funds are secured through PayPal, evaluated by specialized AI agents against agreed criteria, and paid out automatically upon verification.
+            </p>
           </div>
-
-          {/* Main Title */}
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground max-w-4xl mx-auto leading-[1.15]">
-            Milestone Escrow with{" "}
-            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 bg-clip-text text-transparent">
-              Automated AI Verification
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="mt-5 text-base sm:text-lg text-muted max-w-2xl mx-auto leading-relaxed">
-            Eliminate payment disputes and invoice delays. Milestone funds are secured through PayPal, evaluated by specialized AI agents against agreed criteria, and paid out automatically upon verification.
-          </p>
 
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5">
-            <Link
-              href="/dashboard"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-semibold text-sm shadow-sm transition-all"
-            >
-              Open Dashboard
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+            <div data-tour="open-dashboard">
+              <Link
+                href="/dashboard"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-accent hover:bg-accent-hover text-white font-semibold text-sm shadow-sm transition-all"
+              >
+                Open Dashboard
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
 
             <button
+              data-tour="perspective-switch"
               onClick={() => setIsSignInOpen(true)}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-card hover:bg-card-hover border border-border text-foreground font-medium text-sm transition-all cursor-pointer"
             >
@@ -69,7 +72,7 @@ export default function Home() {
           </div>
 
           {/* Value Highlights */}
-          <div className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
+          <div data-tour="value-props" className="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto text-left">
             <div className="p-4 rounded-2xl bg-card border border-border">
               <div className="flex items-center gap-2 text-accent text-sm font-semibold mb-1">
                 <DollarSign className="w-4 h-4" />
@@ -104,12 +107,12 @@ export default function Home() {
       </section>
 
       {/* Interactive Workflow Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <section data-tour="workflow" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <AnimatedWorkflow />
       </section>
 
       {/* AI Review Agents Breakdown */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
+      <section data-tour="ai-agents" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
         <div className="text-center mb-10">
           <span className="text-xs font-bold uppercase tracking-wider text-accent block mb-2">
             Independent Verification

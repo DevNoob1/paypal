@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthContext";
 import { useTheme } from "./ThemeContext";
+import { useWalkthrough } from "./WalkthroughTour";
 import {
   ShieldCheck,
   PlusCircle,
@@ -13,12 +14,14 @@ import {
   Sun,
   Moon,
   Send,
+  Compass,
 } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
   const { user, setIsSignInOpen } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { startTour, hasTourForPage } = useWalkthrough();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
@@ -70,6 +73,18 @@ export function Navbar() {
 
         {/* Right Actions */}
         <div className="flex items-center gap-2.5">
+          {/* Interactive Walkthrough Tour Trigger */}
+          {hasTourForPage && (
+            <button
+              onClick={startTour}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 text-xs font-semibold transition-colors cursor-pointer"
+              title="Start Interactive Page Walkthrough"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Tour</span>
+            </button>
+          )}
+
           {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}

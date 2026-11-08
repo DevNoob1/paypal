@@ -201,7 +201,7 @@ function ContractDetailContent({ id }: { id: string }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div data-tour="contract-header" className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <Link
             href="/dashboard"
@@ -243,7 +243,7 @@ function ContractDetailContent({ id }: { id: string }) {
         {/* LEFT COLUMN: Details & Submission (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           {/* Parties Card */}
-          <div className="p-5 rounded-2xl bg-card border border-border space-y-3">
+          <div data-tour="contract-parties-card" className="p-5 rounded-2xl bg-card border border-border space-y-3">
             <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">
               Parties
             </h3>
@@ -270,7 +270,7 @@ function ContractDetailContent({ id }: { id: string }) {
           </div>
 
           {/* Agreed Criteria Card */}
-          <div className="p-5 rounded-2xl bg-card border border-border space-y-3">
+          <div data-tour="acceptance-criteria-card" className="p-5 rounded-2xl bg-card border border-border space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold text-muted uppercase tracking-wider">
                 Acceptance Criteria ({contract.criteria.length})
@@ -297,7 +297,7 @@ function ContractDetailContent({ id }: { id: string }) {
           </div>
 
           {/* Deliverable Submission Box */}
-          <div className="p-5 rounded-2xl bg-card border border-border space-y-4">
+          <div data-tour="deliverable-submission" className="p-5 rounded-2xl bg-card border border-border space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-semibold text-muted uppercase tracking-wider flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-accent" />
@@ -365,7 +365,7 @@ function ContractDetailContent({ id }: { id: string }) {
         </div>
 
         {/* RIGHT COLUMN: AI REVIEW & PAYOUT (7 cols) */}
-        <div className="lg:col-span-7 space-y-6">
+        <div data-tour="ai-review-section" className="lg:col-span-7 space-y-6">
           <div className="p-6 rounded-3xl bg-card border border-border shadow-sm space-y-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -409,16 +409,18 @@ function ContractDetailContent({ id }: { id: string }) {
 
             {/* Run Audit CTA */}
             {!auditing && (
-              <button
-                onClick={handleRunAudit}
-                disabled={!hasSubmission}
-                className="w-full py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <Sparkles className="w-4 h-4" />
-                {contract.auditReport
-                  ? "Re-Run AI Review"
-                  : "Run AI Review & Release Payout"}
-              </button>
+              <div data-tour="audit-action-btn">
+                <button
+                  onClick={handleRunAudit}
+                  disabled={!hasSubmission}
+                  className="w-full py-3.5 rounded-xl bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-semibold text-sm shadow-sm flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  {contract.auditReport
+                    ? "Re-Run AI Review"
+                    : "Run AI Review & Release Payout"}
+                </button>
+              </div>
             )}
 
             {/* In-flight Review Progress */}
