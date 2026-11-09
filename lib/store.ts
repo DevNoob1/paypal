@@ -146,6 +146,96 @@ export async function verifyAndProcess(req: Request) {
       batchStatus: "SUCCESS",
     },
   },
+  {
+    id: "cnt_4419_security",
+    title: "API Gateway Rate Limiter & Token Bucket",
+    description:
+      "Implement sliding window rate limiting middleware in Go/Redis with token bucket algorithm and concurrency test suite.",
+    amount: 350.0,
+    currency: "USD",
+    clientName: "Acme Cloud Corp",
+    clientEmail: "billing@acmecloud.io",
+    freelancerName: "Alex Rivera",
+    freelancerEmail: "alex.rivera@devmail.com",
+    createdAt: "2026-11-01T08:00:00.000Z",
+    deadline: "2026-11-08T12:00:00.000Z",
+    status: "DISPUTED",
+    criteria: [
+      "Sliding window rate limiter algorithm implemented with Redis cluster support",
+      "Unit test coverage > 90% across concurrency test cases",
+      "Benchmarked for < 2ms latency overhead under 10,000 req/sec load",
+    ],
+    paypalOrderId: "PP-ORD-7QQ12893CC883",
+    escrowCapturedAt: "2026-11-01T08:12:00.000Z",
+    submission: {
+      url: "https://github.com/acme-cloud/rate-limiter/pull/4",
+      notes: "Implemented in Go using in-memory sync.Map instead of Redis cluster. Benchmark shows 5ms latency under 1,000 req/sec.",
+      codeSnippet: `// In-memory rate limiter (missing Redis cluster sync & concurrency mutex)\nfunc (rl *RateLimiter) Allow(ip string) bool {\n    count := rl.counts[ip]\n    if count > 100 { return false }\n    rl.counts[ip]++\n    return true\n}`,
+      submittedAt: "2026-11-06T10:00:00.000Z",
+    },
+    auditReport: {
+      verdict: "DISPUTE",
+      overallScore: 48,
+      confidence: 0.96,
+      summary:
+        "The submitted deliverable fails critical agreed specifications: in-memory implementation was used instead of Redis cluster support, and benchmark latency exceeds the agreed threshold.",
+      agents: [
+        {
+          agentId: "agent_scope",
+          agentName: "Check 1: Rule Auditor",
+          role: "Checklist & Requirements Verification",
+          status: "FLAGGED",
+          score: 50,
+          timestamp: "2026-11-06T10:05:00.000Z",
+          thoughtStream: [
+            "Checking acceptance criteria against submitted pull request...",
+            "Criterion 1 (Redis cluster support): FAILED - in-memory sync.Map used.",
+            "Criterion 3 (2ms latency at 10k req/sec): FAILED - 5ms at 1k req/sec.",
+          ],
+          findings: "Failed 2 of 3 acceptance criteria. Scope omits required Redis cluster persistence.",
+        },
+        {
+          agentId: "agent_code",
+          agentName: "Check 2: Quality & Proof Inspector",
+          role: "Work Quality, Link & Artifact Verification",
+          status: "FLAGGED",
+          score: 45,
+          timestamp: "2026-11-06T10:05:00.000Z",
+          thoughtStream: [
+            "Inspecting pull request diff and concurrency locks...",
+            "Missing mutex locks around sync.Map increments causes race conditions.",
+            "Benchmark report fails latency requirement.",
+          ],
+          findings: "Race condition vulnerability detected under concurrent load. Test suite does not include required concurrency tests.",
+        },
+        {
+          agentId: "agent_settlement",
+          agentName: "Check 3: Payment Referee",
+          role: "Quality Score & Payment Authorization",
+          status: "FLAGGED",
+          score: 48,
+          timestamp: "2026-11-06T10:05:00.000Z",
+          thoughtStream: [
+            "Overall score: 48/100 (Below required 85% threshold)...",
+            "Generating dispute evidence packet for PayPal customer mediation...",
+          ],
+          findings: "Consensus score 48/100 is below the 85% approval gate. Escrow payment frozen. Dispute mediation packet compiled.",
+        },
+      ],
+      disputePacket: {
+        claimantSummary:
+          "Deliverable fails 2 of 3 agreed technical acceptance criteria: lacks Redis cluster persistence and introduces concurrency race conditions under load.",
+        identifiedDeficiencies: [
+          "In-memory map used instead of required Redis cluster architecture",
+          "Missing concurrency mutex causing race conditions under load",
+          "Benchmark latency is 5ms under 1k req/s (agreed limit: <2ms under 10k req/s)",
+        ],
+        recommendedResolution:
+          "Escrow funds ($350.00 USD) remain safely held in PayPal escrow. Contractor has 5 business days to address deficiencies or funds auto-refund to Client.",
+      },
+      payoutRecommended: false,
+    },
+  },
 ];
 
 function initStore(): Contract[] {

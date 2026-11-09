@@ -13,9 +13,10 @@ export interface AuditReport {
   overallScore: number;
   confidence: number;
   summary: string;
-  criteriaResults: CriterionResult[];
-  satisfiedItems: string[];
-  missingItems: string[];
+  agents?: any[];
+  criteriaResults?: CriterionResult[];
+  satisfiedItems?: string[];
+  missingItems?: string[];
   payoutRecommended: boolean;
   disputePacket?: {
     claimantSummary: string;

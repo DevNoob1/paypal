@@ -247,7 +247,7 @@ export default function Dashboard() {
                 ${totalCommitted.toFixed(2)}
               </div>
               <div className="text-[10.5px] text-muted font-medium mt-0.5">
-                PayPal Sandbox Rails
+                PayPal Payment Rails
               </div>
             </div>
           </div>

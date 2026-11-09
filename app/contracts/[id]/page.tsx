@@ -657,27 +657,23 @@ function ContractDetailContent({ id }: { id: string }) {
                 <div className="flex items-center justify-between text-xs font-medium text-accent">
                   <span className="flex items-center gap-2">
                     <span className="animate-spin h-3 w-3 border-2 border-accent border-t-transparent rounded-full" />
-                    Executing Parallel Agent Evaluation...
+                    Executing Multi-Agent Evaluation...
                   </span>
-                  <span className="font-mono text-[11px]">Step {auditStep} of 4</span>
+                  <span className="font-mono text-[11px]">Step {auditStep} of 3</span>
                 </div>
 
                 <div className="space-y-1 text-xs text-muted">
                   <div className={`flex items-center gap-2 ${auditStep >= 1 ? "text-foreground" : "text-muted"}`}>
                     <CheckCircle2 className={`w-3.5 h-3.5 ${auditStep >= 1 ? "text-accent" : "text-border"}`} />
-                    Scope Reviewer: Checking deliverable against 4 criteria...
+                    Scope Auditor: Checking deliverable against all agreed criteria...
                   </div>
                   <div className={`flex items-center gap-2 ${auditStep >= 2 ? "text-foreground" : "text-muted"}`}>
                     <CheckCircle2 className={`w-3.5 h-3.5 ${auditStep >= 2 ? "text-accent" : "text-border"}`} />
-                    Code Inspector: Auditing pull request diffs and unit test logs...
+                    Quality Inspector: Auditing submitted artifacts, links, and test logs...
                   </div>
                   <div className={`flex items-center gap-2 ${auditStep >= 3 ? "text-foreground" : "text-muted"}`}>
-                    <CheckCircle2 className={`w-3.5 h-3.5 ${auditStep >= 3 ? "text-accent" : "text-border"}`} />
-                    Settlement Arbiter: Verifying quality score threshold...
-                  </div>
-                  <div className={`flex items-center gap-2 ${auditStep >= 4 ? "text-foreground" : "text-muted"}`}>
-                    <CheckCircle2 className={`w-3.5 h-3.5 ${auditStep >= 4 ? "text-emerald-500" : "text-border"}`} />
-                    Dispatching automated PayPal payout release...
+                    <CheckCircle2 className={`w-3.5 h-3.5 ${auditStep >= 3 ? "text-emerald-500" : "text-border"}`} />
+                    Payment Arbiter: Synthesizing score and consensus threshold...
                   </div>
                 </div>
               </div>

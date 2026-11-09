@@ -104,10 +104,10 @@ export function SignInModal() {
         </div>
 
         <div className="mt-5 pt-3.5 border-t border-border flex items-center justify-between text-[11px] text-muted">
-          <span>Simulation Mode</span>
+          <span>Instant Role Switching</span>
           <span className="flex items-center gap-1 text-emerald-500 font-medium">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
-            PayPal Sandbox Rails
+            PayPal Payment Rails Connected
           </span>
         </div>
       </div>
