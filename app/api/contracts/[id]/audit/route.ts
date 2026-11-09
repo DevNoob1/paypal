@@ -1,7 +1,7 @@
 // app/api/contracts/[id]/audit/route.ts
 import { NextResponse } from "next/server";
 import { getContractById, updateContract } from "@/lib/store";
-import { runTriAgentSwarm } from "@/lib/agents";
+import { evaluateMilestone } from "@/lib/gemini";
 import { releasePayPalPayout } from "@/lib/paypal";
 
 export async function POST(
@@ -24,44 +24,25 @@ export async function POST(
 
   try {
     const body = await req.json().catch(() => ({}));
-    const autoRelease = body.autoReleasePayout ?? true;
+    const autoRelease = body.autoReleasePayout ?? false;
 
-    // 1. Run Tri-Agent Autonomous Swarm (Parallel multi-agent execution)
-    const swarmConsensus = await runTriAgentSwarm({
+    // Run ResolvAI autonomous milestone verification
+    const auditReport = await evaluateMilestone({
       title: contract.title,
       description: contract.description,
       criteria: contract.criteria,
       deliverableText: contract.submission.notes,
       deliverableUrl: contract.submission.url,
+      screenshotUrl: contract.submission.screenshotUrl,
       codeSnippet: contract.submission.codeSnippet,
     });
-
-    // Map to stored audit report format with agent metadata
-    const auditReport = {
-      verdict: swarmConsensus.verdict,
-      overallScore: swarmConsensus.consensusScore,
-      confidence: 0.95,
-      summary: swarmConsensus.summary,
-      agents: swarmConsensus.agents,
-      criteriaResults: contract.criteria.map((c, i) => ({
-        criterion: c,
-        status: "PASS" as const,
-        score: 94 + (i % 5),
-        notes: `Verified by Tri-Agent Consensus. Technical implementation conforms to standard.`,
-      })),
-      satisfiedItems: contract.criteria,
-      missingItems: [],
-      payoutRecommended: swarmConsensus.verdict === "APPROVE",
-      disputePacket: swarmConsensus.disputePacket,
-    };
 
     let newStatus = contract.status;
     let payoutReceipt = contract.payoutReceipt;
 
-    if (swarmConsensus.verdict === "APPROVE") {
+    if (auditReport.verdict === "APPROVE") {
       newStatus = "AI_VERIFIED";
 
-      // 2. Trigger PayPal Payouts API settlement
       if (autoRelease) {
         try {
           const payoutRes = await releasePayPalPayout({
@@ -90,7 +71,7 @@ export async function POST(
           newStatus = "AI_VERIFIED";
         }
       }
-    } else if (swarmConsensus.verdict === "DISPUTE") {
+    } else if (auditReport.verdict === "DISPUTE") {
       newStatus = "DISPUTED";
     }
 
@@ -103,7 +84,6 @@ export async function POST(
     return NextResponse.json({
       success: true,
       auditReport,
-      swarmConsensus,
       contract: updated,
     });
   } catch (err: unknown) {

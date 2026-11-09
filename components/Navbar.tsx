@@ -1,6 +1,7 @@
 // components/Navbar.tsx
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "./AuthContext";
@@ -13,7 +14,6 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  Send,
   Compass,
 } from "lucide-react";
 
@@ -22,6 +22,11 @@ export function Navbar() {
   const { user, setIsSignInOpen } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { startTour, hasTourForPage } = useWalkthrough();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/80 backdrop-blur-xl transition-colors">
@@ -52,28 +57,17 @@ export function Navbar() {
               <LayoutDashboard className="w-3.5 h-3.5" />
               Dashboard
             </Link>
-
-            {user.role === "client" ? (
-              <Link
-                href="/contracts/new"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${
-                  pathname === "/contracts/new"
-                    ? "bg-accent text-white font-semibold"
-                    : "text-muted hover:text-foreground"
-                }`}
-              >
-                <Plus className="w-3.5 h-3.5" />
-                New Agreement
-              </Link>
-            ) : null}
           </nav>
         </div>
 
         {/* Right Utility & Actions */}
         <div className="flex items-center gap-2">
           {/* Segmented Utility Tray: Guide & Theme */}
-          <div className="flex items-center rounded-lg border border-border bg-card/60 p-0.5">
-            {hasTourForPage && (
+          <div
+            className="flex items-center rounded-lg border border-border bg-card/60 p-0.5"
+            suppressHydrationWarning
+          >
+            {mounted && hasTourForPage && (
               <button
                 onClick={startTour}
                 className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium text-muted hover:text-foreground transition-colors cursor-pointer"
@@ -88,12 +82,16 @@ export function Navbar() {
               onClick={toggleTheme}
               className="p-1.5 rounded-md text-muted hover:text-foreground transition-colors cursor-pointer"
               aria-label="Toggle color theme"
-              title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              title={
+                mounted && theme === "dark"
+                  ? "Switch to light theme"
+                  : "Switch to dark theme"
+              }
             >
-              {theme === "dark" ? (
-                <Sun className="w-3.5 h-3.5 text-amber-400" />
-              ) : (
+              {mounted && theme === "light" ? (
                 <Moon className="w-3.5 h-3.5 text-accent" />
+              ) : (
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
               )}
             </button>
           </div>
@@ -101,36 +99,41 @@ export function Navbar() {
           {/* User Account / Role Switcher */}
           <button
             onClick={() => setIsSignInOpen(true)}
+            suppressHydrationWarning
             className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card/60 hover:bg-card-hover border border-border text-xs text-foreground transition-all cursor-pointer"
           >
-            <div className={`w-5 h-5 rounded-full ${user.role === "client" ? "bg-accent/20 border-accent/30 text-accent" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-500"} border flex items-center justify-center text-[10px] font-bold`}>
+            <div
+              className={`w-5 h-5 rounded-full ${
+                user.role === "client"
+                  ? "bg-accent/20 border-accent/30 text-accent"
+                  : "bg-emerald-500/20 border-emerald-500/30 text-emerald-500"
+              } border flex items-center justify-center text-[10px] font-bold`}
+            >
               {user.initials || "AC"}
             </div>
             <div className="text-left hidden sm:block">
-              <div className="font-medium text-xs leading-none text-foreground">{user.name}</div>
+              <div className="font-medium text-xs leading-none text-foreground">
+                {user.name}
+              </div>
             </div>
-            <span className={`text-[10px] font-medium hidden md:inline ${user.role === "client" ? "text-accent" : "text-emerald-500"}`}>
+            <span
+              className={`text-[10px] font-medium hidden md:inline ${
+                user.role === "client" ? "text-accent" : "text-emerald-500"
+              }`}
+            >
               ({user.role === "client" ? "Client" : "Contractor"})
             </span>
             <ChevronDown className="w-3 h-3 text-muted ml-0.5" />
           </button>
 
-          {/* Primary Action Button */}
-          {user.role === "client" ? (
+          {/* Primary Action Button (Client Only) */}
+          {user.role === "client" && (
             <Link
               href="/contracts/new"
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium shadow-sm transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
-              New Contract
-            </Link>
-          ) : (
-            <Link
-              href="/contracts/cnt_9821_stripe"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow-sm transition-all"
-            >
-              <Send className="w-3.5 h-3.5" />
-              Demo Deliverable
+              New Agreement
             </Link>
           )}
         </div>

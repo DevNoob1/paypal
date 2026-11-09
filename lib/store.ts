@@ -16,6 +16,7 @@ export interface DeliverableSubmission {
   submittedAt: string;
   notes: string;
   url?: string;
+  screenshotUrl?: string;
   codeSnippet?: string;
 }
 
@@ -67,7 +68,7 @@ const SEED_CONTRACTS: Contract[] = [
     freelancerEmail: "alex.rivera@devmail.com",
     createdAt: "2026-11-06T10:00:00.000Z",
     deadline: "2026-11-12T23:59:59.000Z",
-    status: "PENDING_REVIEW",
+    status: "AI_VERIFIED",
     criteria: [
       "Implement HMAC-SHA256 signature verification middleware",
       "Redis-backed idempotency table to prevent duplicate transaction replay",
@@ -81,17 +82,44 @@ const SEED_CONTRACTS: Contract[] = [
       notes:
         "Completed all 4 requirements. The HMAC middleware handles raw buffer verification securely. Unit test suite passes with 91.4% branch coverage. Staging PR linked below.",
       url: "https://github.com/alexrivera-dev/nextjs-stripe-webhooks/pull/4",
-      codeSnippet: `// Webhook Verification & Idempotency Handler
-export async function verifyAndProcess(req: Request) {
-  const sig = req.headers.get("stripe-signature");
-  const rawBody = await req.text();
-  const event = stripe.webhooks.constructEvent(rawBody, sig, WEBHOOK_SECRET);
-  
-  const isProcessed = await redis.set(\`webhook:\${event.id}\`, "1", "NX", "EX", 86400);
-  if (!isProcessed) return { status: "ALREADY_PROCESSED" };
-  
-  return handleEvent(event);
-}`,
+    },
+    auditReport: {
+      verdict: "APPROVE",
+      overallScore: 95,
+      confidence: 0.96,
+      summary:
+        "ResolvAI verified all 4 milestone requirements. The HMAC middleware, redis idempotency, automated tests, and TypeScript interfaces conform fully to specification.",
+      payoutRecommended: true,
+      criteriaResults: [
+        {
+          criterion: "Implement HMAC-SHA256 signature verification middleware",
+          status: "PASS",
+          score: 96,
+          notes:
+            "Verified. Middleware accurately validates payload buffer against webhook secret headers.",
+        },
+        {
+          criterion: "Redis-backed idempotency table to prevent duplicate transaction replay",
+          status: "PASS",
+          score: 95,
+          notes:
+            "Verified. Redis atomic SET NX key lock pattern prevents duplicate execution.",
+        },
+        {
+          criterion: "Minimum 85% unit test coverage using Jest / Vitest",
+          status: "PASS",
+          score: 94,
+          notes:
+            "Verified. Test suite output confirms 91.4% branch test coverage.",
+        },
+        {
+          criterion: "Comprehensive TypeScript interfaces for all event payloads",
+          status: "PASS",
+          score: 95,
+          notes:
+            "Verified. Full TypeScript type coverage provided for all inbound webhook event payloads.",
+        },
+      ],
     },
   },
   {
