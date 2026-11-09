@@ -12,6 +12,7 @@ export interface UserProfile {
   organization: string;
   role: UserRole;
   avatar: string;
+  initials: string;
   accountStatus: "VERIFIED" | "PENDING";
 }
 
@@ -22,6 +23,7 @@ const CLIENT_PROFILE: UserProfile = {
   organization: "Acme Cloud Corp",
   role: "client",
   avatar: "🏢",
+  initials: "AC",
   accountStatus: "VERIFIED",
 };
 
@@ -32,6 +34,7 @@ const CONTRACTOR_PROFILE: UserProfile = {
   organization: "Rivera Engineering LLC",
   role: "contractor",
   avatar: "👨‍💻",
+  initials: "AR",
   accountStatus: "VERIFIED",
 };
 

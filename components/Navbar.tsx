@@ -7,8 +7,8 @@ import { useAuth } from "./AuthContext";
 import { useTheme } from "./ThemeContext";
 import { useWalkthrough } from "./WalkthroughTour";
 import {
-  ShieldCheck,
-  PlusCircle,
+  Shield,
+  Plus,
   LayoutDashboard,
   ChevronDown,
   Sun,
@@ -24,109 +24,108 @@ export function Navbar() {
   const { startTour, hasTourForPage } = useWalkthrough();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/90 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center gap-6">
+    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/80 backdrop-blur-xl transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        {/* Brand & Left Navigation */}
+        <div className="flex items-center gap-7">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 p-[1px] shadow-sm group-hover:scale-105 transition-transform">
-              <div className="h-full w-full bg-background rounded-[11px] flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-accent" />
-              </div>
+            <div className="h-7 w-7 rounded-lg bg-accent/15 border border-accent/25 flex items-center justify-center text-accent group-hover:border-accent/40 transition-colors">
+              <Shield className="w-4 h-4 fill-accent/20" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-lg text-foreground tracking-tight">
+            <div className="flex items-center">
+              <span className="font-semibold text-sm tracking-tight text-foreground">
                 Resolv<span className="text-accent">AI</span>
               </span>
             </div>
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1">
+          {/* Clean Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1 text-xs">
             <Link
               href="/dashboard"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-medium transition-colors ${
                 pathname === "/dashboard"
-                  ? "bg-card text-foreground border border-border"
-                  : "text-muted hover:text-foreground hover:bg-card"
+                  ? "bg-white/[0.06] dark:bg-white/[0.08] text-foreground"
+                  : "text-muted hover:text-foreground"
               }`}
             >
-              <LayoutDashboard className="w-4 h-4" />
+              <LayoutDashboard className="w-3.5 h-3.5" />
               Dashboard
             </Link>
 
-            {user.role === "client" && (
-              <Link
-                href="/contracts/new"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === "/contracts/new"
-                    ? "bg-card text-foreground border border-border"
-                    : "text-muted hover:text-foreground hover:bg-card"
-                }`}
-              >
-                <PlusCircle className="w-4 h-4" />
-                New Contract
-              </Link>
-            )}
+            <Link
+              href="/contracts/cnt_9821_stripe"
+              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-medium transition-colors ${
+                pathname === "/contracts/cnt_9821_stripe"
+                  ? "bg-white/[0.06] dark:bg-white/[0.08] text-foreground"
+                  : "text-muted hover:text-foreground"
+              }`}
+            >
+              <Shield className="w-3.5 h-3.5" />
+              Live Demo
+            </Link>
           </nav>
         </div>
 
-        {/* Right Actions */}
-        <div className="flex items-center gap-2.5">
-          {/* Interactive Walkthrough Tour Trigger */}
-          {hasTourForPage && (
-            <button
-              onClick={startTour}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 text-xs font-semibold transition-colors cursor-pointer"
-              title="Start Interactive Page Walkthrough"
-            >
-              <Compass className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Tour</span>
-            </button>
-          )}
-
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-xl text-muted hover:text-foreground hover:bg-card border border-transparent hover:border-border transition-colors cursor-pointer"
-            aria-label="Toggle color theme"
-            title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-          >
-            {theme === "dark" ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-blue-600" />
+        {/* Right Utility & Actions */}
+        <div className="flex items-center gap-2">
+          {/* Segmented Utility Tray: Guide & Theme */}
+          <div className="flex items-center rounded-lg border border-border bg-card/60 p-0.5">
+            {hasTourForPage && (
+              <button
+                onClick={startTour}
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium text-muted hover:text-foreground transition-colors cursor-pointer"
+                title="Start Interactive Guide"
+              >
+                <Compass className="w-3.5 h-3.5 text-accent" />
+                <span className="hidden sm:inline">Guide</span>
+              </button>
             )}
-          </button>
+
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 rounded-md text-muted hover:text-foreground transition-colors cursor-pointer"
+              aria-label="Toggle color theme"
+              title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            >
+              {theme === "dark" ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-accent" />
+              )}
+            </button>
+          </div>
 
           {/* User Account / Role Switcher */}
           <button
             onClick={() => setIsSignInOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-card hover:bg-card-hover border border-border text-xs text-foreground transition-all cursor-pointer"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card/60 hover:bg-card-hover border border-border text-xs text-foreground transition-all cursor-pointer"
           >
-            <span className="text-sm">{user.avatar}</span>
-            <div className="text-left hidden sm:block">
-              <div className="font-semibold leading-tight">{user.name}</div>
-              <div className="text-[10px] text-muted leading-tight">
-                {user.role === "client" ? "Client" : "Contractor"}
-              </div>
+            <div className={`w-5 h-5 rounded-full ${user.role === "client" ? "bg-accent/20 border-accent/30 text-accent" : "bg-emerald-500/20 border-emerald-500/30 text-emerald-500"} border flex items-center justify-center text-[10px] font-bold`}>
+              {user.initials || "AC"}
             </div>
-            <ChevronDown className="w-3.5 h-3.5 text-muted ml-0.5" />
+            <div className="text-left hidden sm:block">
+              <div className="font-medium text-xs leading-none text-foreground">{user.name}</div>
+            </div>
+            <span className={`text-[10px] font-medium hidden md:inline ${user.role === "client" ? "text-accent" : "text-emerald-500"}`}>
+              ({user.role === "client" ? "Client" : "Contractor"})
+            </span>
+            <ChevronDown className="w-3 h-3 text-muted ml-0.5" />
           </button>
 
           {/* Primary Action Button */}
           {user.role === "client" ? (
             <Link
               href="/contracts/new"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-sm transition-all"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium shadow-sm transition-all"
             >
-              <PlusCircle className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5" />
               New Contract
             </Link>
           ) : (
             <Link
               href="/contracts/cnt_9821_stripe"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-success hover:opacity-90 text-white text-xs font-semibold shadow-sm transition-all"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium shadow-sm transition-all"
             >
               <Send className="w-3.5 h-3.5" />
               Demo Deliverable
