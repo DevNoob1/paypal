@@ -1,7 +1,7 @@
 // app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   Shield,
@@ -19,6 +19,29 @@ import {
 
 export default function Home() {
   const [activeStep, setActiveStep] = useState<number | null>(null);
+  const flowContainerRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Scroll-linked timeline progress
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!flowContainerRef.current) return;
+      const rect = flowContainerRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+
+      // Start filling when container enters 65% of viewport height
+      const startOffset = windowHeight * 0.65;
+      const totalDistance = rect.height;
+      const traveled = startOffset - rect.top;
+
+      const progress = Math.min(Math.max(traveled / totalDistance, 0), 1);
+      setScrollProgress(progress);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="w-full bg-[#0A0A0D] text-[#F2F2F4] min-h-screen">
@@ -218,257 +241,340 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 2. THE 4-STEP VERTICAL TIMELINE WORKFLOW */}
+      {/* 2. THE 4-STEP VERTICAL TIMELINE WORKFLOW (SCROLL-ALIGNED PROGRESS) */}
       <section
         id="flow"
         data-tour="workflow"
-        className="max-w-[1000px] mx-auto px-6 sm:px-8 py-10"
+        className="max-w-[1000px] mx-auto px-6 sm:px-8 py-14"
       >
         <div className="text-center mb-16">
           <h2 className="hd text-3xl sm:text-5xl font-bold tracking-tight text-[#F2F2F4]">
             Four steps. No chasing.
           </h2>
           <p className="mt-3.5 text-base sm:text-lg text-[#A0A0AA]">
-            Follow one milestone down the line, from deposit to payout.
+            Scroll to follow one milestone down the line, from deposit to payout.
           </p>
         </div>
 
-        {/* Vertical Connected Flow */}
-        <div className="relative flex flex-col gap-10">
-          {/* Central Animated Vertical Fill Line */}
-          <div className="hidden md:block absolute left-1/2 -ml-[1px] top-[125px] bottom-[125px] w-[2px] bg-[#23232B] pointer-events-none">
-            <div className="timeline-vfill" />
+        {/* Vertical Connected Flow with Scroll Alignment */}
+        <div ref={flowContainerRef} className="relative flex flex-col gap-12">
+          {/* Central Track Line */}
+          <div className="hidden md:block absolute left-1/2 -ml-[1px] top-[135px] bottom-[135px] w-[2px] bg-[#23232B] pointer-events-none">
+            {/* Scroll-aligned progress fill */}
+            <div
+              className="w-full bg-gradient-to-b from-[#7C74FF] via-[#7C74FF] to-[#F5C451] transition-all duration-100 ease-out relative"
+              style={{ height: `${Math.min(Math.max(scrollProgress, 0) * 100, 100)}%` }}
+            >
+              {/* Traveling Indicator Head Dot */}
+              <div
+                className="absolute -left-[5px] -bottom-[7px] w-3.5 h-3.5 rounded-full bg-[#F5C451] shadow-[0_0_12px_#F5C451] transition-all duration-150"
+                style={{
+                  opacity: scrollProgress > 0.02 ? 1 : 0,
+                  transform: `scale(${scrollProgress > 0.02 ? 1 : 0.4})`,
+                }}
+              />
+            </div>
           </div>
 
           {/* STEP 1: CLIENT */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
-            <div>
-              <div
-                onClick={() => setActiveStep(activeStep === 1 ? null : 1)}
-                className={`card p-7 sm:p-8 rounded-[20px] bg-[#131318] border transition-all cursor-pointer ${
-                  activeStep === 1
-                    ? "border-[#7C74FF] ring-1 ring-[#7C74FF]/30"
-                    : "border-[#26262E] hover:border-[#5E57C9] timeline-card-anim"
-                }`}
-                style={{ animationDelay: "0s" }}
-              >
-                <div className="flex gap-4 items-center mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#1E1C45] text-[#B9B4FF] flex items-center justify-center">
-                    <Lock className="w-7 h-7" />
-                  </div>
-                  <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
-                    1 · CLIENT
+          {(() => {
+            const isStepActive = scrollProgress >= 0.05 || activeStep === 1;
+            const isStepPast = scrollProgress >= 0.28;
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
+                <div>
+                  <div
+                    onClick={() => setActiveStep(activeStep === 1 ? null : 1)}
+                    className={`card p-7 sm:p-8 rounded-[20px] transition-all duration-300 cursor-pointer ${
+                      isStepActive
+                        ? "bg-[#17163A]/50 border-[#7C74FF] shadow-[0_0_30px_rgba(124,116,255,0.15)] ring-1 ring-[#7C74FF]/30 opacity-100 scale-[1.01]"
+                        : "bg-[#131318] border-[#26262E] opacity-50 hover:opacity-80"
+                    }`}
+                  >
+                    <div className="flex gap-4 items-center mb-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                        isStepActive ? "bg-[#7C74FF] text-white" : "bg-[#1E1C45] text-[#B9B4FF]"
+                      }`}>
+                        <Lock className="w-7 h-7" />
+                      </div>
+                      <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
+                        1 · CLIENT
+                      </div>
+                    </div>
+
+                    <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
+                      Money goes in first.
+                    </h3>
+                    <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
+                      The client deposits the milestone payment into PayPal escrow
+                      before any work begins. You know it’s real.
+                    </p>
+
+                    <div className="mt-5 pt-4 border-t border-[#26262E]">
+                      <div className="text-[#A0A0AA] text-xs">
+                        Milestone 1 · Real-world example
+                      </div>
+                      <div className="hd text-3xl sm:text-4xl font-semibold mt-1 text-[#F2F2F4]">
+                        $1,200
+                      </div>
+                      <span className={`inline-block text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full mt-3 transition-colors ${
+                        isStepActive ? "bg-[#12301F] text-[#5EE0A0] border border-[#5EE0A0]/20" : "bg-[#1E1E25] text-[#A0A0AA]"
+                      }`}>
+                        {isStepPast ? "✓ Deposited in PayPal" : "Locked in escrow"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
-                  Money goes in first.
-                </h3>
-                <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
-                  The client deposits the milestone payment into PayPal escrow
-                  before any work begins. You know it’s real.
-                </p>
-
-                <div className="mt-5 pt-4 border-t border-[#26262E]">
-                  <div className="text-[#A0A0AA] text-xs">
-                    Milestone 1 · Real-world example
+                {/* Central Node 1 */}
+                <div className="hidden md:flex justify-center relative">
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#0A0A0D] transition-all duration-300 ${
+                      isStepPast
+                        ? "bg-[#12301F] text-[#5EE0A0] shadow-[0_0_16px_rgba(94,224,160,0.3)] scale-105"
+                        : isStepActive
+                        ? "bg-[#7C74FF] text-[#0A0A0D] shadow-[0_0_20px_rgba(124,116,255,0.4)] scale-110"
+                        : "bg-[#23232B] text-[#A4A4AD] opacity-40 scale-100"
+                    }`}
+                    style={{
+                      boxShadow: "0 0 0 8px #0A0A0D",
+                    }}
+                  >
+                    {isStepPast ? <Check className="w-6 h-6" /> : <Lock className="w-6 h-6" />}
                   </div>
-                  <div className="hd text-3xl sm:text-4xl font-semibold mt-1 text-[#F2F2F4]">
-                    $1,200
-                  </div>
-                  <span className="inline-block bg-[#12301F] text-[#5EE0A0] text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full mt-3">
-                    Locked in escrow
-                  </span>
                 </div>
-              </div>
-            </div>
 
-            {/* Central Node 1 */}
-            <div className="hidden md:flex justify-center relative">
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center bg-[#23232B] text-[#A4A4AD] border-4 border-[#0A0A0D]"
-                style={{
-                  boxShadow: "0 0 0 8px #0A0A0D",
-                }}
-              >
-                <Lock className="w-6 h-6" />
+                <div className="hidden md:block" />
               </div>
-            </div>
-
-            <div className="hidden md:block" />
-          </div>
+            );
+          })()}
 
           {/* STEP 2: CONTRACTOR */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
-            <div className="hidden md:block" />
+          {(() => {
+            const isStepActive = scrollProgress >= 0.28 || activeStep === 2;
+            const isStepPast = scrollProgress >= 0.53;
 
-            {/* Central Node 2 */}
-            <div className="hidden md:flex justify-center relative">
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center bg-[#23232B] text-[#A4A4AD] border-4 border-[#0A0A0D]"
-                style={{
-                  boxShadow: "0 0 0 8px #0A0A0D",
-                }}
-              >
-                <FileText className="w-6 h-6" />
-              </div>
-            </div>
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
+                <div className="hidden md:block" />
 
-            <div>
-              <div
-                onClick={() => setActiveStep(activeStep === 2 ? null : 2)}
-                className={`card p-7 sm:p-8 rounded-[20px] bg-[#131318] border transition-all cursor-pointer ${
-                  activeStep === 2
-                    ? "border-[#7C74FF] ring-1 ring-[#7C74FF]/30"
-                    : "border-[#26262E] hover:border-[#5E57C9] timeline-card-anim"
-                }`}
-                style={{ animationDelay: "4s" }}
-              >
-                <div className="flex gap-4 items-center mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#1E1C45] text-[#B9B4FF] flex items-center justify-center">
-                    <FileText className="w-7 h-7" />
-                  </div>
-                  <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
-                    2 · CONTRACTOR
+                {/* Central Node 2 */}
+                <div className="hidden md:flex justify-center relative">
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#0A0A0D] transition-all duration-300 ${
+                      isStepPast
+                        ? "bg-[#12301F] text-[#5EE0A0] shadow-[0_0_16px_rgba(94,224,160,0.3)] scale-105"
+                        : isStepActive
+                        ? "bg-[#7C74FF] text-[#0A0A0D] shadow-[0_0_20px_rgba(124,116,255,0.4)] scale-110"
+                        : "bg-[#23232B] text-[#A4A4AD] opacity-40 scale-100"
+                    }`}
+                    style={{
+                      boxShadow: "0 0 0 8px #0A0A0D",
+                    }}
+                  >
+                    {isStepPast ? <Check className="w-6 h-6" /> : <FileText className="w-6 h-6" />}
                   </div>
                 </div>
 
-                <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
-                  You deliver the proof.
-                </h3>
-                <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
-                  Finish the milestone and submit a link, a design file, or a code
-                  repo. It’s measured strictly against what was agreed.
-                </p>
+                <div>
+                  <div
+                    onClick={() => setActiveStep(activeStep === 2 ? null : 2)}
+                    className={`card p-7 sm:p-8 rounded-[20px] transition-all duration-300 cursor-pointer ${
+                      isStepActive
+                        ? "bg-[#17163A]/50 border-[#7C74FF] shadow-[0_0_30px_rgba(124,116,255,0.15)] ring-1 ring-[#7C74FF]/30 opacity-100 scale-[1.01]"
+                        : "bg-[#131318] border-[#26262E] opacity-50 hover:opacity-80"
+                    }`}
+                  >
+                    <div className="flex gap-4 items-center mb-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                        isStepActive ? "bg-[#7C74FF] text-white" : "bg-[#1E1C45] text-[#B9B4FF]"
+                      }`}>
+                        <FileText className="w-7 h-7" />
+                      </div>
+                      <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
+                        2 · CONTRACTOR
+                      </div>
+                    </div>
 
-                <div className="mt-5 space-y-2">
-                  <div className="p-3 bg-[#1B1B22] rounded-xl text-sm font-mono text-[#E8E8EC] border border-[#2E2E38]">
-                    homepage-design.fig
-                  </div>
-                  <div className="p-3 bg-[#1B1B22] rounded-xl text-sm font-mono text-[#E8E8EC] border border-[#2E2E38]">
-                    api-service-test-suite.ts
+                    <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
+                      You deliver the proof.
+                    </h3>
+                    <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
+                      Finish the milestone and submit a link, a design file, or a code
+                      repo. It’s measured strictly against what was agreed.
+                    </p>
+
+                    <div className="mt-5 space-y-2">
+                      <div className={`p-3 rounded-xl text-sm font-mono border transition-colors ${
+                        isStepActive ? "bg-[#1B1B22] text-[#E8E8EC] border-[#5E57C9]/40" : "bg-[#15151B] text-[#71717A] border-[#26262E]"
+                      }`}>
+                        homepage-design.fig
+                      </div>
+                      <div className={`p-3 rounded-xl text-sm font-mono border transition-colors ${
+                        isStepActive ? "bg-[#1B1B22] text-[#E8E8EC] border-[#5E57C9]/40" : "bg-[#15151B] text-[#71717A] border-[#26262E]"
+                      }`}>
+                        api-service-test-suite.ts
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* STEP 3: AI REFEREE */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
-            <div>
-              <div
-                onClick={() => setActiveStep(activeStep === 3 ? null : 3)}
-                className={`card p-7 sm:p-8 rounded-[20px] bg-[#131318] border transition-all cursor-pointer ${
-                  activeStep === 3
-                    ? "border-[#7C74FF] ring-1 ring-[#7C74FF]/30"
-                    : "border-[#26262E] hover:border-[#5E57C9] timeline-card-anim"
-                }`}
-                style={{ animationDelay: "8s" }}
-              >
-                <div className="flex gap-4 items-center mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#1E1C45] text-[#B9B4FF] flex items-center justify-center">
-                    <CheckCircle2 className="w-7 h-7" />
-                  </div>
-                  <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
-                    3 · AI REFEREE
+          {(() => {
+            const isStepActive = scrollProgress >= 0.53 || activeStep === 3;
+            const isStepPast = scrollProgress >= 0.78;
+
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
+                <div>
+                  <div
+                    onClick={() => setActiveStep(activeStep === 3 ? null : 3)}
+                    className={`card p-7 sm:p-8 rounded-[20px] transition-all duration-300 cursor-pointer ${
+                      isStepActive
+                        ? "bg-[#17163A]/50 border-[#7C74FF] shadow-[0_0_30px_rgba(124,116,255,0.15)] ring-1 ring-[#7C74FF]/30 opacity-100 scale-[1.01]"
+                        : "bg-[#131318] border-[#26262E] opacity-50 hover:opacity-80"
+                    }`}
+                  >
+                    <div className="flex gap-4 items-center mb-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                        isStepActive ? "bg-[#7C74FF] text-white" : "bg-[#1E1C45] text-[#B9B4FF]"
+                      }`}>
+                        <CheckCircle2 className="w-7 h-7" />
+                      </div>
+                      <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
+                        3 · AI REFEREE
+                      </div>
+                    </div>
+
+                    <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
+                      Checked in 3 seconds.
+                    </h3>
+                    <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
+                      The referee compares the work with the checklist, line by line.
+                      No bias, no surprise extra demands.
+                    </p>
+
+                    <div className="mt-5 pt-4 border-t border-[#26262E]">
+                      <div className="flex justify-between text-xs text-[#A0A0AA] mb-2 font-medium">
+                        <span>Audit score</span>
+                        <span className="text-[#5EE0A0] font-mono font-bold">
+                          {isStepActive ? "94 / 100" : "0 / 100"}
+                        </span>
+                      </div>
+                      <div className="h-2 bg-[#23232B] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#7C74FF] to-[#5EE0A0] rounded-full transition-all duration-700 ease-out"
+                          style={{ width: isStepActive ? "94%" : "0%" }}
+                        />
+                      </div>
+                      <span className={`inline-block text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full mt-3 transition-colors ${
+                        isStepActive ? "bg-[#12301F] text-[#5EE0A0] border border-[#5EE0A0]/20" : "bg-[#1E1E25] text-[#A0A0AA]"
+                      }`}>
+                        {isStepActive ? "✓ Approved (Threshold > 85%)" : "Pending Check"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
-                  Checked in 3 seconds.
-                </h3>
-                <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
-                  The referee compares the work with the checklist, line by line.
-                  No bias, no surprise extra demands.
-                </p>
-
-                <div className="mt-5 pt-4 border-t border-[#26262E]">
-                  <div className="flex justify-between text-xs text-[#A0A0AA] mb-2 font-medium">
-                    <span>Audit score</span>
-                    <span className="text-[#5EE0A0] font-mono">94 / 100</span>
+                {/* Central Node 3 */}
+                <div className="hidden md:flex justify-center relative">
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#0A0A0D] transition-all duration-300 ${
+                      isStepPast
+                        ? "bg-[#12301F] text-[#5EE0A0] shadow-[0_0_16px_rgba(94,224,160,0.3)] scale-105"
+                        : isStepActive
+                        ? "bg-[#7C74FF] text-[#0A0A0D] shadow-[0_0_20px_rgba(124,116,255,0.4)] scale-110"
+                        : "bg-[#23232B] text-[#A4A4AD] opacity-40 scale-100"
+                    }`}
+                    style={{
+                      boxShadow: "0 0 0 8px #0A0A0D",
+                    }}
+                  >
+                    {isStepPast ? <Check className="w-6 h-6" /> : <CheckCircle2 className="w-6 h-6" />}
                   </div>
-                  <div className="h-2 bg-[#23232B] rounded-full overflow-hidden">
-                    <div className="timeline-score-bar" />
-                  </div>
-                  <span className="inline-block bg-[#12301F] text-[#5EE0A0] text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full mt-3">
-                    Approved
-                  </span>
                 </div>
-              </div>
-            </div>
 
-            {/* Central Node 3 */}
-            <div className="hidden md:flex justify-center relative">
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center bg-[#23232B] text-[#A4A4AD] border-4 border-[#0A0A0D]"
-                style={{
-                  boxShadow: "0 0 0 8px #0A0A0D",
-                }}
-              >
-                <CheckCircle2 className="w-6 h-6" />
+                <div className="hidden md:block" />
               </div>
-            </div>
-
-            <div className="hidden md:block" />
-          </div>
+            );
+          })()}
 
           {/* STEP 4: PAYOUT */}
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
-            <div className="hidden md:block" />
+          {(() => {
+            const isStepActive = scrollProgress >= 0.78 || activeStep === 4;
 
-            {/* Central Node 4 */}
-            <div className="hidden md:flex justify-center relative">
-              <div
-                className="w-14 h-14 rounded-full flex items-center justify-center bg-[#23232B] text-[#A4A4AD] border-4 border-[#0A0A0D]"
-                style={{
-                  boxShadow: "0 0 0 8px #0A0A0D",
-                }}
-              >
-                <Send className="w-6 h-6" />
-              </div>
-            </div>
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-[1fr_72px_1fr] items-center gap-6 md:gap-0 min-h-[250px]">
+                <div className="hidden md:block" />
 
-            <div>
-              <div
-                onClick={() => setActiveStep(activeStep === 4 ? null : 4)}
-                className={`card p-7 sm:p-8 rounded-[20px] bg-[#131318] border transition-all cursor-pointer ${
-                  activeStep === 4
-                    ? "border-[#7C74FF] ring-1 ring-[#7C74FF]/30"
-                    : "border-[#26262E] hover:border-[#5E57C9] timeline-card-anim"
-                }`}
-                style={{ animationDelay: "12s" }}
-              >
-                <div className="flex gap-4 items-center mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-[#1E1C45] text-[#B9B4FF] flex items-center justify-center">
-                    <Send className="w-7 h-7" />
-                  </div>
-                  <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
-                    4 · PAYOUT
+                {/* Central Node 4 */}
+                <div className="hidden md:flex justify-center relative">
+                  <div
+                    className={`w-14 h-14 rounded-full flex items-center justify-center border-4 border-[#0A0A0D] transition-all duration-300 ${
+                      isStepActive
+                        ? "bg-[#5EE0A0] text-[#0A0A0D] shadow-[0_0_24px_rgba(94,224,160,0.45)] scale-110"
+                        : "bg-[#23232B] text-[#A4A4AD] opacity-40 scale-100"
+                    }`}
+                    style={{
+                      boxShadow: "0 0 0 8px #0A0A0D",
+                    }}
+                  >
+                    <Send className="w-6 h-6" />
                   </div>
                 </div>
 
-                <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
-                  Paid, straight away.
-                </h3>
-                <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
-                  Approved work releases the funds to your PayPal in seconds. If a
-                  client goes quiet, escrow auto-releases after 48 hours.
-                </p>
+                <div>
+                  <div
+                    onClick={() => setActiveStep(activeStep === 4 ? null : 4)}
+                    className={`card p-7 sm:p-8 rounded-[20px] transition-all duration-300 cursor-pointer ${
+                      isStepActive
+                        ? "bg-[#17163A]/50 border-[#5EE0A0] shadow-[0_0_30px_rgba(94,224,160,0.18)] ring-1 ring-[#5EE0A0]/30 opacity-100 scale-[1.01]"
+                        : "bg-[#131318] border-[#26262E] opacity-50 hover:opacity-80"
+                    }`}
+                  >
+                    <div className="flex gap-4 items-center mb-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${
+                        isStepActive ? "bg-[#5EE0A0] text-[#0A0A0D]" : "bg-[#1E1C45] text-[#B9B4FF]"
+                      }`}>
+                        <Send className="w-7 h-7" />
+                      </div>
+                      <div className="text-[#9D97FF] text-[13px] font-semibold tracking-wider uppercase">
+                        4 · PAYOUT
+                      </div>
+                    </div>
 
-                <div className="mt-5 pt-4 border-t border-[#26262E]">
-                  <div className="text-[#A0A0AA] text-xs">
-                    Released to your PayPal
+                    <h3 className="hd text-2xl font-semibold mb-2.5 text-[#F2F2F4]">
+                      Paid, straight away.
+                    </h3>
+                    <p className="text-[#B4B4BC] text-sm sm:text-base leading-relaxed">
+                      Approved work releases the funds to your PayPal in seconds. If a
+                      client goes quiet, escrow auto-releases after 48 hours.
+                    </p>
+
+                    <div className="mt-5 pt-4 border-t border-[#26262E]">
+                      <div className="text-[#A0A0AA] text-xs">
+                        Released to your PayPal
+                      </div>
+                      <div className={`hd text-3xl sm:text-4xl font-semibold mt-1 transition-colors ${
+                        isStepActive ? "text-[#5EE0A0]" : "text-[#A0A0AA]"
+                      }`}>
+                        + $1,200
+                      </div>
+                      <span className={`inline-block text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full mt-3 transition-colors ${
+                        isStepActive ? "bg-[#12301F] text-[#5EE0A0] border border-[#5EE0A0]/25" : "bg-[#1E1E25] text-[#A0A0AA]"
+                      }`}>
+                        {isStepActive ? "✓ Payout complete via PayPal" : "Locked until approval"}
+                      </span>
+                    </div>
                   </div>
-                  <div className="hd text-3xl sm:text-4xl font-semibold mt-1 text-[#5EE0A0]">
-                    + $1,200
-                  </div>
-                  <span className="inline-block bg-[#12301F] text-[#5EE0A0] text-xs sm:text-sm font-medium px-3.5 py-1.5 rounded-full mt-3">
-                    Payout complete
-                  </span>
                 </div>
               </div>
-            </div>
-          </div>
+            );
+          })()}
         </div>
       </section>
 
