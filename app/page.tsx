@@ -59,12 +59,12 @@ export default function Home() {
           </div>
 
           <div data-tour="perspective-switch">
-            <Link
-              href="/contracts/cnt_9821_stripe"
+            <a
+              href="#flow"
               className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full border border-[#33333D] hover:border-[#5E57C9] bg-[#131318] text-[#F2F2F4] font-semibold text-base transition-colors"
             >
-              Inspect demo contract
-            </Link>
+              See how it works
+            </a>
           </div>
         </div>
 
@@ -602,16 +602,16 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Quick demo contract link */}
+            {/* Workspace link */}
             <div className="mt-8 pt-5 border-t border-[#26262E] flex justify-between items-center flex-wrap gap-3">
               <span className="text-xs text-[#A0A0AA]">
-                Ready to test with your own deliverable?
+                Ready to manage your own agreements?
               </span>
               <Link
-                href="/contracts/cnt_9821_stripe"
+                href="/dashboard"
                 className="text-xs text-[#7C74FF] hover:text-[#9D97FF] font-medium inline-flex items-center gap-1"
               >
-                Inspect Live Demo Contract
+                Go to Dashboard
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>
@@ -798,10 +798,10 @@ export default function Home() {
                 Open dashboard
               </Link>
               <Link
-                href="/contracts/cnt_9821_stripe"
+                href="/contracts/new"
                 className="px-7 py-3.5 rounded-full border border-[#5E57C9] hover:bg-[#1E1C45] text-[#F2F2F4] font-semibold text-base transition-colors"
               >
-                Inspect the demo contract
+                Create Milestone Escrow
               </Link>
             </div>
           </div>

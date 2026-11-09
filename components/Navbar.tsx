@@ -40,12 +40,12 @@ export function Navbar() {
           </Link>
 
           {/* Clean Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1 text-xs">
+          <nav className="hidden md:flex items-center gap-2 text-xs">
             <Link
               href="/dashboard"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${
                 pathname === "/dashboard"
-                  ? "bg-white/[0.06] dark:bg-white/[0.08] text-foreground"
+                  ? "bg-white/[0.08] text-foreground font-semibold"
                   : "text-muted hover:text-foreground"
               }`}
             >
@@ -53,17 +53,19 @@ export function Navbar() {
               Dashboard
             </Link>
 
-            <Link
-              href="/contracts/cnt_9821_stripe"
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md font-medium transition-colors ${
-                pathname === "/contracts/cnt_9821_stripe"
-                  ? "bg-white/[0.06] dark:bg-white/[0.08] text-foreground"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              Live Demo
-            </Link>
+            {user.role === "client" ? (
+              <Link
+                href="/contracts/new"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${
+                  pathname === "/contracts/new"
+                    ? "bg-accent text-white font-semibold"
+                    : "text-muted hover:text-foreground"
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                New Agreement
+              </Link>
+            ) : null}
           </nav>
         </div>
 

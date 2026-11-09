@@ -162,8 +162,15 @@ export default function Dashboard() {
   const settledPercent = totalCommitted > 0 ? (totalPaidOutAmount / totalCommitted) * 100 : 73.4;
   const escrowPercent = totalCommitted > 0 ? (totalEscrowAmount / totalCommitted) * 100 : 26.6;
 
-  // Single active contract needing immediate review / spotlight
-  const urgentContract = contracts.find((c) => c.status === "PENDING_REVIEW" || c.status === "AI_VERIFIED") || contracts[0];
+  // Context-aware spotlight milestone depending on role:
+  // - Client cares most about contracts needing review/payout authorization (PENDING_REVIEW / AI_VERIFIED)
+  // - Contractor cares most about funded escrow contracts waiting for deliverables (FUNDED_ESCROW)
+  const urgentContract =
+    user.role === "client"
+      ? contracts.find((c) => c.status === "PENDING_REVIEW" || c.status === "AI_VERIFIED") || contracts[0]
+      : contracts.find((c) => c.status === "FUNDED_ESCROW") ||
+        contracts.find((c) => c.status === "PENDING_REVIEW") ||
+        contracts[0];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 space-y-7">
@@ -200,13 +207,10 @@ export default function Dashboard() {
               Fund New Contract
             </Link>
           ) : (
-            <Link
-              href="/contracts/cnt_9821_stripe"
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition-all cursor-pointer"
-            >
-              <Send className="w-3.5 h-3.5" />
-              Active Milestone
-            </Link>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>Direct PayPal Payout Rails Active</span>
+            </div>
           )}
         </div>
       </div>
@@ -292,21 +296,9 @@ export default function Dashboard() {
         )}
 
         <div className="flex items-center gap-2">
-          {user.role === "client" ? (
-            <Link
-              href="/contracts/new"
-              className="px-3.5 py-1.5 rounded-lg bg-accent/10 hover:bg-accent text-accent hover:text-white border border-accent/25 text-xs font-semibold transition-all"
-            >
-              + Create Agreement
-            </Link>
-          ) : (
-            <Link
-              href="/contracts/cnt_9821_stripe"
-              className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-600 text-emerald-500 hover:text-white border border-emerald-500/25 text-xs font-semibold transition-all"
-            >
-              📤 Submit Work
-            </Link>
-          )}
+          <span className="text-[11px] font-mono text-muted bg-background/80 px-2.5 py-1 rounded-md border border-border">
+            USD / 0% Platform Fee
+          </span>
         </div>
       </div>
 
@@ -532,7 +524,13 @@ export default function Dashboard() {
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold uppercase tracking-wider bg-white/[0.08]">
                 <span className={`w-2 h-2 rounded-full ${user.role === "client" ? "bg-accent animate-ping" : "bg-emerald-500"}`} />
                 <span className={user.role === "client" ? "text-accent font-bold" : "text-emerald-500 font-bold"}>
-                  {user.role === "client" ? "Action Required: 1 Deliverable Awaiting Approval" : "Payment Clearing: 48h Auto-Release Guarantee"}
+                  {user.role === "client"
+                    ? urgentContract.status === "PENDING_REVIEW"
+                      ? "Action Required: 1 Deliverable Awaiting Review"
+                      : "Escrow Funded & Protected"
+                    : urgentContract.status === "FUNDED_ESCROW"
+                    ? "Escrow Funded: Ready for Proof Submission"
+                    : "Payment Clearing: 48h Auto-Release Guarantee"}
                 </span>
               </div>
 
@@ -545,9 +543,15 @@ export default function Dashboard() {
                 <span>•</span>
                 <span className="font-mono text-foreground font-semibold">${urgentContract.amount.toFixed(2)} USD</span>
                 <span>•</span>
-                <span className="text-emerald-500 font-medium">AI Audit Passed (Score 94/100)</span>
-                <span>•</span>
-                <span className="text-amber-500">Auto-release in 48h</span>
+                {urgentContract.status === "FUNDED_ESCROW" ? (
+                  <span className="text-accent font-medium">Funds locked in PayPal escrow</span>
+                ) : (
+                  <>
+                    <span className="text-emerald-500 font-medium">AI Audit Passed (94/100)</span>
+                    <span>•</span>
+                    <span className="text-amber-500">Auto-release in 48h</span>
+                  </>
+                )}
               </div>
             </div>
 
@@ -559,7 +563,11 @@ export default function Dashboard() {
                   : "bg-emerald-600 hover:bg-emerald-500"
               }`}
             >
-              {user.role === "client" ? "Review Deliverable & Settle $450 →" : "View Inspection & Receipt →"}
+              {user.role === "client"
+                ? `Review Deliverable & Settle $${urgentContract.amount.toFixed(0)} →`
+                : urgentContract.status === "FUNDED_ESCROW"
+                ? `Submit Deliverable Proof ($${urgentContract.amount.toFixed(0)}) →`
+                : "View Audit Status & Earnings →"}
             </Link>
           </div>
         </div>

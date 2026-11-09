@@ -34,8 +34,8 @@ const PAGE_TOURS: Record<string, TourStep[]> = {
     },
     {
       target: '[data-tour="perspective-switch"]',
-      prompt: "Switch between Client (who pays) and Contractor (who works) anytime to test both sides of the deal.",
-      badge: "Two Roles",
+      prompt: "Explore the 4-step interactive flow: Escrow deposit → Deliverable proof → AI referee → PayPal payout.",
+      badge: "How It Works",
     },
     {
       target: '[data-tour="workflow"]',
@@ -62,8 +62,8 @@ const PAGE_TOURS: Record<string, TourStep[]> = {
     },
     {
       target: '[data-tour="demo-contract"]',
-      prompt: "Click 'Review & Settle' on this demo milestone to test the live AI inspection and PayPal payout flow.",
-      badge: "Interactive Demo",
+      prompt: "Click here to inspect this contract, evaluate deliverables with the AI referee, or track PayPal payout settlement.",
+      badge: "Milestone Details",
     },
     {
       target: '[data-tour="new-contract-btn"]',
