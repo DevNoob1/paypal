@@ -7,145 +7,147 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
-  AlertTriangle,
-  Clock,
   Lock,
-  Cpu,
   Sparkles,
   Zap,
   Play,
   Check,
   X,
-  GitPullRequest,
+  Send,
+  Upload,
   FileCheck2,
-  Receipt,
-  ExternalLink,
   ChevronRight,
   DollarSign,
-  Shield,
-  Layers,
+  Scale,
+  Clock,
+  ExternalLink,
 } from "lucide-react";
-import { useAuth } from "@/components/AuthContext";
 
 export default function Home() {
-  const { user } = useAuth();
   const [activeWorkflowStep, setActiveWorkflowStep] = useState(1);
   const [autoRotate, setAutoRotate] = useState(true);
 
-  // Auto-advance workflow inspection
+  // Auto-advance workflow map every 4 seconds unless clicked
   useEffect(() => {
     if (!autoRotate) return;
     const timer = setInterval(() => {
       setActiveWorkflowStep((prev) => (prev < 4 ? prev + 1 : 1));
-    }, 4000);
+    }, 4200);
     return () => clearInterval(timer);
   }, [autoRotate]);
 
-  const workflowSteps = [
+  const workflowStages = [
     {
       step: 1,
-      title: "Agreement & Escrow Lock",
-      subtitle: "Capital Funded & Protected",
+      title: "1. Deposit Locked in Escrow",
+      shortTitle: "Lock Escrow",
       actor: "Client",
-      rail: "PayPal Orders V2",
-      badge: "Funds Secured",
-      desc: "Client defines clear acceptance criteria and authorizes milestone funds via PayPal. Money is safely locked before any work starts.",
+      icon: Lock,
+      badge: "Funds Protected",
+      summary: "Client deposits the project payment into secure PayPal escrow before work starts.",
+      details: [
+        "Contractor knows money is real and guaranteed.",
+        "Client retains full control until work is delivered.",
+        "Zero upfront risk for either party.",
+      ],
       preview: {
-        label: "PayPal Escrow Order",
-        orderId: "PP-ORD-9821BB-ESCROW",
+        tag: "PayPal Escrow Deposit",
+        title: "Web App Milestone #1",
         amount: "$450.00 USD",
-        status: "HELD_IN_ESCROW",
-        parties: "Acme Cloud Corp → Alex Rivera",
+        status: "HELD SAFELY IN ESCROW",
+        detail: "Protected by PayPal Payment Rails",
       },
     },
     {
       step: 2,
-      title: "Proof of Work Submission",
-      subtitle: "Verifiable Deliverables",
+      title: "2. Deliverable Submitted",
+      shortTitle: "Submit Work",
       actor: "Contractor",
-      rail: "GitHub / Figma / Docs",
-      badge: "Artifact Ingestion",
-      desc: "Contractor delivers tangible proof: GitHub PR diffs, staging URLs, Figma file links, and automated unit test run logs.",
+      icon: Upload,
+      badge: "Proof Uploaded",
+      summary: "Contractor finishes the milestone and submits proof: link, design, or documents.",
+      details: [
+        "Attaches GitHub repo link, Figma design, or live demo.",
+        "Includes notes and evidence against the agreed criteria.",
+        "No paperwork, no complex invoice chasing.",
+      ],
       preview: {
-        label: "Deliverable Artifact",
-        url: "github.com/acme-cloud/webhook-service/pull/12",
-        artifact: "Idempotency middleware + HMAC verification suite",
-        metrics: "91.4% branch coverage (38 passing tests)",
-        status: "SUBMITTED",
+        tag: "Deliverable Proof",
+        title: "API Integration & Test Suite",
+        amount: "Deliverable URL & Artifacts",
+        status: "SUBMITTED FOR REVIEW",
+        detail: "Proof attached: github.com/acme/pr/12",
       },
     },
     {
       step: 3,
-      title: "Multi-Agent AI Review",
-      subtitle: "Objective Parallel Audit",
-      actor: "Gemini 1.5 Flash",
-      rail: "Tri-Agent Consensus",
-      badge: "Mathematical Score",
-      desc: "Three specialized Gemini AI agents independently evaluate scope, code quality, and security against agreed criteria in under 3 seconds.",
+      title: "3. Neutral AI Referee Checks",
+      shortTitle: "AI Review",
+      actor: "AI Referee",
+      icon: Scale,
+      badge: "3-Second Audit",
+      summary: "AI checks if the work matches what was agreed. No bias, no scope creep.",
+      details: [
+        "Compares deliverables line-by-line with the checklist.",
+        "Scores objectively in under 3 seconds.",
+        "Protects contractor from surprise extra demands.",
+      ],
       preview: {
-        label: "AI Consensus Evaluation",
-        score: "94.3 / 100",
-        verdict: "APPROVED (>85% Threshold Met)",
-        agents: [
-          { name: "Scope Auditor", score: "96%", status: "PASS" },
-          { name: "Quality Inspector", score: "92%", status: "PASS" },
-          { name: "Payment Arbiter", score: "95%", status: "PASS" },
-        ],
+        tag: "Objective AI Score",
+        title: "Audit Score: 94 / 100",
+        amount: "Verdict: APPROVED",
+        status: "ALL CRITERIA VERIFIED",
+        detail: "Scope met • Quality verified • Payout authorized",
       },
     },
     {
       step: 4,
-      title: "Direct PayPal Settlement",
-      subtitle: "Instant Contractor Payout",
-      actor: "PayPal Rails",
-      rail: "PayPal Payouts V1",
-      badge: "Instant Release",
-      desc: "Funds are transferred directly into the contractor's PayPal account in seconds. A 48-hour auto-release safeguard eliminates client ghosting.",
+      title: "4. Instant PayPal Cashout",
+      shortTitle: "Instant Payout",
+      actor: "PayPal",
+      icon: Send,
+      badge: "Money Sent",
+      summary: "Funds are released directly into the contractor's PayPal account in seconds.",
+      details: [
+        "Instant cashout — zero 30-day waiting periods.",
+        "48-hour safety guarantee if a client is slow to reply.",
+        "Receipt and confirmation sent directly to your email.",
+      ],
       preview: {
-        label: "PayPal Payout Receipt",
-        payoutId: "PYT-98217349910-SUCCESS",
-        recipient: "alex.rivera@devmail.com",
-        netDisbursed: "$450.00 USD",
-        speed: "Instant (1.84s Latency)",
-        status: "COMPLETED",
+        tag: "PayPal Direct Payout",
+        title: "Transferred to alex.rivera@devmail.com",
+        amount: "$450.00 USD",
+        status: "COMPLETED & DISBURSED",
+        detail: "Instant settlement via PayPal Payout Rails",
       },
     },
   ];
 
   return (
     <div className="flex flex-col flex-1">
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden pt-14 pb-12 sm:pt-20 sm:pb-16 border-b border-border/60 bg-grid-mesh">
-        {/* Ambient Top Spotlight */}
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(99,102,241,0.15),transparent_70%)] pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Subtle Status Pill */}
+      {/* 1. HERO SECTION (MINIMALIST & HUMAN-FIRST) */}
+      <section className="relative overflow-hidden pt-12 pb-10 sm:pt-16 sm:pb-14 border-b border-border/60">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          {/* Simple Trust Pill */}
           <div data-tour="hero" className="inline-block">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.04] dark:bg-white/[0.06] border border-border text-xs text-muted mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-xs text-accent font-medium mb-5">
               <span className="flex h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-              <span className="font-medium text-foreground">
-                Automated Milestone Escrow
-              </span>
-              <span className="text-border">/</span>
-              <span className="text-accent font-medium">
-                PayPal Rails
-              </span>
+              <span>Safe Escrow with PayPal</span>
+              <span className="text-accent/40">•</span>
+              <span>Instant AI Verification</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-foreground max-w-4xl mx-auto leading-[1.12]">
-              Milestone Escrow with{" "}
-              <span className="bg-gradient-to-r from-accent via-indigo-400 to-indigo-300 bg-clip-text text-transparent">
-                Automated AI Verification
-              </span>
+            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+              Get paid when you deliver. <br className="hidden sm:inline" />
+              <span className="text-accent">Pay only when it&apos;s done.</span>
             </h1>
 
-            <p className="mt-3 text-sm sm:text-base text-muted max-w-lg mx-auto font-medium">
-              Funds locked in PayPal escrow. Independently verified before release.
+            <p className="mt-4 text-sm sm:text-base text-muted max-w-xl mx-auto leading-relaxed">
+              No more chasing invoices. No more client ghosting. ResolvAI holds deposits safely in PayPal escrow and uses an unbiased AI referee to verify work and release payments in seconds.
             </p>
           </div>
 
-          {/* Action Buttons */}
+          {/* Action CTAs */}
           <div className="mt-7 flex flex-col sm:flex-row items-center justify-center gap-3">
             <div data-tour="open-dashboard">
               <Link
@@ -163,469 +165,332 @@ export default function Home() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-card hover:bg-card-hover border border-border text-foreground font-medium text-xs sm:text-sm transition-all"
               >
                 <Play className="w-3.5 h-3.5 text-accent" />
-                <span>Try Live Deliverable Review</span>
+                Try Interactive Demo
               </Link>
             </div>
           </div>
-        </div>
-      </section>
 
-      {/* SECTION 1: THE PROBLEM & THE SOLUTION (VISUAL COMPARISON) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 border-b border-border/60">
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-16">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-accent/10 text-accent border border-accent/20 mb-3">
-            The Dilemma &amp; The Breakthrough
-          </span>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight">
-            Why Contract Payments Break Today — And How ResolvAI Fixes Them
-          </h2>
-          <p className="text-xs sm:text-sm text-muted mt-3 leading-relaxed">
-            Over $1.5 Trillion in digital contracts are stuck in subjective disputes, delayed reviews, and high platform commissions.
-          </p>
-        </div>
-
-        {/* Side-by-Side Visual Comparison Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          {/* LEFT: THE BROKEN STATUS QUO (THE PROBLEM) */}
-          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.02] dark:bg-rose-950/[0.08] p-6 sm:p-8 space-y-6 relative overflow-hidden shadow-sm">
-            {/* Ambient Red Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/[0.04] rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex items-center justify-between pb-4 border-b border-rose-500/15">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-rose-500/15 text-rose-500 flex items-center justify-center font-bold text-sm">
-                  ✕
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">The Broken Status Quo</h3>
-                  <p className="text-[11px] text-muted">Traditional Freelance &amp; Contract Work</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-rose-500 font-semibold uppercase bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
-                High Risk &amp; Friction
-              </span>
+          {/* 3 Quick Value Bullets */}
+          <div className="mt-8 pt-6 border-t border-border/50 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-muted">
+            <div className="flex items-center justify-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+              <span>Protected PayPal Escrow</span>
             </div>
-
-            <div className="space-y-4">
-              {/* Problem 1 */}
-              <div className="p-4 rounded-xl bg-background/60 border border-border/80 flex items-start gap-3.5">
-                <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-bold text-foreground">14-to-30 Day Review Lag &amp; Ghosting</h4>
-                    <span className="text-[10px] text-rose-500 font-mono font-medium">Avg. hold: 21 days</span>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Clients get busy or ghost after delivery. Freelancers are left waiting weeks with zero cash flow for completed milestones.
-                  </p>
-                </div>
-              </div>
-
-              {/* Problem 2 */}
-              <div className="p-4 rounded-xl bg-background/60 border border-border/80 flex items-start gap-3.5">
-                <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <AlertTriangle className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-bold text-foreground">Subjective Scope Creep &amp; Moving Goalposts</h4>
-                    <span className="text-[10px] text-rose-500 font-mono font-medium">43% disputed</span>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Vague contracts lead to opinion-based disputes. Clients demand extra unpaid features or refuse release based on feelings.
-                  </p>
-                </div>
-              </div>
-
-              {/* Problem 3 */}
-              <div className="p-4 rounded-xl bg-background/60 border border-border/80 flex items-start gap-3.5">
-                <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <Receipt className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-bold text-foreground">10%–20% Platform Cuts &amp; Manual Support</h4>
-                    <span className="text-[10px] text-rose-500 font-mono font-medium">Up to 20% fee</span>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Traditional escrow middlemen take exorbitant fees and freeze capital in human customer support ticket queues for months.
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-center justify-center gap-2">
+              <Sparkles className="w-4 h-4 text-accent" />
+              <span>3-Second Objective AI Review</span>
             </div>
-          </div>
-
-          {/* RIGHT: THE RESOLVAI SOLUTION */}
-          <div className="rounded-2xl border border-accent/40 bg-accent/[0.02] dark:bg-accent/[0.06] p-6 sm:p-8 space-y-6 relative overflow-hidden shadow-sm">
-            {/* Ambient Accent Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-accent/[0.06] rounded-full blur-3xl pointer-events-none" />
-
-            <div className="flex items-center justify-between pb-4 border-b border-accent/20">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-accent/20 text-accent flex items-center justify-center font-bold text-sm">
-                  ✓
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">The ResolvAI Solution</h3>
-                  <p className="text-[11px] text-muted">Autonomous Multi-Agent Escrow Rails</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-emerald-500 font-semibold uppercase bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/25">
-                PayPal + AI Native
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              {/* Solution 1 */}
-              <div className="p-4 rounded-xl bg-background/80 border border-accent/25 flex items-start gap-3.5">
-                <div className="w-7 h-7 rounded-lg bg-accent/15 text-accent flex items-center justify-center shrink-0 mt-0.5">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-bold text-foreground">Guaranteed PayPal Escrow Lock</h4>
-                    <span className="text-[10px] text-emerald-500 font-mono font-medium">100% Funded</span>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Milestone capital is deposited via PayPal Orders API before work begins. Contractors know money is waiting, clients know funds are safe.
-                  </p>
-                </div>
-              </div>
-
-              {/* Solution 2 */}
-              <div className="p-4 rounded-xl bg-background/80 border border-accent/25 flex items-start gap-3.5">
-                <div className="w-7 h-7 rounded-lg bg-accent/15 text-accent flex items-center justify-center shrink-0 mt-0.5">
-                  <Cpu className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-bold text-foreground">Objective Multi-Agent AI Audit</h4>
-                    <span className="text-[10px] text-emerald-500 font-mono font-medium">&lt; 3s Evaluation</span>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Google Gemini agents independently inspect pull requests, test logs, and URLs against strict acceptance criteria with deterministic scoring.
-                  </p>
-                </div>
-              </div>
-
-              {/* Solution 3 */}
-              <div className="p-4 rounded-xl bg-background/80 border border-accent/25 flex items-start gap-3.5">
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/15 text-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <Zap className="w-4 h-4" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-xs font-bold text-foreground">Direct PayPal Payout &amp; 48h Safeguard</h4>
-                    <span className="text-[10px] text-emerald-500 font-mono font-medium">Direct Transfer</span>
-                  </div>
-                  <p className="text-xs text-muted leading-relaxed">
-                    Once verified, funds disburse straight to the worker&apos;s PayPal account. A 48-hour auto-release timer ensures workers get paid without ghosting.
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-center justify-center gap-2">
+              <Zap className="w-4 h-4 text-amber-500" />
+              <span>Instant Payouts &amp; Zero Ghosting</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: THE VISUAL WORKFLOW (HOW IT WORKS STEP-BY-STEP) */}
-      <section data-tour="workflow" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
-        <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold bg-accent/10 text-accent border border-accent/20 mb-3">
-            Autonomous Contract Lifecycle
+      {/* 2. VISUAL FLOW MAP (ANIMATED SCROLL / CLICK WORKFLOW) */}
+      <section data-tour="workflow" className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+          <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-semibold bg-accent/10 text-accent border border-accent/20 mb-2.5">
+            Interactive Visual Flow
           </span>
-          <h2 className="text-2xl sm:text-4xl font-extrabold text-foreground tracking-tight">
-            How Capital &amp; Deliverables Move Through ResolvAI
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            How ResolvAI Works in 4 Steps
           </h2>
-          <p className="text-xs sm:text-sm text-muted mt-3 leading-relaxed">
-            Click on any stage below to inspect the live data stream, transaction references, and agent verdicts.
+          <p className="text-xs sm:text-sm text-muted mt-2">
+            Click any step to inspect how money and deliverables move from start to payout.
           </p>
         </div>
 
-        {/* 4-Step Sequential Process Header with Connectors */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          {workflowSteps.map((s) => {
-            const isSelected = activeWorkflowStep === s.step;
-            const isPassed = activeWorkflowStep > s.step;
+        {/* Visual Map Pipeline: 4 Nodes Connected by SVG Paths */}
+        <div className="relative mb-6">
+          {/* Desktop SVG Connecting Lines */}
+          <div className="hidden lg:block absolute top-7 left-[12%] right-[12%] h-1 pointer-events-none -z-0">
+            <svg className="w-full h-4 overflow-visible" preserveAspectRatio="none">
+              <line
+                x1="0"
+                y1="2"
+                x2="100%"
+                y2="2"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="6 6"
+                className="text-border"
+              />
+              <line
+                x1="0"
+                y1="2"
+                x2={`${((activeWorkflowStep - 1) / 3) * 100}%`}
+                y2="2"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className="text-accent transition-all duration-500"
+              />
+            </svg>
+          </div>
 
-            return (
-              <div
-                key={s.step}
-                onClick={() => {
-                  setAutoRotate(false);
-                  setActiveWorkflowStep(s.step);
-                }}
-                className={`p-4 rounded-xl border transition-all cursor-pointer text-left relative flex flex-col justify-between ${
-                  isSelected
-                    ? "bg-accent/[0.08] border-accent/80 shadow-md ring-1 ring-accent/30 scale-[1.01]"
-                    : isPassed
-                    ? "bg-background/80 border-border/80 hover:border-border"
-                    : "bg-background/40 border-border/60 opacity-70 hover:opacity-100"
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2.5">
-                    <span className="text-[11px] font-mono font-bold text-accent">
-                      0{s.step}
-                    </span>
-                    <span
-                      className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded ${
+          {/* 4 Interactive Step Buttons */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 relative z-10">
+            {workflowStages.map((s) => {
+              const isSelected = activeWorkflowStep === s.step;
+              const isPast = activeWorkflowStep > s.step;
+              const Icon = s.icon;
+
+              return (
+                <button
+                  key={s.step}
+                  onClick={() => {
+                    setAutoRotate(false);
+                    setActiveWorkflowStep(s.step);
+                  }}
+                  className={`p-3.5 sm:p-4 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    isSelected
+                      ? "bg-accent/[0.08] border-accent ring-2 ring-accent/20 shadow-sm"
+                      : isPast
+                      ? "bg-card border-border/80 hover:border-foreground/30 opacity-90"
+                      : "bg-card/50 border-border/60 hover:border-border opacity-70"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs transition-colors ${
                         isSelected
-                          ? "bg-accent text-white font-semibold"
-                          : isPassed
-                          ? "bg-emerald-500/10 text-emerald-500 font-medium"
-                          : "text-muted bg-card/60"
+                          ? "bg-accent text-white"
+                          : isPast
+                          ? "bg-emerald-500/15 text-emerald-500"
+                          : "bg-muted/15 text-muted"
                       }`}
                     >
-                      {isSelected ? "Inspecting" : isPassed ? "Complete" : "Stage"}
+                      {isPast ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                    </div>
+                    <span
+                      className={`text-[10px] font-mono px-2 py-0.5 rounded-full ${
+                        isSelected
+                          ? "bg-accent/15 text-accent font-semibold"
+                          : "bg-muted/10 text-muted"
+                      }`}
+                    >
+                      Step 0{s.step}
                     </span>
                   </div>
 
-                  <h3 className="text-xs sm:text-sm font-bold text-foreground mb-1 leading-snug">
-                    {s.title}
-                  </h3>
-                  <div className="text-[11px] text-accent font-medium mb-1.5">
-                    {s.subtitle}
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-foreground">
+                      {s.shortTitle}
+                    </h3>
+                    <p className="text-[11px] text-muted mt-1 leading-snug line-clamp-2">
+                      {s.summary}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-muted line-clamp-2 leading-relaxed">
-                    {s.desc}
-                  </p>
-                </div>
-
-                <div className="pt-3 mt-3 border-t border-border/60 flex items-center justify-between text-[10px] text-muted font-mono">
-                  <span>{s.actor}</span>
-                  <span className="text-foreground font-semibold">{s.rail}</span>
-                </div>
-              </div>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* INTERACTIVE WORKFLOW DEEP DIVE INSPECTION PANEL */}
-        <div className="rounded-2xl border border-border/80 bg-card/60 p-5 sm:p-7 text-left shadow-sm">
-          {activeWorkflowStep === 1 && (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center font-bold">
-                    <Lock className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono uppercase text-accent font-semibold tracking-wider">
-                      Stage 1 • Escrow Funding
+        {/* Active Stage Detailed Inspection Card */}
+        {(() => {
+          const current = workflowStages.find((s) => s.step === activeWorkflowStep)!;
+          const Icon = current.icon;
+
+          return (
+            <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                {/* Left: Plain-English Story */}
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-accent/15 text-accent flex items-center justify-center">
+                      <Icon className="w-4 h-4" />
+                    </div>
+                    <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                      {current.actor} Perspective
                     </span>
-                    <h3 className="text-base font-bold text-foreground">
-                      Client Locks Funds in PayPal Escrow
-                    </h3>
                   </div>
-                </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-mono font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Status: CAPTURED &amp; HELD
-                </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    PayPal Order Reference
-                  </span>
-                  <div className="font-bold text-foreground text-sm">PP-ORD-9821BB-ESCROW</div>
-                  <span className="text-[10.5px] text-accent block">PayPal Orders V2 API</span>
-                </div>
+                  <h3 className="text-base sm:text-lg font-bold text-foreground">
+                    {current.title}
+                  </h3>
 
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Total Locked Amount
-                  </span>
-                  <div className="font-bold text-emerald-500 text-sm">$450.00 USD</div>
-                  <span className="text-[10.5px] text-muted block">100% Protected Principal</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Counterparties
-                  </span>
-                  <div className="font-bold text-foreground text-sm truncate">Acme Corp → Alex Rivera</div>
-                  <span className="text-[10.5px] text-muted block">Client billing: billing@acmecloud.io</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-muted leading-relaxed font-sans pt-1">
-                Before the contractor writes a single line of code or begins work, the milestone amount is locked in escrow. The contractor receives cryptographic proof that the money is guaranteed upon objective milestone completion.
-              </p>
-            </div>
-          )}
-
-          {activeWorkflowStep === 2 && (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center font-bold">
-                    <GitPullRequest className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono uppercase text-accent font-semibold tracking-wider">
-                      Stage 2 • Deliverable Ingestion
-                    </span>
-                    <h3 className="text-base font-bold text-foreground">
-                      Contractor Uploads Verifiable Proof
-                    </h3>
-                  </div>
-                </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-xs font-mono font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-                  Status: ARTIFACTS SUBMITTED
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Repository PR Link
-                  </span>
-                  <div className="font-bold text-foreground text-sm truncate">github.com/acme/webhook-service/pull/12</div>
-                  <span className="text-[10.5px] text-accent block">PR Diffs &amp; Commits Attached</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Automated Test Logs
-                  </span>
-                  <div className="font-bold text-emerald-500 text-sm">38 Passing Tests (91.4%)</div>
-                  <span className="text-[10.5px] text-muted block">CI Pipeline Output Ingested</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Security Middleware
-                  </span>
-                  <div className="font-bold text-foreground text-sm">HMAC-SHA256 Idempotency</div>
-                  <span className="text-[10.5px] text-muted block">Replay attack protection</span>
-                </div>
-              </div>
-
-              <p className="text-xs text-muted leading-relaxed font-sans pt-1">
-                The contractor attaches concrete evidence: GitHub pull requests, test logs, Figma prototypes, or Google Docs. ResolvAI transforms these deliverables into structured input for multi-agent validation.
-              </p>
-            </div>
-          )}
-
-          {activeWorkflowStep === 3 && (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center font-bold">
-                    <Cpu className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono uppercase text-accent font-semibold tracking-wider">
-                      Stage 3 • AI Consensus Engine
-                    </span>
-                    <h3 className="text-base font-bold text-foreground">
-                      Three Independent Gemini Agents Audit the Work
-                    </h3>
-                  </div>
-                </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-mono font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Consensus Score: 94.3 / 100
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-2">
-                  <div className="flex items-center justify-between font-bold text-foreground">
-                    <span>1. Scope Auditor</span>
-                    <span className="text-emerald-500 font-mono">96%</span>
-                  </div>
-                  <p className="text-[11px] text-muted leading-relaxed">
-                    Deconstructs contract criteria: confirms 4 of 4 agreed deliverables are fully satisfied with zero scope creep.
+                  <p className="text-xs sm:text-sm text-muted leading-relaxed">
+                    {current.summary}
                   </p>
+
+                  <ul className="space-y-1.5 pt-1">
+                    {current.details.map((detail, idx) => (
+                      <li key={idx} className="flex items-center gap-2 text-xs text-foreground/90">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>{detail}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
 
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-2">
-                  <div className="flex items-center justify-between font-bold text-foreground">
-                    <span>2. Quality Inspector</span>
-                    <span className="text-emerald-500 font-mono">92%</span>
-                  </div>
-                  <p className="text-[11px] text-muted leading-relaxed">
-                    Audits code structure, unit test outputs, and security middleware: validates 91.4% branch coverage.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-2">
-                  <div className="flex items-center justify-between font-bold text-foreground">
-                    <span>3. Payment Arbiter</span>
-                    <span className="text-emerald-500 font-mono">95%</span>
-                  </div>
-                  <p className="text-[11px] text-muted leading-relaxed">
-                    Synthesizes cross-agent findings: overall quality score exceeds the 85% passing gate. Authorizes PayPal payout.
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-xs text-muted leading-relaxed font-sans pt-1">
-                Google Gemini 1.5 Flash agents run simultaneously in parallel. Disagreements and opinions are replaced by deterministic criteria scoring.
-              </p>
-            </div>
-          )}
-
-          {activeWorkflowStep === 4 && (
-            <div className="space-y-4 animate-in fade-in duration-300">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/60">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center font-bold">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono uppercase text-emerald-500 font-semibold tracking-wider">
-                      Stage 4 • Automated Settlement
+                {/* Right: Live Simulated Snapshot */}
+                <div className="w-full lg:w-72 p-4 rounded-xl bg-background border border-border/80 flex flex-col justify-between shrink-0">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[10px] font-mono text-muted uppercase tracking-wider">
+                      {current.preview.tag}
                     </span>
-                    <h3 className="text-base font-bold text-foreground">
-                      Funds Deposited Directly to Worker&apos;s PayPal
-                    </h3>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-medium">
+                      Live State
+                    </span>
+                  </div>
+
+                  <div className="space-y-1 my-2">
+                    <div className="text-xs text-muted font-medium">
+                      {current.preview.title}
+                    </div>
+                    <div className="text-lg font-bold text-foreground">
+                      {current.preview.amount}
+                    </div>
+                    <div className="text-[11px] font-mono text-accent">
+                      {current.preview.status}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-border/60 text-[11px] text-muted">
+                    {current.preview.detail}
                   </div>
                 </div>
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-mono font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                  Status: DISPATCHED &amp; COMPLETED
-                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono">
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    PayPal Batch ID
-                  </span>
-                  <div className="font-bold text-foreground text-sm truncate">PYT-98217349910-SUCCESS</div>
-                  <span className="text-[10.5px] text-accent block">PayPal Payouts V1 Rails</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Payout Disbursed
-                  </span>
-                  <div className="font-bold text-emerald-500 text-sm">$450.00 USD</div>
-                  <span className="text-[10.5px] text-muted block">Direct to alex.rivera@devmail.com</span>
-                </div>
-
-                <div className="p-4 rounded-xl bg-background/80 border border-border/70 space-y-1">
-                  <span className="text-[10px] font-sans text-muted uppercase tracking-wider block">
-                    Settlement Latency
-                  </span>
-                  <div className="font-bold text-foreground text-sm">1.84 Seconds</div>
-                  <span className="text-[10.5px] text-emerald-500 block">Zero Invoice Lag</span>
-                </div>
+              {/* Progress & Next Step Trigger */}
+              <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[11px] text-muted">
+                  Auto-playing flow. Click any step above to pause.
+                </span>
+                <button
+                  onClick={() => {
+                    setAutoRotate(false);
+                    setActiveWorkflowStep((prev) => (prev < 4 ? prev + 1 : 1));
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs text-accent hover:text-accent-hover font-medium cursor-pointer"
+                >
+                  <span>Next Step</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
               </div>
-
-              <p className="text-xs text-muted leading-relaxed font-sans pt-1">
-                The client approves release with one click (or funds auto-disburse in 48 hours if no dispute is opened). The contractor receives money instantly in their PayPal wallet without waiting 30 days for traditional accounting cycles.
-              </p>
             </div>
-          )}
+          );
+        })()}
+      </section>
+
+      {/* 3. THE PROBLEM VS. THE FIX (CLEAR & PLAIN ENGLISH) */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 border-t border-border/60">
+        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
+            Why Freelancers &amp; Clients Love This
+          </h2>
+          <p className="text-xs sm:text-sm text-muted mt-2">
+            Eliminating the awkward conflicts that ruin freelance partnerships.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+          {/* The Broken Way */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-card border border-rose-500/20 space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-sm sm:text-base text-foreground">
+                The Broken Status Quo
+              </h3>
+            </div>
+
+            <ul className="space-y-3 text-xs text-muted">
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-500 font-bold shrink-0 mt-0.5">✕</span>
+                <span>
+                  <strong className="text-foreground">Waiting 30+ Days:</strong> Contractors finish work, then wait weeks for client replies or invoice cycles.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-500 font-bold shrink-0 mt-0.5">✕</span>
+                <span>
+                  <strong className="text-foreground">Subjective Scope Creep:</strong> &quot;Can you also build this extra feature before I pay you?&quot;
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-500 font-bold shrink-0 mt-0.5">✕</span>
+                <span>
+                  <strong className="text-foreground">20% Platform Rake:</strong> Freelance portals take massive cuts from every single payment you earn.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-rose-500 font-bold shrink-0 mt-0.5">✕</span>
+                <span>
+                  <strong className="text-foreground">Fear of Ghosting:</strong> Handing over valuable source code or designs with zero escrow protection.
+                </span>
+              </li>
+            </ul>
+          </div>
+
+          {/* The ResolvAI Solution */}
+          <div className="p-5 sm:p-6 rounded-2xl bg-card border border-emerald-500/25 space-y-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <Check className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-sm sm:text-base text-foreground">
+                The ResolvAI Solution
+              </h3>
+            </div>
+
+            <ul className="space-y-3 text-xs text-muted">
+              <li className="flex items-start gap-2.5">
+                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
+                <span>
+                  <strong className="text-foreground">Protected PayPal Escrow:</strong> Money is deposited upfront so you know you are guaranteed to get paid.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
+                <span>
+                  <strong className="text-foreground">Fair AI Referee:</strong> Work is verified strictly against the initial checklist in under 3 seconds.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
+                <span>
+                  <strong className="text-foreground">Instant Direct Cashout:</strong> Funds disburse straight to the freelancer&apos;s PayPal with zero delay.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
+                <span>
+                  <strong className="text-foreground">48-Hour Safety Valve:</strong> If a client goes unresponsive, money auto-releases safely to the worker.
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. BOTTOM CLEAN CALL TO ACTION */}
+      <section className="border-t border-border/60 py-12 sm:py-14 bg-card/40">
+        <div className="max-w-2xl mx-auto px-4 text-center space-y-4">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight">
+            Ready to test autonomous milestone escrow?
+          </h2>
+          <p className="text-xs sm:text-sm text-muted">
+            Launch the interactive demo to inspect live AI arbitration and instant PayPal settlement.
+          </p>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Link
+              href="/dashboard"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-accent hover:bg-accent-hover text-white font-medium text-xs sm:text-sm shadow-sm transition-all"
+            >
+              Open Dashboard
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/contracts/cnt_9821_stripe"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-card hover:bg-card-hover border border-border text-foreground font-medium text-xs sm:text-sm transition-all"
+            >
+              Inspect Live Demo Contract
+            </Link>
+          </div>
         </div>
       </section>
     </div>
