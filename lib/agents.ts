@@ -46,7 +46,7 @@ export async function runTriAgentSwarm(params: {
     if (!key || key.trim() === "") return null;
     try {
       const genAI = new GoogleGenerativeAI(key);
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
       const res = await model.generateContent(`${systemRole}\n\n${taskPrompt}`);
       return res.response.text();
     } catch (err) {
