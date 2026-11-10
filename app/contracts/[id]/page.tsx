@@ -363,8 +363,9 @@ function ContractDetailContent({ id }: { id: string }) {
       <div className="mb-6 p-3 rounded-xl bg-card/70 border border-border/80 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2.5">
           <span
-            className={`w-2.5 h-2.5 rounded-full ${user.role === "client" ? "bg-accent" : "bg-emerald-400"
-              } animate-pulse`}
+            className={`w-2.5 h-2.5 rounded-full ${
+              user.role === "client" ? "bg-accent" : "bg-emerald-400"
+            } animate-pulse`}
           />
           <span className="text-muted">Current Role:</span>
           <span className="font-semibold text-foreground">
@@ -372,6 +373,13 @@ function ContractDetailContent({ id }: { id: string }) {
           </span>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setIsSignInOpen(true)}
+          className="text-xs text-accent hover:text-accent/80 font-medium cursor-pointer underline underline-offset-2 flex items-center gap-1"
+        >
+          Switch to {user.role === "client" ? "Contractor View" : "Client View"} →
+        </button>
       </div>
 
       {/* Phased Milestones Strip if multi-milestone */}
