@@ -1,8 +1,8 @@
 [
   {
     "id": "cnt_9821_stripe",
-    "title": "Production Next.js 16 Webhook Integration & Testing",
-    "description": "Develop a robust webhook handler with signature verification, redis idempotency, and automated Jest test coverage.",
+    "title": "Customer Checkout & Online Payment Flow",
+    "description": "Build a responsive checkout page with credit card validation, discount code support, and automatic receipt generation.",
     "amount": 450,
     "currency": "USD",
     "clientName": "Acme Cloud Corp",
@@ -11,52 +11,105 @@
     "freelancerEmail": "alex.rivera@devmail.com",
     "createdAt": "2026-11-06T10:00:00.000Z",
     "deadline": "2026-11-12T23:59:59.000Z",
-    "status": "AI_VERIFIED",
+    "status": "PAYOUT_COMPLETED",
     "criteria": [
-      "Implement HMAC-SHA256 signature verification middleware",
-      "Redis-backed idempotency table to prevent duplicate transaction replay",
-      "Minimum 85% unit test coverage using Jest / Vitest",
-      "Comprehensive TypeScript interfaces for all event payloads"
+      "Mobile-responsive checkout form with clean card input validation",
+      "Instant discount code application and subtotal recalculation",
+      "Automatic branded order confirmation email and printable receipt",
+      "Passes automated verification test suite with no errors"
     ],
     "paypalOrderId": "PP-ORD-8FG98231AA098",
     "escrowCapturedAt": "2026-11-06T10:15:00.000Z",
     "submission": {
-      "submittedAt": "2026-11-08T09:30:00.000Z",
-      "notes": "Completed all 4 requirements. The HMAC middleware handles raw buffer verification securely. Unit test suite passes with 91.4% branch coverage. Staging PR linked below.",
-      "url": "https://github.com/alexrivera-dev/nextjs-stripe-webhooks/pull/4"
+      "submittedAt": "2026-11-10T06:28:19.321Z",
+      "notes": "Completed all 4 requirements. Mobile checkout is fully responsive, discount codes calculate properly, and receipts generate cleanly. Staging demo linked below.",
+      "url": "https://demo-checkout.store/preview",
+      "screenshotUrl": "",
+      "codeSnippet": ""
     },
     "auditReport": {
       "verdict": "APPROVE",
       "overallScore": 95,
-      "confidence": 0.96,
-      "summary": "ResolvAI verified all 4 milestone requirements. The HMAC middleware, redis idempotency, automated tests, and TypeScript interfaces conform fully to specification.",
-      "payoutRecommended": true,
+      "confidence": 0.95,
+      "summary": "ResolvAI verified all 4 milestone requirements. Specifications and deliverables meet all acceptance criteria.",
       "criteriaResults": [
         {
-          "criterion": "Implement HMAC-SHA256 signature verification middleware",
-          "status": "PASS",
-          "score": 96,
-          "notes": "Verified. Middleware accurately validates payload buffer against webhook secret headers."
-        },
-        {
-          "criterion": "Redis-backed idempotency table to prevent duplicate transaction replay",
+          "criterion": "Mobile-responsive checkout form with clean card input validation",
           "status": "PASS",
           "score": 95,
-          "notes": "Verified. Redis atomic SET NX key lock pattern prevents duplicate execution."
+          "notes": "Verified. Deliverable proof confirms full implementation of 'Mobile-responsive checkout form with clean card input validation'."
         },
         {
-          "criterion": "Minimum 85% unit test coverage using Jest / Vitest",
+          "criterion": "Instant discount code application and subtotal recalculation",
           "status": "PASS",
           "score": 94,
-          "notes": "Verified. Test suite output confirms 91.4% branch test coverage."
+          "notes": "Verified. Deliverable proof confirms full implementation of 'Instant discount code application and subtotal recalculation'."
         },
         {
-          "criterion": "Comprehensive TypeScript interfaces for all event payloads",
+          "criterion": "Automatic branded order confirmation email and printable receipt",
           "status": "PASS",
           "score": 95,
-          "notes": "Verified. Full TypeScript type coverage provided for all inbound webhook event payloads."
+          "notes": "Verified. Deliverable proof confirms full implementation of 'Automatic branded order confirmation email and printable receipt'."
+        },
+        {
+          "criterion": "Passes automated verification test suite with no errors",
+          "status": "PASS",
+          "score": 96,
+          "notes": "Verified. Deliverable proof confirms full implementation of 'Passes automated verification test suite with no errors'."
         }
-      ]
+      ],
+      "satisfiedItems": [
+        "Mobile-responsive checkout form with clean card input validation",
+        "Instant discount code application and subtotal recalculation",
+        "Automatic branded order confirmation email and printable receipt",
+        "Passes automated verification test suite with no errors"
+      ],
+      "missingItems": [],
+      "payoutRecommended": true,
+      "disputePacket": {
+        "claimantSummary": "Verification flagged 0 unverified items. Payout paused pending contractor updates.",
+        "identifiedDeficiencies": [],
+        "recommendedResolution": "Contractor to provide updated link or screenshots verifying remaining items."
+      }
+    },
+    "milestones": [
+      {
+        "id": "m_9821_1",
+        "title": "Phase 1: Checkout Form UI & Mobile Validation",
+        "amount": 200,
+        "status": "PAYOUT_COMPLETED",
+        "criteria": [
+          "Mobile-responsive checkout form with clean card input validation",
+          "Passes automated verification test suite with no errors"
+        ],
+        "payoutReceipt": {
+          "payoutId": "PYT-9821001A",
+          "releasedAt": "2026-11-07T12:00:00.000Z",
+          "amount": 200,
+          "currency": "USD",
+          "receiver": "alex.rivera@devmail.com",
+          "batchStatus": "SUCCESS"
+        }
+      },
+      {
+        "id": "m_9821_2",
+        "title": "Phase 2: Payment Gateway & Automated Email Receipts",
+        "amount": 250,
+        "status": "AI_VERIFIED",
+        "criteria": [
+          "Instant discount code application and subtotal recalculation",
+          "Automatic branded order confirmation email and printable receipt"
+        ]
+      }
+    ],
+    "payoutReceipt": {
+      "payoutId": "PYT-07779768",
+      "releasedAt": "2026-11-10T10:49:39.768Z",
+      "amount": 450,
+      "currency": "USD",
+      "receiver": "alex.rivera@devmail.com",
+      "batchStatus": "SUCCESS",
+      "simulated": true
     }
   },
   {
@@ -79,51 +132,89 @@
     ],
     "paypalOrderId": "PP-ORD-5LK98212BB112",
     "escrowCapturedAt": "2026-11-04T14:35:00.000Z",
+    "milestones": [
+      {
+        "id": "m_8712_1",
+        "title": "Phase 1: Wireframes & Mobile App Architecture",
+        "amount": 200,
+        "status": "PAYOUT_COMPLETED",
+        "criteria": [
+          "Low-fidelity wireframes for 6 core mobile onboarding steps",
+          "User flow diagram and interactive click-through structure"
+        ],
+        "payoutReceipt": {
+          "payoutId": "PYT-8712001A",
+          "releasedAt": "2026-11-05T10:00:00.000Z",
+          "amount": 200,
+          "currency": "USD",
+          "receiver": "alex.rivera@devmail.com",
+          "batchStatus": "SUCCESS"
+        }
+      },
+      {
+        "id": "m_8712_2",
+        "title": "Phase 2: High-Fidelity Figma Screens (iOS & Android)",
+        "amount": 300,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Figma file with 6 high-fidelity mobile screens (iOS & Android)",
+          "Design system components with Light and Dark variants"
+        ]
+      },
+      {
+        "id": "m_8712_3",
+        "title": "Phase 3: Exportable Vector Asset Library & Specs",
+        "amount": 150,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Exportable asset library with vector icons and typography specs",
+          "Design handoff tokens document for engineers"
+        ]
+      }
+    ],
     "submission": {
-      "submittedAt": "2026-11-09T14:39:03.199Z",
-      "notes": "Delivered 6 high-fidelity mobile mockups for iOS and Android with light and dark mode components.",
-      "url": "https://www.figma.com/file/r892831/Mobile-App-Design-System",
-      "screenshotUrl": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
+      "submittedAt": "2026-11-10T10:49:18.287Z",
+      "notes": "Finished design export",
+      "url": "https://github.com/myorg/myapp/pull/12",
+      "screenshotUrl": "",
       "codeSnippet": ""
     },
     "auditReport": {
       "verdict": "APPROVE",
-      "overallScore": 90,
-      "confidence": 0.85,
-      "summary": "The contractor has successfully delivered 6 high-fidelity mobile screens for both iOS and Android, incorporating a design system with light and dark mode components. While the core screen and design system requirements appear met, explicit confirmation of the exportable asset library with vector icons and detailed typography specifications would strengthen the deliverable. Overall, the work is substantially complete and meets the primary objectives.",
+      "overallScore": 95,
+      "confidence": 0.95,
+      "summary": "Checked latest GitHub commits and code diffs: all 3 requirements were built cleanly without errors.",
       "criteriaResults": [
         {
           "criterion": "Figma file with 6 high-fidelity mobile screens (iOS & Android)",
           "status": "PASS",
-          "score": 100,
-          "notes": "Contractor notes explicitly confirm the delivery of 6 high-fidelity mobile mockups for iOS and Android, directly addressing this criterion."
+          "score": 93,
+          "notes": "Checked latest GitHub commits & diffs: changes satisfy 'Figma file with 6 high-fidelity mobile screens (iOS & Android)'."
         },
         {
           "criterion": "Design system components with Light and Dark variants",
           "status": "PASS",
-          "score": 100,
-          "notes": "Contractor notes explicitly state the inclusion of light and dark mode components, which are a core part of a design system and directly fulfill this criterion."
+          "score": 97,
+          "notes": "Checked latest GitHub commits & diffs: changes satisfy 'Design system components with Light and Dark variants'."
         },
         {
           "criterion": "Exportable asset library with vector icons and typography specs",
-          "status": "PARTIAL",
-          "score": 70,
-          "notes": "While a design system typically includes typography and icons, the contractor notes do not explicitly confirm the 'exportable' nature of the asset library, the 'vector' format of the icons, or the detailed 'typography specs' as distinct, export-ready components. Further verification within the provided Figma file would be needed to confirm full compliance with the exportability and specific format requirements."
+          "status": "PASS",
+          "score": 95,
+          "notes": "Checked latest GitHub commits & diffs: changes satisfy 'Exportable asset library with vector icons and typography specs'."
         }
       ],
       "satisfiedItems": [
-        "6 high-fidelity mobile screens (iOS & Android)",
-        "Design system components with Light and Dark variants"
+        "Figma file with 6 high-fidelity mobile screens (iOS & Android)",
+        "Design system components with Light and Dark variants",
+        "Exportable asset library with vector icons and typography specs"
       ],
-      "missingItems": [
-        "Explicit confirmation and verification of an exportable asset library with vector icons.",
-        "Explicit confirmation and verification of detailed typography specifications."
-      ],
+      "missingItems": [],
       "payoutRecommended": true,
       "disputePacket": {
-        "claimantSummary": null,
+        "claimantSummary": "Verification flagged 0 unverified items. Payout paused pending contractor updates.",
         "identifiedDeficiencies": [],
-        "recommendedResolution": null
+        "recommendedResolution": "Contractor to provide updated link or screenshots verifying remaining items."
       }
     }
   },
@@ -158,8 +249,8 @@
   },
   {
     "id": "cnt_4419_security",
-    "title": "API Gateway Rate Limiter & Token Bucket",
-    "description": "Implement sliding window rate limiting middleware in Go/Redis with token bucket algorithm and concurrency test suite.",
+    "title": "Brand Identity, Logo & Social Media Pack",
+    "description": "Design complete brand identity guidelines including vector logo files, brand color palette, typography hierarchy, and 5 social media banner templates.",
     "amount": 350,
     "currency": "USD",
     "clientName": "Acme Cloud Corp",
@@ -170,74 +261,74 @@
     "deadline": "2026-11-08T12:00:00.000Z",
     "status": "DISPUTED",
     "criteria": [
-      "Sliding window rate limiter algorithm implemented with Redis cluster support",
-      "Unit test coverage > 90% across concurrency test cases",
-      "Benchmarked for < 2ms latency overhead under 10,000 req/sec load"
+      "Vector logo files in SVG, PNG, and PDF with transparent backgrounds",
+      "Brand style guide detailing colors, typography, and logo usage rules",
+      "5 ready-to-use social media banner templates for LinkedIn and Twitter"
     ],
     "paypalOrderId": "PP-ORD-7QQ12893CC883",
     "escrowCapturedAt": "2026-11-01T08:12:00.000Z",
     "submission": {
-      "url": "https://github.com/acme-cloud/rate-limiter/pull/4",
-      "notes": "Implemented in Go using in-memory sync.Map instead of Redis cluster. Benchmark shows 5ms latency under 1,000 req/sec.",
-      "codeSnippet": "// In-memory rate limiter (missing Redis cluster sync & concurrency mutex)\nfunc (rl *RateLimiter) Allow(ip string) bool {\n    count := rl.counts[ip]\n    if count > 100 { return false }\n    rl.counts[ip]++\n    return true\n}",
+      "url": "https://dropbox.com/s/sample-logo-draft.jpg",
+      "notes": "Uploaded a single low-resolution JPG draft of the logo icon. Missing the vector source files, brand guidelines document, and social media banner templates.",
+      "codeSnippet": "// Incomplete deliverable: Only low-resolution 300px raster image provided. Missing SVG/PDF vectors and banner templates.",
       "submittedAt": "2026-11-06T10:00:00.000Z"
     },
     "auditReport": {
       "verdict": "DISPUTE",
-      "overallScore": 48,
+      "overallScore": 40,
       "confidence": 0.96,
-      "summary": "The submitted deliverable fails critical agreed specifications: in-memory implementation was used instead of Redis cluster support, and benchmark latency exceeds the agreed threshold.",
+      "summary": "The submitted deliverable fails agreed contract specifications: only a low-resolution JPG draft was uploaded. The required vector source files (SVG/PDF), brand style guide, and social media banner templates were not provided.",
       "agents": [
         {
           "agentId": "agent_scope",
           "agentName": "Check 1: Rule Auditor",
           "role": "Checklist & Requirements Verification",
           "status": "FLAGGED",
-          "score": 50,
+          "score": 45,
           "timestamp": "2026-11-06T10:05:00.000Z",
           "thoughtStream": [
-            "Checking acceptance criteria against submitted pull request...",
-            "Criterion 1 (Redis cluster support): FAILED - in-memory sync.Map used.",
-            "Criterion 3 (2ms latency at 10k req/sec): FAILED - 5ms at 1k req/sec."
+            "Checking acceptance criteria against submitted deliverables...",
+            "Criterion 1 (Vector SVG/PDF files): FAILED - only low-res JPG provided.",
+            "Criterion 3 (5 social media templates): FAILED - no templates provided."
           ],
-          "findings": "Failed 2 of 3 acceptance criteria. Scope omits required Redis cluster persistence."
+          "findings": "Failed 2 of 3 acceptance criteria. Scope omits required vector files and social media templates."
         },
         {
           "agentId": "agent_code",
           "agentName": "Check 2: Quality & Proof Inspector",
           "role": "Work Quality, Link & Artifact Verification",
           "status": "FLAGGED",
-          "score": 45,
+          "score": 38,
           "timestamp": "2026-11-06T10:05:00.000Z",
           "thoughtStream": [
-            "Inspecting pull request diff and concurrency locks...",
-            "Missing mutex locks around sync.Map increments causes race conditions.",
-            "Benchmark report fails latency requirement."
+            "Inspecting deliverable assets and image resolution...",
+            "Image is 300x300 pixel raster draft with compression artifacts.",
+            "Brand style guide document is completely missing."
           ],
-          "findings": "Race condition vulnerability detected under concurrent load. Test suite does not include required concurrency tests."
+          "findings": "Low-resolution raster asset cannot be used for commercial production. Missing vector source files and brand guidelines."
         },
         {
           "agentId": "agent_settlement",
           "agentName": "Check 3: Payment Referee",
           "role": "Quality Score & Payment Authorization",
           "status": "FLAGGED",
-          "score": 48,
+          "score": 40,
           "timestamp": "2026-11-06T10:05:00.000Z",
           "thoughtStream": [
-            "Overall score: 48/100 (Below required 85% threshold)...",
+            "Overall score: 40/100 (Below required 85% threshold)...",
             "Generating dispute evidence packet for PayPal customer mediation..."
           ],
-          "findings": "Consensus score 48/100 is below the 85% approval gate. Escrow payment frozen. Dispute mediation packet compiled."
+          "findings": "Consensus score 40/100 is below the 85% approval gate. Escrow payment frozen. Clear revision instructions issued to contractor."
         }
       ],
       "disputePacket": {
-        "claimantSummary": "Deliverable fails 2 of 3 agreed technical acceptance criteria: lacks Redis cluster persistence and introduces concurrency race conditions under load.",
+        "claimantSummary": "Contractor submitted incomplete deliverables. Key assets required by contract (vector source files, style guide, social banners) are missing.",
         "identifiedDeficiencies": [
-          "In-memory map used instead of required Redis cluster architecture",
-          "Missing concurrency mutex causing race conditions under load",
-          "Benchmark latency is 5ms under 1k req/s (agreed limit: <2ms under 10k req/s)"
+          "Vector source files (SVG, PDF) were not provided (only low-res JPG preview)",
+          "Brand style guide document with typography and color codes is missing",
+          "5 social media banner templates were not created"
         ],
-        "recommendedResolution": "Escrow funds ($350.00 USD) remain safely held in PayPal escrow. Contractor has 5 business days to address deficiencies or funds auto-refund to Client."
+        "recommendedResolution": "Escrow funds ($350.00 USD) remain safely held in PayPal escrow. Contractor has 5 business days to upload the required vector files and templates, or funds will auto-refund to Client."
       },
       "payoutRecommended": false
     }

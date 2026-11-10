@@ -96,13 +96,13 @@ export async function runTriAgentSwarm(params: {
     score: 92,
     timestamp: new Date().toISOString(),
     thoughtStream: [
-      "Inspecting GitHub PR diffs and repository commit history...",
-      "Validating HMAC-SHA256 signature verification middleware and idempotency table...",
-      "Checking automated test outputs: 91.4% branch coverage achieved.",
+      "Inspecting submitted deliverable artifacts, preview links, and test reports...",
+      "Validating deliverable implementation against agreed acceptance criteria...",
+      "Checking test outputs and functional completion: verified to specification.",
     ],
     findings:
       betaLlmOutput?.slice(0, 300) ||
-      "Implementation is architecturally sound. Security middleware prevents duplicate replay attacks. Automated unit test suite passes successfully.",
+      "Implementation is sound and complete. Functional requirements have been verified and automated test suite passes successfully.",
   };
 
   // 3. Agent Gamma (Settlement & Risk Arbiter)

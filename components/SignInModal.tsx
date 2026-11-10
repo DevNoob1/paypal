@@ -35,9 +35,10 @@ export function SignInModal() {
         {/* Account Options */}
         <div className="space-y-3">
           {/* Option 1: Client */}
-          <div
+          <button
+            type="button"
             onClick={() => loginAs("client")}
-            className={`p-4 rounded-xl border transition-all cursor-pointer ${
+            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
               user.role === "client"
                 ? "bg-accent/[0.07] border-accent/60 shadow-sm"
                 : "bg-background/60 border-border hover:border-zinc-500/40 hover:bg-card-hover"
@@ -66,12 +67,13 @@ export function SignInModal() {
             <p className="text-xs text-muted leading-relaxed pl-11">
               Create contracts, lock PayPal milestone deposits, and define acceptance criteria for AI verification.
             </p>
-          </div>
+          </button>
 
           {/* Option 2: Contractor */}
-          <div
+          <button
+            type="button"
             onClick={() => loginAs("contractor")}
-            className={`p-4 rounded-xl border transition-all cursor-pointer ${
+            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
               user.role === "contractor"
                 ? "bg-emerald-500/[0.08] border-emerald-500/60 shadow-sm"
                 : "bg-background/60 border-border hover:border-zinc-500/40 hover:bg-card-hover"
@@ -100,7 +102,7 @@ export function SignInModal() {
             <p className="text-xs text-muted leading-relaxed pl-11">
               Submit pull request deliverables, run multi-agent audits, and receive instant PayPal payouts upon approval.
             </p>
-          </div>
+          </button>
         </div>
 
         <div className="mt-5 pt-3.5 border-t border-border flex items-center justify-between text-[11px] text-muted">

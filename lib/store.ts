@@ -30,6 +30,18 @@ export interface PayoutReceipt {
   simulated?: boolean;
 }
 
+export interface Milestone {
+  id: string;
+  title: string;
+  amount: number;
+  status: ContractStatus;
+  criteria: string[];
+  deadline?: string;
+  submission?: DeliverableSubmission;
+  auditReport?: AuditReport;
+  payoutReceipt?: PayoutReceipt;
+}
+
 export interface Contract {
   id: string;
   title: string;
@@ -49,6 +61,7 @@ export interface Contract {
   submission?: DeliverableSubmission;
   auditReport?: AuditReport;
   payoutReceipt?: PayoutReceipt;
+  milestones?: Milestone[];
 }
 
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -57,9 +70,9 @@ const DATA_FILE = path.join(DATA_DIR, "contracts.json");
 const SEED_CONTRACTS: Contract[] = [
   {
     id: "cnt_9821_stripe",
-    title: "Production Next.js 16 Webhook Integration & Testing",
+    title: "Customer Checkout & Online Payment Flow",
     description:
-      "Develop a robust webhook handler with signature verification, redis idempotency, and automated Jest test coverage.",
+      "Build a responsive checkout page with credit card validation, discount code support, and automatic receipt generation.",
     amount: 450.0,
     currency: "USD",
     clientName: "Acme Cloud Corp",
@@ -70,57 +83,87 @@ const SEED_CONTRACTS: Contract[] = [
     deadline: "2026-11-12T23:59:59.000Z",
     status: "AI_VERIFIED",
     criteria: [
-      "Implement HMAC-SHA256 signature verification middleware",
-      "Redis-backed idempotency table to prevent duplicate transaction replay",
-      "Minimum 85% unit test coverage using Jest / Vitest",
-      "Comprehensive TypeScript interfaces for all event payloads",
+      "Mobile-responsive checkout form with clean card input validation",
+      "Instant discount code application and subtotal recalculation",
+      "Automatic branded order confirmation email and printable receipt",
+      "Passes automated verification test suite with no errors",
     ],
     paypalOrderId: "PP-ORD-8FG98231AA098",
     escrowCapturedAt: "2026-11-06T10:15:00.000Z",
     submission: {
       submittedAt: "2026-11-08T09:30:00.000Z",
       notes:
-        "Completed all 4 requirements. The HMAC middleware handles raw buffer verification securely. Unit test suite passes with 91.4% branch coverage. Staging PR linked below.",
-      url: "https://github.com/alexrivera-dev/nextjs-stripe-webhooks/pull/4",
+        "Completed all 4 requirements. Mobile checkout is fully responsive, discount codes calculate properly, and receipts generate cleanly. Staging demo linked below.",
+      url: "https://demo-checkout.store/preview",
     },
     auditReport: {
       verdict: "APPROVE",
       overallScore: 95,
       confidence: 0.96,
       summary:
-        "ResolvAI verified all 4 milestone requirements. The HMAC middleware, redis idempotency, automated tests, and TypeScript interfaces conform fully to specification.",
+        "ResolvAI verified all 4 milestone requirements. The responsive checkout form, discount code logic, confirmation receipt, and automated test suite meet all agreed specifications.",
       payoutRecommended: true,
       criteriaResults: [
         {
-          criterion: "Implement HMAC-SHA256 signature verification middleware",
+          criterion: "Mobile-responsive checkout form with clean card input validation",
           status: "PASS",
           score: 96,
           notes:
-            "Verified. Middleware accurately validates payload buffer against webhook secret headers.",
+            "Verified. Checkout form renders properly across mobile viewports with inline validation.",
         },
         {
-          criterion: "Redis-backed idempotency table to prevent duplicate transaction replay",
+          criterion: "Instant discount code application and subtotal recalculation",
           status: "PASS",
           score: 95,
           notes:
-            "Verified. Redis atomic SET NX key lock pattern prevents duplicate execution.",
+            "Verified. Promo codes calculate percentage and fixed discounts accurately.",
         },
         {
-          criterion: "Minimum 85% unit test coverage using Jest / Vitest",
+          criterion: "Automatic branded order confirmation email and printable receipt",
           status: "PASS",
           score: 94,
           notes:
-            "Verified. Test suite output confirms 91.4% branch test coverage.",
+            "Verified. Receipt and email templates generate correctly upon order completion.",
         },
         {
-          criterion: "Comprehensive TypeScript interfaces for all event payloads",
+          criterion: "Passes automated verification test suite with no errors",
           status: "PASS",
           score: 95,
           notes:
-            "Verified. Full TypeScript type coverage provided for all inbound webhook event payloads.",
+            "Verified. Full verification test suite executes with 100% passing test cases.",
         },
       ],
     },
+    milestones: [
+      {
+        id: "m_9821_1",
+        title: "Phase 1: Checkout Form UI & Mobile Validation",
+        amount: 200.0,
+        status: "PAYOUT_COMPLETED",
+        criteria: [
+          "Mobile-responsive checkout form with clean card input validation",
+          "Passes automated verification test suite with no errors",
+        ],
+        payoutReceipt: {
+          payoutId: "PYT-9821001A",
+          releasedAt: "2026-11-07T12:00:00.000Z",
+          amount: 200.0,
+          currency: "USD",
+          receiver: "alex.rivera@devmail.com",
+          batchStatus: "SUCCESS",
+        },
+      },
+      {
+        id: "m_9821_2",
+        title: "Phase 2: Payment Gateway & Automated Email Receipts",
+        amount: 250.0,
+        status: "AI_VERIFIED",
+        criteria: [
+          "Instant discount code application and subtotal recalculation",
+          "Automatic branded order confirmation email and printable receipt",
+        ],
+      },
+    ],
   },
   {
     id: "cnt_8712_design",
@@ -143,6 +186,46 @@ const SEED_CONTRACTS: Contract[] = [
     ],
     paypalOrderId: "PP-ORD-5LK98212BB112",
     escrowCapturedAt: "2026-11-04T14:35:00.000Z",
+    milestones: [
+      {
+        id: "m_8712_1",
+        title: "Phase 1: Wireframes & Mobile App Architecture",
+        amount: 200.0,
+        status: "PAYOUT_COMPLETED",
+        criteria: [
+          "Low-fidelity wireframes for 6 core mobile onboarding steps",
+          "User flow diagram and interactive click-through structure",
+        ],
+        payoutReceipt: {
+          payoutId: "PYT-8712001A",
+          releasedAt: "2026-11-05T10:00:00.000Z",
+          amount: 200.0,
+          currency: "USD",
+          receiver: "alex.rivera@devmail.com",
+          batchStatus: "SUCCESS",
+        },
+      },
+      {
+        id: "m_8712_2",
+        title: "Phase 2: High-Fidelity Figma Screens (iOS & Android)",
+        amount: 300.0,
+        status: "FUNDED_ESCROW",
+        criteria: [
+          "Figma file with 6 high-fidelity mobile screens (iOS & Android)",
+          "Design system components with Light and Dark variants",
+        ],
+      },
+      {
+        id: "m_8712_3",
+        title: "Phase 3: Exportable Vector Asset Library & Specs",
+        amount: 150.0,
+        status: "FUNDED_ESCROW",
+        criteria: [
+          "Exportable asset library with vector icons and typography specs",
+          "Design handoff tokens document for engineers",
+        ],
+      },
+    ],
   },
   {
     id: "cnt_2190_content",
@@ -176,9 +259,9 @@ const SEED_CONTRACTS: Contract[] = [
   },
   {
     id: "cnt_4419_security",
-    title: "API Gateway Rate Limiter & Token Bucket",
+    title: "Brand Identity, Logo & Social Media Pack",
     description:
-      "Implement sliding window rate limiting middleware in Go/Redis with token bucket algorithm and concurrency test suite.",
+      "Design complete brand identity guidelines including vector logo files, brand color palette, typography hierarchy, and 5 social media banner templates.",
     amount: 350.0,
     currency: "USD",
     clientName: "Acme Cloud Corp",
@@ -189,77 +272,77 @@ const SEED_CONTRACTS: Contract[] = [
     deadline: "2026-11-08T12:00:00.000Z",
     status: "DISPUTED",
     criteria: [
-      "Sliding window rate limiter algorithm implemented with Redis cluster support",
-      "Unit test coverage > 90% across concurrency test cases",
-      "Benchmarked for < 2ms latency overhead under 10,000 req/sec load",
+      "Vector logo files in SVG, PNG, and PDF with transparent backgrounds",
+      "Brand style guide detailing colors, typography, and logo usage rules",
+      "5 ready-to-use social media banner templates for LinkedIn and Twitter",
     ],
     paypalOrderId: "PP-ORD-7QQ12893CC883",
     escrowCapturedAt: "2026-11-01T08:12:00.000Z",
     submission: {
-      url: "https://github.com/acme-cloud/rate-limiter/pull/4",
-      notes: "Implemented in Go using in-memory sync.Map instead of Redis cluster. Benchmark shows 5ms latency under 1,000 req/sec.",
-      codeSnippet: `// In-memory rate limiter (missing Redis cluster sync & concurrency mutex)\nfunc (rl *RateLimiter) Allow(ip string) bool {\n    count := rl.counts[ip]\n    if count > 100 { return false }\n    rl.counts[ip]++\n    return true\n}`,
+      url: "https://dropbox.com/s/sample-logo-draft.jpg",
+      notes: "Uploaded a single low-resolution JPG draft of the logo icon. Missing the vector source files, brand guidelines document, and social media banner templates.",
+      codeSnippet: "// Incomplete deliverable: Only low-resolution 300px raster image provided. Missing SVG/PDF vectors and banner templates.",
       submittedAt: "2026-11-06T10:00:00.000Z",
     },
     auditReport: {
       verdict: "DISPUTE",
-      overallScore: 48,
+      overallScore: 40,
       confidence: 0.96,
       summary:
-        "The submitted deliverable fails critical agreed specifications: in-memory implementation was used instead of Redis cluster support, and benchmark latency exceeds the agreed threshold.",
+        "The submitted deliverable fails agreed contract specifications: only a low-resolution JPG draft was uploaded. The required vector source files (SVG/PDF), brand style guide, and social media banner templates were not provided.",
       agents: [
         {
           agentId: "agent_scope",
           agentName: "Check 1: Rule Auditor",
           role: "Checklist & Requirements Verification",
           status: "FLAGGED",
-          score: 50,
+          score: 45,
           timestamp: "2026-11-06T10:05:00.000Z",
           thoughtStream: [
-            "Checking acceptance criteria against submitted pull request...",
-            "Criterion 1 (Redis cluster support): FAILED - in-memory sync.Map used.",
-            "Criterion 3 (2ms latency at 10k req/sec): FAILED - 5ms at 1k req/sec.",
+            "Checking acceptance criteria against submitted deliverables...",
+            "Criterion 1 (Vector SVG/PDF files): FAILED - only low-res JPG provided.",
+            "Criterion 3 (5 social media templates): FAILED - no templates provided.",
           ],
-          findings: "Failed 2 of 3 acceptance criteria. Scope omits required Redis cluster persistence.",
+          findings: "Failed 2 of 3 acceptance criteria. Scope omits required vector files and social media templates.",
         },
         {
           agentId: "agent_code",
           agentName: "Check 2: Quality & Proof Inspector",
           role: "Work Quality, Link & Artifact Verification",
           status: "FLAGGED",
-          score: 45,
+          score: 38,
           timestamp: "2026-11-06T10:05:00.000Z",
           thoughtStream: [
-            "Inspecting pull request diff and concurrency locks...",
-            "Missing mutex locks around sync.Map increments causes race conditions.",
-            "Benchmark report fails latency requirement.",
+            "Inspecting deliverable assets and image resolution...",
+            "Image is 300x300 pixel raster draft with compression artifacts.",
+            "Brand style guide document is completely missing.",
           ],
-          findings: "Race condition vulnerability detected under concurrent load. Test suite does not include required concurrency tests.",
+          findings: "Low-resolution raster asset cannot be used for commercial production. Missing vector source files and brand guidelines.",
         },
         {
           agentId: "agent_settlement",
           agentName: "Check 3: Payment Referee",
           role: "Quality Score & Payment Authorization",
           status: "FLAGGED",
-          score: 48,
+          score: 40,
           timestamp: "2026-11-06T10:05:00.000Z",
           thoughtStream: [
-            "Overall score: 48/100 (Below required 85% threshold)...",
+            "Overall score: 40/100 (Below required 85% threshold)...",
             "Generating dispute evidence packet for PayPal customer mediation...",
           ],
-          findings: "Consensus score 48/100 is below the 85% approval gate. Escrow payment frozen. Dispute mediation packet compiled.",
+          findings: "Consensus score 40/100 is below the 85% approval gate. Escrow payment frozen. Clear revision instructions issued to contractor.",
         },
       ],
       disputePacket: {
         claimantSummary:
-          "Deliverable fails 2 of 3 agreed technical acceptance criteria: lacks Redis cluster persistence and introduces concurrency race conditions under load.",
+          "Contractor submitted incomplete deliverables. Key assets required by contract (vector source files, style guide, social banners) are missing.",
         identifiedDeficiencies: [
-          "In-memory map used instead of required Redis cluster architecture",
-          "Missing concurrency mutex causing race conditions under load",
-          "Benchmark latency is 5ms under 1k req/s (agreed limit: <2ms under 10k req/s)",
+          "Vector source files (SVG, PDF) were not provided (only low-res JPG preview)",
+          "Brand style guide document with typography and color codes is missing",
+          "5 social media banner templates were not created",
         ],
         recommendedResolution:
-          "Escrow funds ($350.00 USD) remain safely held in PayPal escrow. Contractor has 5 business days to address deficiencies or funds auto-refund to Client.",
+          "Escrow funds ($350.00 USD) remain safely held in PayPal escrow. Contractor has 5 business days to upload the required vector files and templates, or funds will auto-refund to Client.",
       },
       payoutRecommended: false,
     },

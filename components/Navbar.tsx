@@ -48,11 +48,10 @@ export function Navbar() {
           <nav className="hidden md:flex items-center gap-2 text-xs">
             <Link
               href="/dashboard"
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${
-                pathname === "/dashboard"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${pathname === "/dashboard"
                   ? "bg-white/[0.08] text-foreground font-semibold"
                   : "text-muted hover:text-foreground"
-              }`}
+                }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               Dashboard
@@ -103,11 +102,10 @@ export function Navbar() {
             className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card/60 hover:bg-card-hover border border-border text-xs text-foreground transition-all cursor-pointer"
           >
             <div
-              className={`w-5 h-5 rounded-full ${
-                user.role === "client"
+              className={`w-5 h-5 rounded-full ${user.role === "client"
                   ? "bg-accent/20 border-accent/30 text-accent"
                   : "bg-emerald-500/20 border-emerald-500/30 text-emerald-500"
-              } border flex items-center justify-center text-[10px] font-bold`}
+                } border flex items-center justify-center text-[10px] font-bold`}
             >
               {user.initials || "AC"}
             </div>
@@ -117,9 +115,8 @@ export function Navbar() {
               </div>
             </div>
             <span
-              className={`text-[10px] font-medium hidden md:inline ${
-                user.role === "client" ? "text-accent" : "text-emerald-500"
-              }`}
+              className={`text-[10px] font-medium hidden md:inline ${user.role === "client" ? "text-accent" : "text-emerald-500"
+                }`}
             >
               ({user.role === "client" ? "Client" : "Contractor"})
             </span>
@@ -133,7 +130,7 @@ export function Navbar() {
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium shadow-sm transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
-              New Agreement
+              New Contract
             </Link>
           )}
         </div>

@@ -74,14 +74,9 @@ const PAGE_TOURS: Record<string, TourStep[]> = {
 
   "/contracts/new": [
     {
-      target: '[data-tour="contract-templates"]',
-      prompt: "Click a category template (UI/UX Figma, SEO Content, Web Code) to instantly auto-fill the rules.",
-      badge: "Templates",
-    },
-    {
       target: '[data-tour="scope-budget"]',
-      prompt: "Set the milestone title, scope details, and the dollar amount to hold in escrow.",
-      badge: "Scope & Amount",
+      prompt: "Set the agreement structure (Single milestone or Multi-phase), title, scope details, and budget to hold in escrow.",
+      badge: "Scope & Budget",
     },
     {
       target: '[data-tour="contract-parties"]',

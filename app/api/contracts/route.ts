@@ -34,11 +34,34 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
+    const milestones = Array.isArray(body.milestones) && body.milestones.length > 0
+      ? body.milestones.map((m: any, idx: number) => ({
+          id: m.id || `m_${idx + 1}_${Date.now().toString().slice(-4)}`,
+          title: m.title || `Milestone ${idx + 1}`,
+          amount: parseFloat(m.amount) || 100.0,
+          status: body.paypalOrderId ? "FUNDED_ESCROW" : "DRAFT",
+          criteria: Array.isArray(m.criteria) && m.criteria.length > 0
+            ? m.criteria
+            : ["Deliverable meets agreed scope specifications"],
+          deadline: m.deadline || body.deadline,
+        }))
+      : undefined;
+
+    const totalAmount = milestones
+      ? milestones.reduce((sum: number, m: any) => sum + m.amount, 0)
+      : parseFloat(body.amount) || 100.0;
+
+    const allCriteria = milestones
+      ? milestones.flatMap((m: any) => m.criteria)
+      : Array.isArray(body.criteria) && body.criteria.length > 0
+      ? body.criteria
+      : ["Core deliverables implemented", "Automated tests pass"];
+
     const newContract: Contract = {
       id: `cnt_${Math.random().toString(36).substring(2, 8)}_${Date.now().toString().slice(-4)}`,
       title: body.title || "Untitled Milestone",
       description: body.description || "",
-      amount: parseFloat(body.amount) || 100.0,
+      amount: totalAmount,
       currency: body.currency || "USD",
       clientName: body.clientName || "Sandbox Client",
       clientEmail: body.clientEmail || "sb-client@business.example.com",
@@ -47,11 +70,10 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
       deadline: body.deadline || new Date(Date.now() + 7 * 86400000).toISOString(),
       status: body.paypalOrderId ? "FUNDED_ESCROW" : "DRAFT",
-      criteria: Array.isArray(body.criteria) && body.criteria.length > 0
-        ? body.criteria
-        : ["Core deliverables implemented", "Automated tests pass"],
+      criteria: allCriteria,
       paypalOrderId: body.paypalOrderId,
       escrowCapturedAt: body.paypalOrderId ? new Date().toISOString() : undefined,
+      milestones,
     };
 
     const saved = saveContract(newContract);
