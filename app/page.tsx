@@ -920,7 +920,7 @@ export default function Home() {
           <b className="text-[#F2F2F4]">ResolvAI</b> · Automated milestone escrow and verification
         </div>
         <div>
-          PayPal payment rails · AI multi-agent review
+          PayPal Escrow Protection · Objective Deliverable Verification
         </div>
       </footer>
     </div>

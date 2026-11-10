@@ -18,6 +18,7 @@ import {
   TrendingUp,
   BarChart2,
   Zap,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
@@ -208,7 +209,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <button
             type="button"
             onClick={() => setIsSignInOpen(true)}
@@ -217,17 +218,15 @@ export default function Dashboard() {
             Switch to {user.role === "client" ? "Contractor View" : "Client View"}
           </button>
 
-          {user.role === "client" && (
-            <div data-tour="new-contract-btn">
-              <Link
-                href="/contracts/new"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                New Agreement
-              </Link>
-            </div>
-          )}
+          <div data-tour="new-contract-btn">
+            <Link
+              href="/contracts/new"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              New Agreement
+            </Link>
+          </div>
         </div>
       </div>
 

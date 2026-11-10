@@ -1,0 +1,79 @@
+[
+  {
+    "id": "WH-840001-PAYMENT-PAYOUTSBATCH-SUCCESS",
+    "event_version": "1.0",
+    "create_time": "2026-11-10T18:20:40.001Z",
+    "resource_type": "payouts_batch",
+    "event_type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+    "summary": "PayPal payouts batch settlement cleared: Batch_ResolvAI_cnt_nojx_1794334839991",
+    "status": "SUCCESS",
+    "resource": {
+      "batch_header": {
+        "payout_batch_id": "Batch_ResolvAI_cnt_nojx_1794334839991",
+        "batch_status": "SUCCESS",
+        "amount": {
+          "value": "150.00",
+          "currency": "USD"
+        }
+      }
+    }
+  },
+  {
+    "id": "WH-839993-PAYMENT-PAYOUTS-ITEM-SUCCESS",
+    "event_version": "1.0",
+    "create_time": "2026-11-10T18:20:39.993Z",
+    "resource_type": "payouts_item",
+    "event_type": "PAYMENT.PAYOUTS-ITEM.SUCCESS",
+    "summary": "Milestone payout completed: $150.00 sent to alex@gmail.com",
+    "status": "SUCCESS",
+    "resource": {
+      "payout_item_id": "PYT-ITEM-34839992",
+      "transaction_status": "SUCCESS",
+      "payout_item_fee": {
+        "value": "0.25",
+        "currency": "USD"
+      },
+      "payout_batch_id": "Batch_ResolvAI_cnt_nojx_1794334839991",
+      "sender_batch_id": "Batch_ResolvAI_cnt_nojx_1794334839991",
+      "receiver": "alex@gmail.com",
+      "amount": {
+        "value": "150.00",
+        "currency": "USD"
+      }
+    }
+  },
+  {
+    "id": "WH-9821-CAPTURE-COMPLETED",
+    "event_version": "1.0",
+    "create_time": "2026-11-08T18:20:39.936Z",
+    "resource_type": "capture",
+    "event_type": "PAYMENT.CAPTURE.COMPLETED",
+    "summary": "Escrow payment captured: $450.00 USD secured in vault",
+    "status": "SUCCESS",
+    "resource": {
+      "id": "CAP-982101",
+      "amount": {
+        "value": "450.00",
+        "currency_code": "USD"
+      },
+      "status": "COMPLETED",
+      "seller_protection": {
+        "status": "ELIGIBLE"
+      }
+    }
+  },
+  {
+    "id": "WH-9821-ORDER-APPROVED",
+    "event_version": "1.0",
+    "create_time": "2026-11-08T17:20:39.937Z",
+    "resource_type": "checkout-order",
+    "event_type": "CHECKOUT.ORDER.APPROVED",
+    "summary": "Checkout order approved by buyer for milestone escrow",
+    "status": "SUCCESS",
+    "resource": {
+      "id": "PP-ORD-982101",
+      "intent": "CAPTURE",
+      "status": "APPROVED"
+    }
+  }
+]

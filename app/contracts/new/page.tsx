@@ -16,6 +16,7 @@ import {
   Layers,
   Check,
   RefreshCw,
+  Wand2,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/components/AuthContext";
@@ -28,6 +29,143 @@ interface FormMilestone {
   newCriterionText?: string;
 }
 
+const TEMPLATES = [
+  {
+    id: "web-dev",
+    icon: "💻",
+    name: "Web App & Next.js",
+    budget: "1800",
+    title: "Full-Stack Web App & Payment Integration",
+    description:
+      "Build Next.js 15 web application with responsive UI, role-based authentication, and direct PayPal checkout.",
+    milestones: [
+      {
+        id: "m_1",
+        title: "Phase 1: Architecture, Authentication & Foundation",
+        amount: "550",
+        criteria: [
+          "Next.js App Router project initialized with TypeScript and Tailwind CSS",
+          "Authentication and role-based session management configured",
+          "Clean GitHub repository with zero lint errors and CI workflow",
+        ],
+      },
+      {
+        id: "m_2",
+        title: "Phase 2: Core Business Logic & PayPal Checkout",
+        amount: "800",
+        criteria: [
+          "Interactive dashboard with live data tables and responsive layouts",
+          "PayPal Orders & Payouts API integration tested in sandbox",
+          "Deliverable submission flow with validation checks and error handling",
+        ],
+      },
+      {
+        id: "m_3",
+        title: "Phase 3: Automated Verification, QA & Staging Deployment",
+        amount: "450",
+        criteria: [
+          "Automated milestone verification engine with live URL and screenshot checks",
+          "Comprehensive end-to-end user testing across client and contractor flows",
+          "Live staging deployment accessible via public HTTPS URL with HTTP 200 OK",
+        ],
+      },
+    ],
+  },
+  {
+    id: "figma",
+    icon: "🎨",
+    name: "Figma UI/UX Design",
+    budget: "1200",
+    title: "Mobile App Design System & Prototype",
+    description:
+      "Design comprehensive mobile app interface with complete Figma component tokens and interactive clickable prototype.",
+    milestones: [
+      {
+        id: "m_1",
+        title: "Phase 1: Design System, Tokens & Wireframes",
+        amount: "540",
+        criteria: [
+          "Figma component library with auto-layout and color/typography tokens",
+          "Responsive wireframes for mobile, tablet, and desktop viewports",
+          "User flow architecture covering onboarding and primary user dashboard",
+        ],
+      },
+      {
+        id: "m_2",
+        title: "Phase 2: High-Fidelity UI Prototype & Developer Specs",
+        amount: "660",
+        criteria: [
+          "Fully interactive clickable Figma prototype with hover and modal states",
+          "Design handoff specs with documented padding, hex tokens, and assets",
+          "Exportable SVG icon suite and responsive asset package",
+        ],
+      },
+    ],
+  },
+  {
+    id: "brand",
+    icon: "✒️",
+    name: "Brand & Vector Suite",
+    budget: "800",
+    title: "Brand Identity, Logo & Vector Asset Suite",
+    description:
+      "Complete visual identity system including primary/secondary logos, brand style guidelines, and scalable vector assets.",
+    milestones: [
+      {
+        id: "m_1",
+        title: "Phase 1: Concept Moodboards & Logo Exploration",
+        amount: "400",
+        criteria: [
+          "3 distinct creative direction moodboards with typography pairings",
+          "Primary and secondary logo mark sketches in monochrome and full color",
+          "Client presentation deck with feedback reconciliation notes",
+        ],
+      },
+      {
+        id: "m_2",
+        title: "Phase 2: Brand Guidelines & Vector Asset Package",
+        amount: "400",
+        criteria: [
+          "Comprehensive 15-page brand style guide PDF (clear space, colors, rules)",
+          "Master vector deliverables in AI, SVG, EPS, and high-res PNG formats",
+          "Social media banner templates and avatar asset pack",
+        ],
+      },
+    ],
+  },
+  {
+    id: "seo",
+    icon: "📈",
+    name: "SEO & Content Marketing",
+    budget: "600",
+    title: "SEO Strategy & Launch Article Campaign",
+    description:
+      "Comprehensive SEO content strategy, keyword research, and high-ranking article publication.",
+    milestones: [
+      {
+        id: "m_1",
+        title: "Phase 1: Keyword Research & Content Architecture",
+        amount: "240",
+        criteria: [
+          "Comprehensive keyword gap analysis and search volume report",
+          "Detailed content briefs for 5 targeted long-form articles with H2/H3 outlines",
+          "Internal linking strategy and competitor benchmark audit",
+        ],
+      },
+      {
+        id: "m_2",
+        title: "Phase 2: Draft Articles, On-Page SEO & Publication",
+        amount: "360",
+        criteria: [
+          "5 published SEO-optimized articles (minimum 1,500 words each)",
+          "Meta titles, descriptions, and OpenGraph tags configured",
+          "Grammarly score > 95% and zero detected plagiarism",
+        ],
+      },
+    ],
+  },
+];
+
 export default function NewContractPage() {
   const router = useRouter();
   const { user, loginAs } = useAuth();
@@ -35,35 +173,39 @@ export default function NewContractPage() {
   const [step, setStep] = useState<"DETAILS" | "ESCROW_PAYMENT">("DETAILS");
 
   // Agreement Structure Mode: "single" vs "phased"
-  const [agreementMode, setAgreementMode] = useState<"single" | "phased">("single");
+  const [agreementMode, setAgreementMode] = useState<"single" | "phased">("phased");
 
-  // Single Milestone Form State (starts clean and empty)
+  // Form State
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("1800");
   const [currency] = useState("USD");
-  const [clientName, setClientName] = useState(user.role === "client" ? user.name : "");
-  const [clientEmail, setClientEmail] = useState(user.role === "client" ? user.email : "");
-  const [freelancerName, setFreelancerName] = useState("");
-  const [freelancerEmail, setFreelancerEmail] = useState("");
+  const [clientName, setClientName] = useState(user.role === "client" ? user.name : "Acme Client Corp");
+  const [clientEmail, setClientEmail] = useState(user.role === "client" ? user.email : "billing@acme.com");
+  const [freelancerName, setFreelancerName] = useState("Alex Rivera");
+  const [freelancerEmail, setFreelancerEmail] = useState("alex.rivera@devmail.com");
   const [criteria, setCriteria] = useState<string[]>([]);
   const [newCriterion, setNewCriterion] = useState("");
   const [deadline, setDeadline] = useState("");
 
-  // Multi-Milestone Phased State (starts clean and empty)
-  const [milestones, setMilestones] = useState<FormMilestone[]>([
-    {
-      id: "m_1",
-      title: "",
-      amount: "",
-      criteria: [],
-      newCriterionText: "",
-    },
-  ]);
+  // Phased Milestones State (Preloaded with Web App template default for instant demo readiness)
+  const [milestones, setMilestones] = useState<FormMilestone[]>(TEMPLATES[0].milestones);
+
+  // AI Generation State
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiSuccessNotice, setAiSuccessNotice] = useState(false);
 
   useEffect(() => {
+    // Default 14-day deadline
     const d = new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0];
     setDeadline(d);
+
+    // Apply template 0 by default so the user is never faced with a blank intimidating form
+    setTitle(TEMPLATES[0].title);
+    setDescription(TEMPLATES[0].description);
+    setAmount(TEMPLATES[0].budget);
+    setMilestones(TEMPLATES[0].milestones);
+
     if (user.role === "client") {
       setClientName(user.name);
       setClientEmail(user.email);
@@ -85,6 +227,59 @@ export default function NewContractPage() {
           .reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0)
           .toFixed(2)
       : amount || "0.00";
+
+  // Quick Template Applier
+  const applyTemplate = (tmpl: (typeof TEMPLATES)[number]) => {
+    setTitle(tmpl.title);
+    setDescription(tmpl.description);
+    setAmount(tmpl.budget);
+    setMilestones(
+      tmpl.milestones.map((m) => ({
+        ...m,
+        id: `m_${Date.now().toString().slice(-4)}_${Math.random().toString().slice(2, 5)}`,
+      }))
+    );
+    setAgreementMode("phased");
+  };
+
+  // AI Milestone & Budget Generator
+  const handleAiAutoStructure = async () => {
+    setAiGenerating(true);
+    try {
+      const budgetNum =
+        parseFloat(agreementMode === "phased" ? totalCalculatedAmount : amount) || 1500;
+
+      const res = await fetch("/api/contracts/ai-generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title.trim() || "Milestone Deliverable Contract",
+          description: description.trim() || "Full project deliverables and technical specifications.",
+          budget: budgetNum,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.milestones && data.milestones.length > 0) {
+        setAgreementMode("phased");
+        setMilestones(
+          data.milestones.map((m: any, idx: number) => ({
+            id: `m_${idx + 1}_${Date.now().toString().slice(-4)}`,
+            title: m.title,
+            amount: String(m.amount),
+            criteria: m.criteria,
+            newCriterionText: "",
+          }))
+        );
+        setAiSuccessNotice(true);
+        setTimeout(() => setAiSuccessNotice(false), 4500);
+      }
+    } catch (err) {
+      console.error("AI auto structure failed:", err);
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   // Single mode criteria helpers
   const addCriterion = () => {
@@ -197,8 +392,8 @@ export default function NewContractPage() {
           currency,
           clientName: clientName.trim() || user.name,
           clientEmail: clientEmail.trim() || user.email,
-          freelancerName: freelancerName.trim() || "Contractor",
-          freelancerEmail: freelancerEmail.trim() || "contractor@personal.example.com",
+          freelancerName: freelancerName.trim() || "Alex Rivera",
+          freelancerEmail: freelancerEmail.trim() || "alex.rivera@devmail.com",
           criteria: payloadCriteria.length > 0 ? payloadCriteria : ["Deliverable implemented to standard"],
           milestones: payloadMilestones,
           paypalOrderId: orderId,
@@ -295,9 +490,9 @@ export default function NewContractPage() {
       </div>
 
       {user.role === "contractor" && (
-        <div className="mb-5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between gap-3 text-xs">
-          <span className="text-amber-500">
-            You are viewing as <strong>Contractor ({user.name})</strong>. Milestone contracts are typically created and funded by clients.
+        <div className="mb-5 p-3 rounded-xl bg-accent/10 border border-accent/25 flex items-center justify-between gap-3 text-xs">
+          <span className="text-foreground">
+            You are viewing as <strong>Contractor ({user.name})</strong>. You can draft an agreement or fund it as client.
           </span>
           <button
             type="button"
@@ -310,7 +505,43 @@ export default function NewContractPage() {
       )}
 
       {step === "DETAILS" ? (
-        <form onSubmit={handleProceedToPayment} className="space-y-5">
+        <form onSubmit={handleProceedToPayment} className="space-y-6">
+          {/* Quick Category Templates */}
+          <div className="p-4 rounded-xl bg-card/60 border border-border/80 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                <span>Select Work Template</span>
+                <span className="text-[10px] text-muted font-normal">(Auto-fills phased milestones & budget)</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {TEMPLATES.map((tmpl) => (
+                <button
+                  key={tmpl.id}
+                  type="button"
+                  onClick={() => applyTemplate(tmpl)}
+                  className="p-2.5 rounded-lg bg-background hover:bg-card border border-border hover:border-accent/50 text-left transition-all cursor-pointer group flex flex-col justify-between space-y-1.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-base">{tmpl.icon}</span>
+                    <span className="text-[11px] font-mono font-bold text-emerald-400">
+                      ${tmpl.budget}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-foreground group-hover:text-accent transition-colors line-clamp-1">
+                      {tmpl.name}
+                    </div>
+                    <div className="text-[10px] text-muted">
+                      {tmpl.milestones.length} Phases
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Milestone Structure Selector */}
           <div className="p-3.5 rounded-xl bg-card/60 border border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -346,12 +577,43 @@ export default function NewContractPage() {
 
           {/* Section 1: Overview */}
           <div data-tour="scope-budget" className="p-5 rounded-xl bg-card/60 border border-border/80 space-y-3.5">
-            <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <span className="h-5 w-5 rounded-md bg-accent/15 text-accent flex items-center justify-center text-xs font-bold">
-                1
-              </span>
-              {agreementMode === "phased" ? "Project Overview & Schedule" : "Contract Scope & Budget"}
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                <span className="h-5 w-5 rounded-md bg-accent/15 text-accent flex items-center justify-center text-xs font-bold">
+                  1
+                </span>
+                {agreementMode === "phased" ? "Project Overview & Schedule" : "Contract Scope & Budget"}
+              </h2>
+
+              {/* AI Auto-Structure Milestones & Budget Button */}
+              <button
+                type="button"
+                onClick={handleAiAutoStructure}
+                disabled={aiGenerating}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent/15 hover:bg-accent/25 border border-accent/30 text-accent text-xs font-medium transition-all cursor-pointer disabled:opacity-50 shadow-xs"
+              >
+                {aiGenerating ? (
+                  <>
+                    <RefreshCw className="w-3 h-3 animate-spin text-accent" />
+                    <span>Structuring Milestones...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3 text-accent" />
+                    <span>Auto-Split Milestones & Budget</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {aiSuccessNotice && (
+              <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-xs text-emerald-400 flex items-center gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  Successfully structured {milestones.length} phased milestones and split the ${totalCalculatedAmount} budget with criteria!
+                </span>
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-medium text-foreground mb-1">
@@ -360,7 +622,7 @@ export default function NewContractPage() {
               <input
                 type="text"
                 required
-                placeholder={agreementMode === "phased" ? "e.g. Mobile App Redesign & Web Launch" : "e.g. Customer Checkout & Payment Integration"}
+                placeholder="e.g. Next.js App & PayPal Integration"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder-muted/60 focus:outline-none focus:border-accent"
@@ -448,7 +710,7 @@ export default function NewContractPage() {
                   required
                   value={clientName}
                   onChange={(e) => setClientName(e.target.value)}
-                  placeholder="e.g. Acme Corporation or Client Name"
+                  placeholder="Client Organization Name"
                   className="w-full px-3 py-1.5 rounded-lg bg-background border border-border text-xs text-foreground placeholder-muted/60 mb-1.5 focus:outline-none focus:border-accent"
                 />
                 <input
@@ -456,7 +718,7 @@ export default function NewContractPage() {
                   required
                   value={clientEmail}
                   onChange={(e) => setClientEmail(e.target.value)}
-                  placeholder="Client PayPal billing email (e.g. billing@acme.com)"
+                  placeholder="billing@client.com"
                   className="w-full px-3 py-1.5 rounded-lg bg-background border border-border text-[11px] text-foreground placeholder-muted/60 font-mono focus:outline-none focus:border-accent"
                 />
               </div>
@@ -470,7 +732,7 @@ export default function NewContractPage() {
                   required
                   value={freelancerName}
                   onChange={(e) => setFreelancerName(e.target.value)}
-                  placeholder="e.g. Alex Rivera or Contractor Name"
+                  placeholder="Contractor Name"
                   className="w-full px-3 py-1.5 rounded-lg bg-background border border-border text-xs text-foreground placeholder-muted/60 mb-1.5 focus:outline-none focus:border-accent"
                 />
                 <input
@@ -478,14 +740,14 @@ export default function NewContractPage() {
                   required
                   value={freelancerEmail}
                   onChange={(e) => setFreelancerEmail(e.target.value)}
-                  placeholder="Contractor PayPal payout email (e.g. dev@gmail.com)"
+                  placeholder="contractor@paypal.com"
                   className="w-full px-3 py-1.5 rounded-lg bg-background border border-border text-[11px] text-foreground placeholder-muted/60 font-mono focus:outline-none focus:border-accent"
                 />
               </div>
             </div>
           </div>
 
-          {/* Section 3: Acceptance Criteria OR Phased Milestones Builder */}
+          {/* Section 3: Criteria or Phased Milestones */}
           {agreementMode === "single" ? (
             <div data-tour="acceptance-criteria" className="p-5 rounded-xl bg-card/60 border border-border/80 space-y-3.5">
               <div className="flex items-center justify-between">
@@ -497,7 +759,7 @@ export default function NewContractPage() {
                 </h2>
                 <span className="text-xs text-accent font-medium flex items-center gap-1">
                   <Sparkles className="w-3.5 h-3.5" />
-                  Audited by AI
+                  Objective Escrow Checks
                 </span>
               </div>
 
@@ -669,7 +931,7 @@ export default function NewContractPage() {
                       <div className="flex gap-2 pt-1">
                         <input
                           type="text"
-                          placeholder="e.g. 6 mobile wireframes in Figma..."
+                          placeholder="e.g. Clean card validation with zero console errors..."
                           value={milestone.newCriterionText || ""}
                           onChange={(e) => {
                             const val = e.target.value;

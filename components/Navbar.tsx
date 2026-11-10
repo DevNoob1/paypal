@@ -123,16 +123,14 @@ export function Navbar() {
             <ChevronDown className="w-3 h-3 text-muted ml-0.5" />
           </button>
 
-          {/* Primary Action Button (Client Only) */}
-          {user.role === "client" && (
-            <Link
-              href="/contracts/new"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium shadow-sm transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              New Contract
-            </Link>
-          )}
+          {/* Primary Action Button */}
+          <Link
+            href="/contracts/new"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium shadow-sm transition-all cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>New Agreement</span>
+          </Link>
         </div>
       </div>
     </header>
