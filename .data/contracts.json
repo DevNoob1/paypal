@@ -1,5 +1,55 @@
 [
   {
+    "id": "cnt_0ayyia_1396",
+    "title": "Mobile Banking App Figma Redesign",
+    "description": "Create 12 high-fidelity mobile frames and clickable prototype in Figma",
+    "amount": 600,
+    "currency": "USD",
+    "clientName": "Acme Cloud Corp",
+    "clientEmail": "billing@acmecloud.io",
+    "freelancerName": "Alex Rivera",
+    "freelancerEmail": "alex.rivera@devmail.com",
+    "createdAt": "2026-11-10T18:53:41.397Z",
+    "deadline": "2026-11-17T18:53:41.397Z",
+    "status": "FUNDED_ESCROW",
+    "criteria": [
+      "Figma wireframes ready",
+      "12 frames designed",
+      "Interactive prototype linked"
+    ],
+    "paypalOrderId": "PP-ORD-TEST-600",
+    "escrowCapturedAt": "2026-11-10T18:53:41.397Z",
+    "milestones": [
+      {
+        "id": "m_1",
+        "title": "Phase 1: Concepts",
+        "amount": 150,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Figma wireframes ready"
+        ]
+      },
+      {
+        "id": "m_2",
+        "title": "Phase 2: High-Fi Mockups",
+        "amount": 300,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "12 frames designed"
+        ]
+      },
+      {
+        "id": "m_3",
+        "title": "Phase 3: Prototyping",
+        "amount": 150,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Interactive prototype linked"
+        ]
+      }
+    ]
+  },
+  {
     "id": "cnt_nojxre_8476",
     "title": "Interactive Portfolio with Dark Mode",
     "description": "Build a fast portfolio site with a responsive navigation bar and contact form.",

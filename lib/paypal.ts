@@ -1,109 +1,8 @@
-// lib/paypal.ts - Direct PayPal Sandbox API Client & Webhook Event Engine
-import fs from "fs";
-import path from "path";
+// lib/paypal.ts - Direct PayPal Sandbox API Client
 
 const CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || process.env.PAYPAL_CLIENT_ID || "";
 const CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET || "";
 const BASE_URL = process.env.PAYPAL_API_BASE || "https://api-m.sandbox.paypal.com";
-
-export interface PayPalWebhookEvent {
-  id: string;
-  event_version: string;
-  create_time: string;
-  resource_type: string;
-  event_type:
-    | "PAYMENT.CAPTURE.COMPLETED"
-    | "PAYMENT.PAYOUTS-ITEM.SUCCESS"
-    | "PAYMENT.PAYOUTSBATCH.SUCCESS"
-    | "CHECKOUT.ORDER.APPROVED"
-    | "CUSTOMER.DISPUTE.CREATED";
-  summary: string;
-  status: "SUCCESS" | "PENDING" | "PROCESSED";
-  resource: Record<string, any>;
-}
-
-// Global in-memory notification store with file persistence
-const DATA_DIR = path.join(process.cwd(), ".data");
-const NOTIFS_FILE = path.join(DATA_DIR, "paypal_webhooks.json");
-
-function loadStoredEvents(): PayPalWebhookEvent[] {
-  try {
-    if (fs.existsSync(NOTIFS_FILE)) {
-      const raw = fs.readFileSync(NOTIFS_FILE, "utf-8");
-      return JSON.parse(raw);
-    }
-  } catch (err) {
-    console.error("Failed to read paypal webhooks file:", err);
-  }
-
-  // Initial Seed Events
-  return [
-    {
-      id: "WH-9821-CAPTURE-COMPLETED",
-      event_version: "1.0",
-      create_time: new Date(Date.now() - 3600000 * 48).toISOString(),
-      resource_type: "capture",
-      event_type: "PAYMENT.CAPTURE.COMPLETED",
-      summary: "Escrow payment captured: $450.00 USD secured in vault",
-      status: "SUCCESS",
-      resource: {
-        id: "CAP-982101",
-        amount: { value: "450.00", currency_code: "USD" },
-        status: "COMPLETED",
-        seller_protection: { status: "ELIGIBLE" },
-      },
-    },
-    {
-      id: "WH-9821-ORDER-APPROVED",
-      event_version: "1.0",
-      create_time: new Date(Date.now() - 3600000 * 49).toISOString(),
-      resource_type: "checkout-order",
-      event_type: "CHECKOUT.ORDER.APPROVED",
-      summary: "Checkout order approved by buyer for milestone escrow",
-      status: "SUCCESS",
-      resource: {
-        id: "PP-ORD-982101",
-        intent: "CAPTURE",
-        status: "APPROVED",
-      },
-    },
-  ];
-}
-
-let webhookEvents: PayPalWebhookEvent[] = loadStoredEvents();
-
-function saveStoredEvents() {
-  try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    }
-    fs.writeFileSync(NOTIFS_FILE, JSON.stringify(webhookEvents, null, 2), "utf-8");
-  } catch (err) {
-    console.error("Failed to save paypal webhooks file:", err);
-  }
-}
-
-export function recordPayPalWebhookEvent(event: Partial<PayPalWebhookEvent>): PayPalWebhookEvent {
-  const newEvent: PayPalWebhookEvent = {
-    id: event.id || `WH-${Date.now().toString().slice(-6)}-${(event.event_type || "EVENT").replace(/\./g, "-")}`,
-    event_version: "1.0",
-    create_time: event.create_time || new Date().toISOString(),
-    resource_type: event.resource_type || "capture",
-    event_type: (event.event_type as any) || "PAYMENT.CAPTURE.COMPLETED",
-    summary: event.summary || "PayPal notification event processed",
-    status: event.status || "SUCCESS",
-    resource: event.resource || {},
-  };
-
-  webhookEvents.unshift(newEvent);
-  if (webhookEvents.length > 50) webhookEvents.pop();
-  saveStoredEvents();
-  return newEvent;
-}
-
-export function getPayPalWebhookEvents(): PayPalWebhookEvent[] {
-  return [...webhookEvents];
-}
 
 /**
  * Obtain an OAuth 2.0 Access Token from PayPal Sandbox
@@ -145,24 +44,10 @@ export async function createPayPalOrder(params: {
   referenceId: string;
 }) {
   const currency = params.currency || "USD";
-  const orderId = `PP-ORD-${Date.now().toString().slice(-8)}`;
-
-  // Record simulated or real webhook
-  recordPayPalWebhookEvent({
-    event_type: "CHECKOUT.ORDER.APPROVED",
-    resource_type: "checkout-order",
-    summary: `Milestone escrow order initiated: $${params.amount.toFixed(2)} ${currency}`,
-    resource: {
-      id: orderId,
-      amount: { value: params.amount.toFixed(2), currency_code: currency },
-      description: params.description,
-      reference_id: params.referenceId,
-    },
-  });
 
   if (!CLIENT_ID || !CLIENT_SECRET) {
     return {
-      id: orderId,
+      id: `PP-ORD-${Date.now().toString().slice(-8)}`,
       status: "CREATED",
       intent: "CAPTURE",
       purchase_units: [
@@ -209,7 +94,7 @@ export async function createPayPalOrder(params: {
     if (!response.ok) {
       console.warn("PayPal Create Order fallback to simulated sandbox:", data);
       return {
-        id: orderId,
+        id: `PP-ORD-${Date.now().toString().slice(-8)}`,
         status: "CREATED",
         intent: "CAPTURE",
         simulated: true,
@@ -219,7 +104,7 @@ export async function createPayPalOrder(params: {
   } catch (err) {
     console.warn("PayPal Sandbox Error, returning simulated order:", err);
     return {
-      id: orderId,
+      id: `PP-ORD-${Date.now().toString().slice(-8)}`,
       status: "CREATED",
       intent: "CAPTURE",
       simulated: true,
@@ -231,25 +116,9 @@ export async function createPayPalOrder(params: {
  * Capture payment for an approved order
  */
 export async function capturePayPalOrder(orderId: string) {
-  const captureId = `CAP-${Date.now().toString().slice(-8)}`;
-
-  // Record webhook event for capture
-  recordPayPalWebhookEvent({
-    event_type: "PAYMENT.CAPTURE.COMPLETED",
-    resource_type: "capture",
-    summary: `Milestone escrow deposit locked: Order ${orderId}`,
-    status: "SUCCESS",
-    resource: {
-      id: captureId,
-      order_id: orderId,
-      status: "COMPLETED",
-      protection_eligibility: "ELIGIBLE",
-    },
-  });
-
   if (!CLIENT_ID || !CLIENT_SECRET || orderId.startsWith("PP-ORD-") || orderId.startsWith("PP_ORD_")) {
     return {
-      id: captureId,
+      id: `CAPTURE_${Date.now().toString().slice(-8)}`,
       status: "COMPLETED",
       simulated: true,
     };
@@ -268,7 +137,7 @@ export async function capturePayPalOrder(orderId: string) {
     const data = await response.json();
     if (!response.ok) {
       return {
-        id: captureId,
+        id: `CAPTURE_${Date.now().toString().slice(-8)}`,
         status: "COMPLETED",
         simulated: true,
       };
@@ -276,7 +145,7 @@ export async function capturePayPalOrder(orderId: string) {
     return data;
   } catch (err) {
     return {
-      id: captureId,
+      id: `CAPTURE_${Date.now().toString().slice(-8)}`,
       status: "COMPLETED",
       simulated: true,
     };
@@ -294,38 +163,6 @@ export async function releasePayPalPayout(params: {
   contractId: string;
 }) {
   const batchId = `Batch_ResolvAI_${params.contractId.slice(0, 8)}_${Date.now()}`;
-  const payoutItemId = `PYT-ITEM-${Date.now().toString().slice(-8)}`;
-
-  // Record webhook events for payout batch & item success
-  recordPayPalWebhookEvent({
-    event_type: "PAYMENT.PAYOUTS-ITEM.SUCCESS",
-    resource_type: "payouts_item",
-    summary: `Milestone payout completed: $${params.amount.toFixed(2)} sent to ${params.receiverEmail}`,
-    status: "SUCCESS",
-    resource: {
-      payout_item_id: payoutItemId,
-      transaction_status: "SUCCESS",
-      payout_item_fee: { value: "0.25", currency: params.currency || "USD" },
-      payout_batch_id: batchId,
-      sender_batch_id: batchId,
-      receiver: params.receiverEmail,
-      amount: { value: params.amount.toFixed(2), currency: params.currency || "USD" },
-    },
-  });
-
-  recordPayPalWebhookEvent({
-    event_type: "PAYMENT.PAYOUTSBATCH.SUCCESS",
-    resource_type: "payouts_batch",
-    summary: `PayPal payouts batch settlement cleared: ${batchId}`,
-    status: "SUCCESS",
-    resource: {
-      batch_header: {
-        payout_batch_id: batchId,
-        batch_status: "SUCCESS",
-        amount: { value: params.amount.toFixed(2), currency: params.currency || "USD" },
-      },
-    },
-  });
 
   if (!CLIENT_ID || !CLIENT_SECRET) {
     return {

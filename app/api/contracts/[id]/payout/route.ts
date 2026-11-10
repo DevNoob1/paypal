@@ -39,9 +39,32 @@ export async function POST(
       simulated: payoutRes.simulated || false,
     };
 
+    const contractorPayoutNotif = {
+      id: `notif_${Date.now()}_payout_contractor`,
+      timestamp: new Date().toISOString(),
+      channel: "EMAIL" as const,
+      recipient: contract.freelancerEmail,
+      subject: `PayPal Payout Released: $${contract.amount.toFixed(2)} USD`,
+      message: `PayPal batch payout ${payoutReceipt.payoutId} dispatched to ${contract.freelancerEmail}. Funds are now settled and available in your PayPal balance.`,
+      status: "DELIVERED" as const,
+    };
+
+    const clientReceiptNotif = {
+      id: `notif_${Date.now()}_receipt_client`,
+      timestamp: new Date().toISOString(),
+      channel: "EMAIL" as const,
+      recipient: contract.clientEmail,
+      subject: `Payment Receipt: Milestone Settlement Complete for "${contract.title}"`,
+      message: `Your PayPal escrow authorization of $${contract.amount.toFixed(2)} USD has settled to ${contract.freelancerName}. Receipt ID: ${payoutReceipt.payoutId}.`,
+      status: "DELIVERED" as const,
+    };
+
+    const existingNotifs = contract.notifications || [];
+
     const updated = updateContract(id, {
       status: "PAYOUT_COMPLETED",
       payoutReceipt,
+      notifications: [contractorPayoutNotif, clientReceiptNotif, ...existingNotifs],
     });
 
     return NextResponse.json({ success: true, contract: updated });

@@ -30,6 +30,16 @@ export interface PayoutReceipt {
   simulated?: boolean;
 }
 
+export interface ExternalNotification {
+  id: string;
+  timestamp: string;
+  channel: "EMAIL" | "SMS" | "WEBHOOK";
+  recipient: string;
+  subject: string;
+  message: string;
+  status: "DELIVERED";
+}
+
 export interface Milestone {
   id: string;
   title: string;
@@ -62,6 +72,7 @@ export interface Contract {
   auditReport?: AuditReport;
   payoutReceipt?: PayoutReceipt;
   milestones?: Milestone[];
+  notifications?: ExternalNotification[];
 }
 
 const DATA_DIR = path.join(process.cwd(), ".data");
@@ -407,6 +418,26 @@ export function updateContract(id: string, updates: Partial<Contract>): Contract
   };
 
   return saveContract(updated);
+}
+
+export function addContractNotification(
+  contractId: string,
+  notification: Omit<ExternalNotification, "id" | "timestamp" | "status">
+): Contract | null {
+  const contract = getContractById(contractId);
+  if (!contract) return null;
+
+  const newNotif: ExternalNotification = {
+    id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    timestamp: new Date().toISOString(),
+    status: "DELIVERED",
+    ...notification,
+  };
+
+  const existing = contract.notifications || [];
+  return updateContract(contractId, {
+    notifications: [newNotif, ...existing],
+  });
 }
 
 // Reset store to fresh clean seed data

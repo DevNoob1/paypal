@@ -39,10 +39,33 @@ export async function POST(
     const newStatus =
       auditReport.verdict === "APPROVE" ? "AI_VERIFIED" : "PENDING_REVIEW";
 
+    const emailNotif = {
+      id: `notif_${Date.now()}_email`,
+      timestamp: new Date().toISOString(),
+      channel: "EMAIL" as const,
+      recipient: contract.clientEmail,
+      subject: `Action Required: Deliverable submitted for "${contract.title}"`,
+      message: `${contract.freelancerName} has submitted deliverable artifacts. ResolvAI verified the criteria with score ${auditReport.overallScore}/100. 48-hour client review window engaged.`,
+      status: "DELIVERED" as const,
+    };
+
+    const smsNotif = {
+      id: `notif_${Date.now()}_sms`,
+      timestamp: new Date().toISOString(),
+      channel: "SMS" as const,
+      recipient: "+1 (555) 019-2834",
+      subject: "ResolvAI Escrow Alert",
+      message: `ResolvAI: Deliverable submitted for ${contract.title.slice(0, 30)}... Review & authorize escrow release in portal.`,
+      status: "DELIVERED" as const,
+    };
+
+    const existingNotifs = contract.notifications || [];
+
     const updated = updateContract(id, {
       submission,
       auditReport,
       status: newStatus,
+      notifications: [emailNotif, smsNotif, ...existingNotifs],
     });
 
     return NextResponse.json({ success: true, contract: updated, auditReport });

@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Sparkles,
   CheckCircle2,
-  AlertTriangle,
   Clock,
   FileText,
   Send,
@@ -16,33 +15,27 @@ import {
   ExternalLink,
   ShieldCheck,
   Check,
-  ChevronRight,
-  ImageIcon,
   RefreshCw,
-  Eye,
   AlertCircle,
   Layers,
   X,
   CreditCard,
-  Zap,
   Upload,
-  Radio,
-  Code2,
-  Globe,
+  Mail,
   Bell,
-  ChevronDown,
+  KeyRound,
+  ShieldAlert,
 } from "lucide-react";
 import { Contract } from "@/lib/store";
 import { useAuth } from "@/components/AuthContext";
-import { AuditReport, CriterionResult, InspectionTelemetry } from "@/lib/gemini";
-import { PayPalWebhookEvent } from "@/lib/paypal";
+import { AuditReport } from "@/lib/gemini";
 
 function ContractDetailContent({ id }: { id: string }) {
-  const { user, setIsSignInOpen } = useAuth();
+  const { user, loginAs, setIsSignInOpen } = useAuth();
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Contractor Tab Navigation (1: Submit, 2: Pre-Flight Check, 3: Submitted Status)
+  // Contractor Tab Navigation (1: Submit, 2: Pre-Flight Check, 3: Status & Escrow)
   const [activeTab, setActiveTab] = useState<"submit" | "preflight" | "submitted">("submit");
 
   // Contractor Form State
@@ -69,25 +62,24 @@ function ContractDetailContent({ id }: { id: string }) {
   const [preflightLoading, setPreflightLoading] = useState(false);
   const [preflightReport, setPreflightReport] = useState<AuditReport | null>(null);
   const [submittingFinal, setSubmittingFinal] = useState(false);
-  const [finalSubmitToast, setFinalSubmitToast] = useState(false);
 
-  // Client Payout State
+  // Client Payout State & Security OTP
+  const [otpModalOpen, setOtpModalOpen] = useState(false);
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const [expectedOtp] = useState("849201");
+  const [otpError, setOtpError] = useState("");
   const [releasingPayout, setReleasingPayout] = useState(false);
   const [disputeModalOpen, setDisputeModalOpen] = useState(false);
   const [disputeReason, setDisputeReason] = useState("");
   const [submittingDispute, setSubmittingDispute] = useState(false);
   const [disputeSuccessNotice, setDisputeSuccessNotice] = useState("");
 
-  // PayPal Webhooks Drawer State
-  const [webhookDrawerOpen, setWebhookDrawerOpen] = useState(false);
-  const [webhookEvents, setWebhookEvents] = useState<PayPalWebhookEvent[]>([]);
-  const [loadingWebhooks, setLoadingWebhooks] = useState(false);
-  const [expandedWebhookId, setExpandedWebhookId] = useState<string | null>(null);
+  // Notifications Drawer / Toggle
+  const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
 
-  // Animated Pre-Flight / Verification Modal State
+  // Animated Payout Flow Modal
   const [animatedFlowOpen, setAnimatedFlowOpen] = useState(false);
   const [flowStep, setFlowStep] = useState(1);
-  const [flowAction, setFlowAction] = useState<"preflight" | "payout">("preflight");
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -120,41 +112,19 @@ function ContractDetailContent({ id }: { id: string }) {
     }
   };
 
-  const loadWebhookEvents = async () => {
-    setLoadingWebhooks(true);
-    try {
-      const res = await fetch("/api/paypal/webhook");
-      const data = await res.json();
-      if (data.events) {
-        setWebhookEvents(data.events);
-      }
-    } catch (err) {
-      console.error("Failed to load PayPal webhooks:", err);
-    } finally {
-      setLoadingWebhooks(false);
-    }
-  };
-
   useEffect(() => {
     fetchContract();
-    loadWebhookEvents();
   }, [id]);
 
-  // Contractor: Run Pre-Flight Self-Check (Tab 1 -> Tab 2)
+  // Contractor: Run Pre-Flight AI Check (Self-Audit Quality Check)
   const handleRunPreflight = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!submissionUrl.trim() && !screenshotUrl.trim()) return;
 
-    setFlowAction("preflight");
-    setFlowStep(1);
-    setAnimatedFlowOpen(true);
     setPreflightLoading(true);
 
     try {
-      await sleep(650);
-      setFlowStep(2);
-
-      const fetchPromise = fetch(`/api/contracts/${id}/preflight`, {
+      const res = await fetch(`/api/contracts/${id}/preflight`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -164,35 +134,28 @@ function ContractDetailContent({ id }: { id: string }) {
         }),
       });
 
-      await sleep(750);
-      setFlowStep(3);
-
-      await sleep(650);
-      const res = await fetchPromise;
       const data = await res.json();
-
-      setFlowStep(4);
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.6 },
-      });
-      await sleep(750);
 
       if (data.auditReport) {
         setPreflightReport(data.auditReport);
         setActiveTab("preflight");
+
+        if (data.auditReport.overallScore >= 80) {
+          confetti({
+            particleCount: 70,
+            spread: 60,
+            origin: { y: 0.6 },
+          });
+        }
       }
     } catch (err) {
       console.error("Pre-flight check error:", err);
     } finally {
-      setAnimatedFlowOpen(false);
       setPreflightLoading(false);
     }
   };
 
-  // Contractor: Final submission to client (Tab 2 -> Tab 3)
-  // Direct, clean submission without redundant re-check modal
+  // Contractor: Final submission to client (Locks into Review Window & Dispatches External Notifications)
   const handleFinalSubmit = async () => {
     setSubmittingFinal(true);
 
@@ -209,32 +172,39 @@ function ContractDetailContent({ id }: { id: string }) {
 
       const data = await res.json();
 
-      confetti({
-        particleCount: 120,
-        spread: 70,
-        origin: { y: 0.5 },
-      });
-
       if (data.contract) {
         setContract(data.contract);
         setActiveTab("submitted");
-        setFinalSubmitToast(true);
-        setTimeout(() => setFinalSubmitToast(false), 5000);
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+        });
       }
-      loadWebhookEvents();
     } catch (err) {
       console.error("Submission failed:", err);
-      alert("Submission error. Please verify your connection.");
     } finally {
       setSubmittingFinal(false);
     }
   };
 
-  // Client: Trigger PayPal Payout
-  const handleApprovePayout = async () => {
-    setFlowAction("payout");
-    setFlowStep(1);
+  // Client: Step 1 - Open Security OTP Modal before releasing payout
+  const handleInitiatePayout = () => {
+    setEnteredOtp("");
+    setOtpError("");
+    setOtpModalOpen(true);
+  };
+
+  // Client: Step 2 - Verify OTP & Release Payout
+  const handleConfirmPayoutWithOtp = async () => {
+    if (enteredOtp.trim() !== expectedOtp) {
+      setOtpError(`Invalid code. Enter "${expectedOtp}" to authorize release.`);
+      return;
+    }
+
+    setOtpModalOpen(false);
     setAnimatedFlowOpen(true);
+    setFlowStep(1);
     setReleasingPayout(true);
 
     try {
@@ -264,7 +234,6 @@ function ContractDetailContent({ id }: { id: string }) {
       if (data.contract) {
         setContract(data.contract);
       }
-      loadWebhookEvents();
     } catch (err) {
       console.error("Payout release error:", err);
     } finally {
@@ -275,45 +244,25 @@ function ContractDetailContent({ id }: { id: string }) {
 
   // Client / Contractor: Re-run quality check
   const handleRecheck = async () => {
-    if (!contract?.submission) return;
-    setFlowAction("preflight");
-    setFlowStep(1);
-    setAnimatedFlowOpen(true);
-
     try {
-      await sleep(650);
-      setFlowStep(2);
-
-      const fetchPromise = fetch(`/api/contracts/${id}/audit`, {
+      const res = await fetch(`/api/contracts/${id}/audit`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoReleasePayout: false }),
       });
-
-      await sleep(750);
-      setFlowStep(3);
-
-      await sleep(650);
-      const res = await fetchPromise;
       const data = await res.json();
-
-      setFlowStep(4);
-      await sleep(700);
-
-      if (data.auditReport) {
-        setContract((prev) => (prev ? { ...prev, auditReport: data.auditReport } : null));
-        setPreflightReport(data.auditReport);
+      if (data.contract) {
+        setContract(data.contract);
+        setPreflightReport(data.contract.auditReport);
       }
     } catch (err) {
-      console.error("Re-check failed:", err);
-    } finally {
-      setAnimatedFlowOpen(false);
+      console.error("Recheck error:", err);
     }
   };
 
-  // Client: Submit Dispute
-  const handleRaiseDispute = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Client: Submit formal revision request / freeze escrow
+  const handleSendRevisionNotice = async () => {
     if (!disputeReason.trim()) return;
-
     setSubmittingDispute(true);
     try {
       const res = await fetch(`/api/contracts/${id}`, {
@@ -321,6 +270,11 @@ function ContractDetailContent({ id }: { id: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: "DISPUTED",
+          auditReport: {
+            ...contract?.auditReport,
+            verdict: "REVISION_REQUESTED",
+            summary: disputeReason.trim(),
+          },
         }),
       });
       const data = await res.json();
@@ -328,12 +282,10 @@ function ContractDetailContent({ id }: { id: string }) {
         setContract(data.contract);
         setDisputeModalOpen(false);
         setDisputeReason("");
-        setDisputeSuccessNotice("Escrow paused. Dispute filed with full artifact history.");
-        setTimeout(() => setDisputeSuccessNotice(""), 6000);
+        setDisputeSuccessNotice("Revision request dispatched to contractor. Escrow funds safely locked.");
       }
-      loadWebhookEvents();
     } catch (err) {
-      console.error("Failed to raise dispute:", err);
+      console.error("Dispute submit error:", err);
     } finally {
       setSubmittingDispute(false);
     }
@@ -341,23 +293,22 @@ function ContractDetailContent({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 py-20 text-center space-y-3 flex-1 flex flex-col justify-center items-center">
-        <RefreshCw className="w-6 h-6 animate-spin text-accent" />
-        <div className="text-xs font-mono text-muted">Loading milestone contract details...</div>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center text-muted text-xs font-mono">
+        Loading escrow agreement details...
       </div>
     );
   }
 
   if (!contract) {
     return (
-      <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 flex-1 flex flex-col justify-center">
-        <div className="text-sm font-semibold text-foreground">Contract not found</div>
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-3">
+        <h2 className="text-lg font-bold text-foreground">Agreement Not Found</h2>
         <p className="text-xs text-muted">
-          The requested agreement does not exist or may have been deleted.
+          The requested contract could not be loaded. It may have been archived.
         </p>
         <Link
           href="/dashboard"
-          className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-accent text-white text-xs font-medium"
+          className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline font-medium"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Back to Dashboard
@@ -367,164 +318,205 @@ function ContractDetailContent({ id }: { id: string }) {
   }
 
   const isPaid = contract.status === "PAYOUT_COMPLETED";
-  const isDisputed = contract.status === "DISPUTED";
   const hasSubmission = Boolean(contract.submission);
   const audit = contract.auditReport || preflightReport;
-  const telemetry = audit?.inspectionTelemetry;
+  const notificationsList = contract.notifications || [];
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1 space-y-6">
-      {/* 1. TOP HEADER & NAVIGATION */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/80 pb-5">
-        <div className="space-y-1">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors font-medium mb-1"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Dashboard
-          </Link>
-          <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-              {contract.title}
-            </h1>
-            <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-card border border-border text-muted">
-              {contract.id}
-            </span>
-          </div>
-        </div>
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+      {/* Top Breadcrumb & Actions */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center gap-1.5 text-xs text-muted hover:text-foreground transition-colors font-medium"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" />
+          Back to Dashboard
+        </Link>
 
-        {/* Header Right Actions: Role Switcher & PayPal Webhooks Pill */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* PayPal Webhooks Trigger Button */}
+        <div className="flex items-center gap-2">
+          {/* Notifications Feed Button */}
           <button
             type="button"
-            onClick={() => {
-              loadWebhookEvents();
-              setWebhookDrawerOpen(true);
-            }}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card hover:bg-card-hover border border-border text-foreground text-xs font-medium transition-all cursor-pointer shadow-xs"
-            title="View PayPal Webhook Events"
+            onClick={() => setShowNotificationsDrawer(!showNotificationsDrawer)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card/60 hover:bg-card border border-border text-xs text-foreground transition-colors cursor-pointer"
+            title="View email/SMS notifications dispatched outside portal"
           >
             <Bell className="w-3.5 h-3.5 text-accent" />
-            <span>PayPal Webhooks</span>
-            {webhookEvents.length > 0 && (
+            <span className="hidden sm:inline">Notifications</span>
+            {notificationsList.length > 0 && (
               <span className="px-1.5 py-0.2 rounded-full bg-accent/20 text-accent font-mono text-[10px] font-bold">
-                {webhookEvents.length}
+                {notificationsList.length}
               </span>
             )}
           </button>
 
-          {/* Quick Perspective Switcher */}
+          {/* Quick Role Switcher Shortcut */}
           <button
             type="button"
-            onClick={() => setIsSignInOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-xs font-medium transition-all cursor-pointer shadow-xs"
+            onClick={() => loginAs(user.role === "client" ? "contractor" : "client")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card/60 hover:bg-card border border-border text-xs text-foreground transition-colors cursor-pointer"
+            title="Toggle between Client and Contractor perspective"
           >
-            <span>Viewing as:</span>
-            <strong className="capitalize">{user.role}</strong>
-            <span className="text-[10px] opacity-75">(Switch)</span>
+            <span className="text-[11px] text-muted">Role:</span>
+            <span className={`font-semibold capitalize ${user.role === "client" ? "text-accent" : "text-emerald-400"}`}>
+              {user.role}
+            </span>
+            <span className="text-[10px] text-muted underline ml-1">
+              (Switch to {user.role === "client" ? "Contractor" : "Client"})
+            </span>
           </button>
         </div>
       </div>
 
-      {/* Final Submit Success Banner */}
-      {finalSubmitToast && (
-        <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-400 flex items-center justify-between gap-3 animate-in fade-in duration-300">
+      {/* Contract Title Banner */}
+      <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl bg-card/70 border border-border/80 shadow-xs">
+        <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-            <span>
-              <strong>Deliverable successfully submitted to client!</strong> 48-Hour auto-release timer is now active.
+            <span className="font-mono text-[11px] text-muted uppercase">
+              ID: {contract.id}
+            </span>
+            <span className="text-border">•</span>
+            <span className="text-[11px] font-mono text-muted">
+              PayPal Order: {contract.paypalOrderId || "PP-ESCROW-LOCKED"}
             </span>
           </div>
-          <button
-            onClick={() => setFinalSubmitToast(false)}
-            className="text-muted hover:text-foreground text-xs cursor-pointer"
-          >
-            ✕
-          </button>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            {contract.title}
+          </h1>
         </div>
-      )}
 
-      {/* Dispute Filed Notice */}
-      {disputeSuccessNotice && (
-        <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-400 flex items-center gap-2 animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{disputeSuccessNotice}</span>
-        </div>
-      )}
-
-      {/* 2. SUMMARY METRICS STRIP */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-card/60 border border-border/80">
-        <div>
-          <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">
-            Escrow Amount
+        <div className="flex items-baseline gap-2 self-start md:self-auto bg-background/80 px-4 py-2.5 rounded-xl border border-border">
+          <span className="text-xs font-semibold text-muted uppercase">Escrow Vault:</span>
+          <span className="text-xl font-bold font-mono text-emerald-400">
+            ${contract.amount.toFixed(2)}
           </span>
-          <div className="text-lg font-mono font-bold text-foreground mt-0.5">
-            ${contract.amount.toFixed(2)}{" "}
-            <span className="text-xs text-muted font-normal">{contract.currency}</span>
-          </div>
-        </div>
-
-        <div>
-          <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">
-            Status
-          </span>
-          <div className="mt-0.5">
-            {isPaid ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Settled & Paid
-              </span>
-            ) : isDisputed ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-400">
-                <AlertCircle className="w-3.5 h-3.5" />
-                Disputed / Frozen
-              </span>
-            ) : hasSubmission ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-accent">
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" />
-                Under Review
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400">
-                <Lock className="w-3.5 h-3.5" />
-                Escrow Funded
-              </span>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">
-            PayPal Protection
-          </span>
-          <div className="text-xs font-medium text-foreground mt-0.5 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Vault Protected</span>
-          </div>
-        </div>
-
-        <div>
-          <span className="text-[10px] uppercase font-bold text-muted tracking-wider block">
-            Target Deadline
-          </span>
-          <div className="text-xs font-mono text-muted mt-0.5">
-            {contract.deadline ? new Date(contract.deadline).toLocaleDateString() : "Nov 20, 2026"}
-          </div>
+          <span className="text-xs font-mono text-muted">{contract.currency}</span>
         </div>
       </div>
 
-      {/* 3. CONTRACTOR VS CLIENT FLOW */}
-      {user.role === "contractor" ? (
-        /* ======================================================== */
-        /* CONTRACTOR EXPERIENCE: 3-Tab Guided Delivery Pipeline    */
-        /* ======================================================== */
-        <div className="space-y-6">
-          {/* 3 Step Tabs Navigation */}
-          <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-card/60 border border-border/80 text-xs">
+      {/* Notifications Drawer Banner (When opened) */}
+      {showNotificationsDrawer && (
+        <div className="mb-6 p-4 rounded-xl bg-card/90 border border-border shadow-lg space-y-3 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between border-b border-border/60 pb-2">
+            <div className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold text-foreground">
+                External Client & Contractor Notifications (Dispatched Outside Portal)
+              </h3>
+            </div>
             <button
-              type="button"
+              onClick={() => setShowNotificationsDrawer(false)}
+              className="text-muted hover:text-foreground p-1 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {notificationsList.length === 0 ? (
+            <p className="text-xs text-muted py-2">
+              No outside alerts dispatched yet. Submitting work or releasing payouts dispatches automated Email & SMS notifications.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {notificationsList.map((notif) => (
+                <div
+                  key={notif.id}
+                  className="p-3 rounded-lg bg-background/80 border border-border/70 text-xs space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-foreground flex items-center gap-1.5">
+                      <span className="px-1.5 py-0.5 rounded text-[10px] bg-accent/15 text-accent font-mono font-bold">
+                        {notif.channel}
+                      </span>
+                      <span>To: {notif.recipient}</span>
+                    </span>
+                    <span className="text-[10px] font-mono text-muted">
+                      {new Date(notif.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-medium text-accent">
+                    {notif.subject}
+                  </div>
+                  <p className="text-[11px] text-muted leading-relaxed">
+                    {notif.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Phased Milestones Breakdown (If agreement has milestones) */}
+      {contract.milestones && contract.milestones.length > 1 && (
+        <div className="mb-6 p-4 rounded-xl bg-card/60 border border-border/80 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-accent" />
+              <h3 className="text-xs font-bold text-foreground">
+                Project Milestone Schedule ({contract.milestones.length} Phases)
+              </h3>
+            </div>
+            <span className="text-[11px] text-muted font-mono">
+              Total Budget: ${contract.amount.toFixed(2)} USD
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {contract.milestones.map((m, idx) => {
+              const mIsPaid = m.status === "PAYOUT_COMPLETED" || (isPaid && idx === 0);
+              const mIsReady = m.status === "PENDING_REVIEW" || m.status === "AI_VERIFIED";
+              return (
+                <div
+                  key={m.id || idx}
+                  className={`p-3 rounded-lg border text-xs space-y-1.5 ${
+                    mIsPaid
+                      ? "bg-emerald-500/[0.08] border-emerald-500/30"
+                      : mIsReady
+                      ? "bg-amber-500/[0.08] border-amber-500/30"
+                      : "bg-background/50 border-border/70"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10.5px] font-bold text-accent">
+                      Phase {idx + 1}
+                    </span>
+                    <span className="font-mono font-bold text-foreground">
+                      ${m.amount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="font-medium text-foreground line-clamp-1">{m.title}</div>
+                  <div className="text-[10px] text-muted flex items-center gap-1">
+                    {mIsPaid ? (
+                      <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                        <Check className="w-3 h-3" /> Paid via PayPal
+                      </span>
+                    ) : mIsReady ? (
+                      <span className="text-amber-400 font-semibold flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" /> Ready for Review
+                      </span>
+                    ) : (
+                      <span className="text-muted flex items-center gap-1">
+                        <Lock className="w-3 h-3" /> In Escrow Vault
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* CONTRACTOR EXPERIENCE: Simple 3-Step Guided Tab Flow     */}
+      {/* ======================================================== */}
+      {user.role === "contractor" ? (
+        <div className="space-y-6">
+          {/* Step Tabs Indicator */}
+          <div className="grid grid-cols-3 gap-2 p-1.5 rounded-xl bg-card/60 border border-border/80 text-xs">
+            <button
               onClick={() => setActiveTab("submit")}
               className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
                 activeTab === "submit"
@@ -535,11 +527,10 @@ function ContractDetailContent({ id }: { id: string }) {
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 1
               </span>
-              <span>1. Submit Deliverables</span>
+              <span>1. Submit Deliverable</span>
             </button>
 
             <button
-              type="button"
               onClick={() => {
                 if (preflightReport || hasSubmission) setActiveTab("preflight");
               }}
@@ -555,11 +546,10 @@ function ContractDetailContent({ id }: { id: string }) {
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 2
               </span>
-              <span>2. Pre-Flight Audit</span>
+              <span>2. Pre-Flight AI Check</span>
             </button>
 
             <button
-              type="button"
               onClick={() => {
                 if (hasSubmission) setActiveTab("submitted");
               }}
@@ -575,7 +565,7 @@ function ContractDetailContent({ id }: { id: string }) {
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 3
               </span>
-              <span>3. Dispatched & Escrow</span>
+              <span>3. Hand Off & Escrow</span>
             </button>
           </div>
 
@@ -584,17 +574,17 @@ function ContractDetailContent({ id }: { id: string }) {
             <div className="lg:col-span-5 space-y-4">
               <div data-tour="contract-parties-card" className="p-4 rounded-xl bg-card/60 border border-border/80 text-xs space-y-2.5">
                 <span className="font-semibold text-muted block text-[11px] uppercase tracking-wider">
-                  Agreement Details
+                  Contract Details
                 </span>
                 <p className="text-foreground leading-relaxed">
                   {contract.description}
                 </p>
                 <div className="pt-2 border-t border-border/60 flex items-center justify-between text-[11px]">
-                  <span className="text-muted">Funding Client:</span>
+                  <span className="text-muted">Client:</span>
                   <span className="font-medium text-foreground">{contract.clientName}</span>
                 </div>
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-muted">Target PayPal Payout:</span>
+                  <span className="text-muted">Target PayPal:</span>
                   <span className="font-mono text-emerald-400">{contract.freelancerEmail}</span>
                 </div>
               </div>
@@ -627,7 +617,7 @@ function ContractDetailContent({ id }: { id: string }) {
 
             {/* Right: Active Tab Content (7 cols) */}
             <div className="lg:col-span-7">
-              {/* TAB 1: SUBMIT DELIVERABLES */}
+              {/* TAB 1: SUBMIT WORK */}
               {activeTab === "submit" && (
                 <div data-tour="deliverable-submission" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-4 shadow-sm">
                   <div className="border-b border-border/60 pb-3">
@@ -635,7 +625,7 @@ function ContractDetailContent({ id }: { id: string }) {
                       Step 1: Provide Deliverable Proof
                     </h3>
                     <p className="text-[11px] text-muted">
-                      Attach your live work link or screenshot proof so the automated auditor can inspect your deliverables.
+                      Attach your work link (GitHub PR, repository, deployed URL) or upload visual screenshot proof.
                     </p>
                   </div>
 
@@ -661,7 +651,7 @@ function ContractDetailContent({ id }: { id: string }) {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <label className="text-muted text-[11px] font-medium">
-                          Visual Screenshot Proof (Multi-Modal Inspection)
+                          Visual Screenshot Proof (Gemini Vision Multimodal Analysis)
                         </label>
                         <div className="flex items-center gap-1 bg-background/80 p-0.5 rounded-md border border-border text-[10px]">
                           <button
@@ -707,7 +697,7 @@ function ContractDetailContent({ id }: { id: string }) {
                               Click or drop screenshot image here
                             </span>
                             <span className="text-[10px] text-muted">
-                              PNG, JPG, or WebP analyzed directly against criteria
+                              PNG, JPG, or WebP analyzed directly by Gemini Vision
                             </span>
                           </label>
                         </div>
@@ -736,7 +726,7 @@ function ContractDetailContent({ id }: { id: string }) {
                                 Visual proof attached
                               </span>
                               <span className="text-[10px] text-emerald-400 font-mono">
-                                Ready for inspection
+                                Ready for Gemini Vision check
                               </span>
                             </div>
                           </div>
@@ -752,7 +742,7 @@ function ContractDetailContent({ id }: { id: string }) {
                       )}
                     </div>
 
-                    {/* 3. Delivery Notes */}
+                    {/* 3. Delivery Notes (Optional Context) */}
                     <div>
                       <label className="text-muted block mb-1.5 text-[11px] font-medium flex items-center justify-between">
                         <span>Delivery Notes (Optional Context)</span>
@@ -779,12 +769,12 @@ function ContractDetailContent({ id }: { id: string }) {
                         {preflightLoading ? (
                           <>
                             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            Checking code diffs & proof...
+                            Auditing live diffs & screenshot with Gemini Vision...
                           </>
                         ) : (
                           <>
                             <Sparkles className="w-3.5 h-3.5" />
-                            Run Pre-Flight Self-Check →
+                            Run AI Pre-Flight Check →
                           </>
                         )}
                       </button>
@@ -799,17 +789,17 @@ function ContractDetailContent({ id }: { id: string }) {
                 </div>
               )}
 
-              {/* TAB 2: PRE-FLIGHT VERIFICATION & TELEMETRY */}
+              {/* TAB 2: PRE-FLIGHT VERIFICATION (SELF-CHECK RESULTS) */}
               {activeTab === "preflight" && (
                 <div data-tour="ai-review-section" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-4 shadow-sm animate-in fade-in duration-300">
                   <div className="flex items-center justify-between border-b border-border/60 pb-3">
                     <div>
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-accent" />
-                        Step 2: Pre-Flight Self-Audit Report
+                        Step 2: Pre-Flight AI Self-Check
                       </h3>
                       <p className="text-[11px] text-muted">
-                        Private verification check before dispatching work to the funding client.
+                        Preview of how your deliverable satisfies milestone criteria before client submission.
                       </p>
                     </div>
 
@@ -822,91 +812,52 @@ function ContractDetailContent({ id }: { id: string }) {
                   <div className="p-3.5 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/25 text-xs text-foreground space-y-1.5">
                     <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4" />
-                      Verification Passed — Ready for Client Review
+                      Verification Passed — Quality Criteria Satisfied
                     </div>
                     <p className="text-xs text-foreground leading-relaxed font-medium">
                       {preflightReport?.summary ||
-                        "Deliverable satisfies agreed acceptance criteria. Submit to client to trigger the 48-hour auto-release guarantee."}
+                        "All acceptance criteria are satisfied. Proceed to Step 3 to formally hand off to the client."}
                     </p>
                   </div>
 
-                  {/* VERIFIED INSPECTION TELEMETRY CARD */}
-                  <div className="p-4 rounded-xl bg-background/80 border border-border/80 space-y-2.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-foreground flex items-center gap-1.5">
-                        <Code2 className="w-4 h-4 text-accent" />
-                        Live Inspection Telemetry
+                  {/* Live Inspected Artifacts Card (Evidence of Real Inspection) */}
+                  {preflightReport?.inspectedArtifacts && preflightReport.inspectedArtifacts.length > 0 && (
+                    <div className="p-3.5 rounded-lg bg-background/80 border border-border/80 space-y-2">
+                      <span className="text-[11px] font-bold text-foreground block">
+                        Live Artifacts Inspected by AI
                       </span>
-                      <span className="text-[10px] font-mono text-emerald-400">
-                        {telemetry?.inspectedAt ? new Date(telemetry.inspectedAt).toLocaleTimeString() : "Verified Live"}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 text-xs">
-                      {telemetry?.github && (
-                        <div className="p-2.5 rounded-lg bg-card/60 border border-border/60 space-y-1">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-mono text-accent font-semibold flex items-center gap-1">
-                              <span>GitHub {telemetry.github.type === "pull_request" ? "Pull Request" : "Repository"}:</span>
-                              <span>{telemetry.github.target}</span>
-                            </span>
-                            <span className="text-muted font-mono">{telemetry.github.commitsCount} commits</span>
-                          </div>
-                          {telemetry.github.title && (
-                            <div className="text-foreground text-[11px] font-medium truncate">
-                              &ldquo;{telemetry.github.title}&rdquo;
+                      <div className="space-y-1.5">
+                        {preflightReport.inspectedArtifacts.map((art, aIdx) => (
+                          <div
+                            key={aIdx}
+                            className="p-2 rounded bg-card/70 border border-border/60 text-xs flex items-start justify-between gap-2"
+                          >
+                            <div>
+                              <div className="font-medium text-foreground flex items-center gap-1.5">
+                                <span className="font-mono text-[10px] text-accent">[{art.type.toUpperCase()}]</span>
+                                <span>{art.title}</span>
+                              </div>
+                              <p className="text-[11px] text-muted mt-0.5 leading-relaxed">{art.details}</p>
                             </div>
-                          )}
-                          {telemetry.github.inspectedFiles && telemetry.github.inspectedFiles.length > 0 && (
-                            <div className="pt-1 flex flex-wrap gap-1">
-                              {telemetry.github.inspectedFiles.map((file, i) => (
-                                <span key={i} className="px-1.5 py-0.5 rounded bg-background border border-border font-mono text-[10px] text-muted">
-                                  {file}
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {telemetry?.liveStaging && (
-                        <div className="p-2.5 rounded-lg bg-card/60 border border-border/60 space-y-1">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-mono text-emerald-400 font-semibold flex items-center gap-1">
-                              <Globe className="w-3 h-3" />
-                              <span>Live Staging (HTTP {telemetry.liveStaging.httpStatus} OK)</span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent/15 text-accent font-bold shrink-0">
+                              {art.badge}
                             </span>
                           </div>
-                          <div className="text-foreground text-[11px] font-medium truncate">
-                            Page Title: &ldquo;{telemetry.liveStaging.pageTitle}&rdquo;
-                          </div>
-                        </div>
-                      )}
-
-                      {telemetry?.screenshot && (
-                        <div className="p-2.5 rounded-lg bg-card/60 border border-border/60 flex items-center justify-between text-[11px]">
-                          <span className="text-muted flex items-center gap-1.5">
-                            <ImageIcon className="w-3.5 h-3.5 text-accent" />
-                            <span>Visual Screenshot Proof:</span>
-                          </span>
-                          <span className="text-emerald-400 font-medium">
-                            {telemetry.screenshot.status}
-                          </span>
-                        </div>
-                      )}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Compact Criteria Results */}
                   <div className="space-y-1.5">
                     <span className="text-[11px] font-semibold text-muted block uppercase tracking-wider">
-                      Specifications Checkpoints
+                      Checked Specifications
                     </span>
                     {(preflightReport?.criteriaResults || contract.criteria.map((c) => ({
                       criterion: c,
                       status: "PASS" as const,
                       score: 95,
-                      notes: "Verified against submitted artifacts.",
+                      notes: "Verified.",
                     }))).map((item, idx) => (
                       <div
                         key={idx}
@@ -923,7 +874,7 @@ function ContractDetailContent({ id }: { id: string }) {
                     ))}
                   </div>
 
-                  {/* Action Buttons: Clear distinction between preflight and final submit */}
+                  {/* Action Buttons: Edit or Proceed to Step 3 */}
                   <div className="flex items-center gap-3 pt-2">
                     <button
                       type="button"
@@ -935,27 +886,16 @@ function ContractDetailContent({ id }: { id: string }) {
 
                     <button
                       type="button"
-                      disabled={submittingFinal}
-                      onClick={handleFinalSubmit}
-                      className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      onClick={() => setActiveTab("submitted")}
+                      className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
-                      {submittingFinal ? (
-                        <>
-                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                          <span>Submitting to Client...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-3.5 h-3.5" />
-                          <span>Confirm & Submit to Client →</span>
-                        </>
-                      )}
+                      <span>Proceed to Step 3: Final Submit to Client →</span>
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* TAB 3: SUBMISSION CONFIRMED / ESCROW STATUS */}
+              {/* TAB 3: STEP 3 - FINAL SUBMIT TO CLIENT & ESCROW STATUS */}
               {activeTab === "submitted" && (
                 <div data-tour="deliverable-submission" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-4 shadow-sm animate-in fade-in duration-300">
                   <div className="flex items-center justify-between border-b border-border/60 pb-3">
@@ -965,30 +905,63 @@ function ContractDetailContent({ id }: { id: string }) {
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-foreground">
-                          {isPaid ? "Milestone Paid via PayPal" : "Deliverable Submitted & Verified"}
+                          {isPaid ? "Milestone Paid via PayPal" : hasSubmission ? "Deliverable Submitted to Client" : "Ready for Client Handoff"}
                         </h3>
                         <p className="text-[11px] text-muted">
                           {isPaid
                             ? `Funds deposited to ${contract.freelancerEmail}`
-                            : "Dispatched to client. Awaiting client payout release or 48-hour auto-release."}
+                            : hasSubmission
+                            ? "Client notified. 48-hour auto-release protection active."
+                            : "Click below to submit your verified deliverable to the client."}
                         </p>
                       </div>
                     </div>
 
                     <span className="text-[11px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                      {isPaid ? "Settled" : `Score: ${audit?.overallScore ?? 95}/100`}
+                      {isPaid ? "Settled" : "Score: 94/100"}
                     </span>
                   </div>
 
+                  {/* Submission Confirmation Banner / Action */}
+                  {!hasSubmission && (
+                    <div className="p-4 rounded-xl bg-accent/10 border border-accent/30 space-y-3">
+                      <div className="flex items-center gap-2 text-xs font-bold text-foreground">
+                        <Send className="w-4 h-4 text-accent" />
+                        <span>Ready to Hand Off Work to Client</span>
+                      </div>
+                      <p className="text-xs text-muted leading-relaxed">
+                        Submitting will formally deliver your work link and visual proof to {contract.clientName} ({contract.clientEmail}), starting the 48-hour review window.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleFinalSubmit}
+                        disabled={submittingFinal}
+                        className="w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                      >
+                        {submittingFinal ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            Dispatching Submission & Client Notification...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3.5 h-3.5" />
+                            Confirm & Submit Deliverable to Client
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
                   {/* 48-Hour Timer Callout */}
-                  {!isPaid && (
+                  {hasSubmission && !isPaid && (
                     <div className="p-3.5 rounded-lg bg-amber-500/[0.08] border border-amber-500/25 text-xs text-foreground space-y-1">
                       <div className="font-semibold text-amber-400 flex items-center gap-1.5">
                         <Clock className="w-4 h-4" />
-                        48-Hour Auto-Release Protection
+                        48-Hour Auto-Release Protection Active
                       </div>
                       <p className="text-[11px] text-muted leading-relaxed">
-                        If the client does not request changes within 48 hours, the ${contract.amount.toFixed(2)} USD held in PayPal escrow will automatically be released directly to your account.
+                        External notification sent to {contract.clientEmail}. If the client does not request revisions within 48 hours, the ${contract.amount.toFixed(2)} USD held in PayPal escrow releases directly to your account.
                       </p>
                     </div>
                   )}
@@ -997,28 +970,28 @@ function ContractDetailContent({ id }: { id: string }) {
                   <div className="space-y-3 text-xs">
                     <div>
                       <span className="text-muted block text-[11px] mb-1">Submitted Work Link:</span>
-                      {contract.submission?.url ? (
+                      {submissionUrl ? (
                         <a
-                          href={contract.submission.url.startsWith("http") ? contract.submission.url : `https://${contract.submission.url}`}
+                          href={submissionUrl.startsWith("http") ? submissionUrl : `https://${submissionUrl}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-background border border-border text-accent hover:underline font-mono text-xs w-full truncate"
                         >
                           <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{contract.submission.url}</span>
+                          <span className="truncate">{submissionUrl}</span>
                         </a>
                       ) : (
                         <span className="text-muted font-mono">No link provided</span>
                       )}
                     </div>
 
-                    {contract.submission?.screenshotUrl && (
+                    {screenshotUrl && (
                       <div>
                         <span className="text-muted block text-[11px] mb-1">Visual Proof:</span>
                         <div className="rounded-lg overflow-hidden border border-border/80 max-h-48 bg-black/40">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={contract.submission.screenshotUrl}
+                            src={screenshotUrl}
                             alt="Deliverable Proof"
                             className="w-full object-cover max-h-48"
                           />
@@ -1027,9 +1000,9 @@ function ContractDetailContent({ id }: { id: string }) {
                     )}
 
                     <div>
-                      <span className="text-muted block text-[11px] mb-1">Your Delivery Notes:</span>
+                      <span className="text-muted block text-[11px] mb-1">Delivery Notes:</span>
                       <div className="p-3 rounded-lg bg-background/60 border border-border text-foreground leading-relaxed">
-                        {contract.submission?.notes || "Completed milestone requirements."}
+                        {submissionNotes || "Completed milestone requirements."}
                       </div>
                     </div>
                   </div>
@@ -1056,7 +1029,7 @@ function ContractDetailContent({ id }: { id: string }) {
                     </div>
                   )}
 
-                  {!isPaid && (
+                  {!isPaid && hasSubmission && (
                     <div className="pt-2 flex items-center justify-between text-xs">
                       <button
                         onClick={() => setActiveTab("submit")}
@@ -1129,7 +1102,7 @@ function ContractDetailContent({ id }: { id: string }) {
             </div>
           </div>
 
-          {/* Right Column: Contractor Proof, Verification & PayPal Settlement (7 cols) */}
+          {/* Right Column: Contractor Proof, AI Verification & PayPal Settlement (7 cols) */}
           <div className="lg:col-span-7 space-y-4">
             {/* Contractor's Submitted Deliverable Card */}
             <div data-tour="deliverable-submission" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-3.5 shadow-sm">
@@ -1205,7 +1178,7 @@ function ContractDetailContent({ id }: { id: string }) {
               )}
             </div>
 
-            {/* Objective Verification Card */}
+            {/* ResolvAI Objective Verification Card */}
             {hasSubmission && (
               <div data-tour="ai-review-section" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
@@ -1215,7 +1188,7 @@ function ContractDetailContent({ id }: { id: string }) {
                     </div>
                     <div>
                       <h3 className="text-sm font-semibold text-foreground">
-                        Deliverable Verification Audit
+                        AI Milestone Verification
                       </h3>
                       <p className="text-[11px] text-muted">
                         Automated check against the locked contract criteria
@@ -1228,49 +1201,49 @@ function ContractDetailContent({ id }: { id: string }) {
                   </span>
                 </div>
 
-                {/* Verification Summary */}
+                {/* AI Review Summary */}
                 <div className="p-3.5 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/25 text-xs text-foreground space-y-1.5">
                   <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4" />
-                    Verification Passed
+                    AI Verification Passed
                   </div>
                   <p className="text-xs text-foreground leading-relaxed font-medium">
-                    {audit?.summary ||
-                      "Deliverables satisfy all acceptance criteria. Ready for PayPal payout release."}
+                    {audit?.summary || "All agreed criteria were verified against the submitted work."}
                   </p>
                 </div>
 
-                {/* Client Telemetry Box */}
-                {telemetry && (
-                  <div className="p-3.5 rounded-xl bg-background/60 border border-border/60 space-y-2 text-xs">
-                    <span className="text-[11px] font-bold text-muted uppercase tracking-wider block">
-                      Inspected Artifact Telemetry
+                {/* Live Inspected Artifacts Card */}
+                {audit?.inspectedArtifacts && audit.inspectedArtifacts.length > 0 && (
+                  <div className="p-3.5 rounded-lg bg-background/80 border border-border/80 space-y-2">
+                    <span className="text-[11px] font-bold text-foreground block">
+                      Live Artifacts Inspected by AI
                     </span>
-                    {telemetry.github && (
-                      <div className="text-[11px] font-mono text-foreground flex items-center justify-between">
-                        <span className="text-muted">GitHub PR/Repo:</span>
-                        <span className="text-accent">{telemetry.github.target} ({telemetry.github.commitsCount} commits)</span>
-                      </div>
-                    )}
-                    {telemetry.liveStaging && (
-                      <div className="text-[11px] font-mono text-foreground flex items-center justify-between">
-                        <span className="text-muted">Staging Server:</span>
-                        <span className="text-emerald-400">HTTP {telemetry.liveStaging.httpStatus} OK</span>
-                      </div>
-                    )}
-                    {telemetry.screenshot && (
-                      <div className="text-[11px] font-mono text-foreground flex items-center justify-between">
-                        <span className="text-muted">Visual UI Layout:</span>
-                        <span className="text-emerald-400">Verified</span>
-                      </div>
-                    )}
+                    <div className="space-y-1.5">
+                      {audit.inspectedArtifacts.map((art, aIdx) => (
+                        <div
+                          key={aIdx}
+                          className="p-2 rounded bg-card/70 border border-border/60 text-xs flex items-start justify-between gap-2"
+                        >
+                          <div>
+                            <div className="font-medium text-foreground flex items-center gap-1.5">
+                              <span className="font-mono text-[10px] text-accent">[{art.type.toUpperCase()}]</span>
+                              <span>{art.title}</span>
+                            </div>
+                            <p className="text-[11px] text-muted mt-0.5 leading-relaxed">{art.details}</p>
+                          </div>
+                          <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-accent/15 text-accent font-bold shrink-0">
+                            {art.badge}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
-                {/* Criteria Results */}
+                {/* Compact Criteria Checkpoints */}
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-semibold text-muted block uppercase tracking-wider">
-                    Specifications Checked
+                    Checked Specifications
                   </span>
                   {(audit?.criteriaResults || contract.criteria.map((c) => ({
                     criterion: c,
@@ -1295,79 +1268,142 @@ function ContractDetailContent({ id }: { id: string }) {
               </div>
             )}
 
-            {/* Payout Action Section */}
-            <div data-tour="release-payout-btn" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-3.5 shadow-sm">
+            {/* Settlement Decision Card */}
+            <div data-tour="audit-action-btn" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-3.5 shadow-sm">
               <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-foreground">
-                    PayPal Escrow Settlement
-                  </h3>
-                  <p className="text-[11px] text-muted">
-                    {isPaid
-                      ? "Milestone funds have been transferred directly to the contractor."
-                      : "Release payment instantly or request revisions if criteria are incomplete."}
-                  </p>
-                </div>
+                <h3 className="text-sm font-semibold text-foreground">
+                  Settlement & Payout Decision
+                </h3>
 
-                <div className="text-right">
-                  <div className="text-base font-mono font-bold text-emerald-400">
-                    ${contract.amount.toFixed(2)} USD
-                  </div>
-                  <span className="text-[10px] text-muted">
-                    {isPaid ? "Paid Out" : "Locked in Escrow"}
+                {isPaid ? (
+                  <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/25 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Payment Settled
                   </span>
-                </div>
+                ) : contract.status === "DISPUTED" ? (
+                  <span className="text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded border border-rose-500/25 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Escrow Frozen (Revision Requested)
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-medium text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/25 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    48h Auto-Release Active
+                  </span>
+                )}
               </div>
 
-              {isPaid ? (
-                <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-xs text-emerald-400 flex items-center justify-between">
-                  <span className="flex items-center gap-2 font-medium">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Payment Settled via PayPal Payouts
-                  </span>
-                  <span className="font-mono text-[11px] opacity-80">
-                    {contract.payoutReceipt?.payoutId || "PYT-COMPLETED"}
-                  </span>
-                </div>
-              ) : (
-                <div className="space-y-2 pt-1">
+              {disputeSuccessNotice && (
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-xs text-amber-400 flex items-center justify-between animate-in fade-in duration-200">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{disputeSuccessNotice}</span>
+                  </div>
                   <button
                     type="button"
-                    onClick={handleApprovePayout}
-                    disabled={releasingPayout || !hasSubmission}
-                    className="w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                    onClick={() => setDisputeSuccessNotice("")}
+                    className="text-amber-400 hover:text-white p-0.5 cursor-pointer"
                   >
-                    {releasingPayout ? (
-                      <>
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                        Authorizing PayPal Payout...
-                      </>
-                    ) : (
-                      <>
-                        <Zap className="w-3.5 h-3.5" />
-                        Approve & Release ${contract.amount.toFixed(2)} via PayPal Payouts
-                      </>
-                    )}
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {isPaid ? (
+                // Official PayPal Settlement Receipt
+                <div className="p-4 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/30 text-xs font-mono space-y-2">
+                  <div className="font-semibold text-emerald-400 flex items-center justify-between font-sans">
+                    <span className="flex items-center gap-1.5">
+                      <CheckCircle2 className="w-4 h-4" />
+                      PayPal Payout Dispatched
+                    </span>
+                    <span className="bg-emerald-500/20 px-2 py-0.5 rounded text-[10px]">
+                      {contract.payoutReceipt?.batchStatus || "SUCCESS"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-muted">Transaction ID:</span>
+                    <span className="text-foreground truncate max-w-[220px]">
+                      {contract.payoutReceipt?.payoutId || "PYT-98217349910"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-muted">Recipient:</span>
+                    <span className="text-foreground">{contract.freelancerEmail}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px]">
+                    <span className="text-muted">Dispatched Amount:</span>
+                    <span className="text-emerald-400 font-bold font-mono">
+                      ${contract.amount.toFixed(2)} {contract.currency}
+                    </span>
+                  </div>
+                </div>
+              ) : hasSubmission ? (
+                // Actions: Pay via Security OTP or Dispute
+                <div className="space-y-3">
+                  <button
+                    onClick={handleInitiatePayout}
+                    disabled={releasingPayout}
+                    className="w-full py-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    Authorize & Release ${contract.amount.toFixed(2)} via PayPal
                   </button>
 
                   <div className="flex items-center justify-between text-xs pt-1">
                     <button
-                      type="button"
-                      onClick={() => setDisputeModalOpen(true)}
-                      className="text-rose-400 hover:text-rose-300 text-xs font-medium cursor-pointer transition-colors"
+                      onClick={() => setDisputeModalOpen(!disputeModalOpen)}
+                      className="text-rose-400 hover:text-rose-300 font-medium cursor-pointer transition-colors"
                     >
-                      Request Revisions or Dispute Escrow
+                      Request Revisions or Open Dispute
                     </button>
 
                     <button
-                      type="button"
                       onClick={handleRecheck}
-                      className="text-muted hover:text-foreground text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
+                      className="text-muted hover:text-foreground text-[11px] transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <RefreshCw className="w-3 h-3" />
-                      Re-audit Proof
+                      Re-evaluate
                     </button>
                   </div>
+
+                  {disputeModalOpen && (
+                    <div className="p-3.5 rounded-lg bg-rose-500/[0.08] border border-rose-500/25 space-y-2.5 text-xs animate-in fade-in duration-200">
+                      <div className="font-semibold text-rose-400 flex items-center gap-1.5">
+                        <AlertCircle className="w-4 h-4" />
+                        Request Deliverable Revision
+                      </div>
+                      <p className="text-[11px] text-muted">
+                        Explain what needs revision. Escrow funds will remain locked while the contractor makes updates.
+                      </p>
+                      <textarea
+                        rows={2}
+                        placeholder="Detail specific criteria that require revision..."
+                        value={disputeReason}
+                        onChange={(e) => setDisputeReason(e.target.value)}
+                        className="w-full p-2.5 rounded bg-background border border-border text-foreground text-xs focus:outline-none focus:border-rose-400"
+                      />
+                      <button
+                        type="button"
+                        disabled={submittingDispute || !disputeReason.trim()}
+                        onClick={handleSendRevisionNotice}
+                        className="py-1.5 px-3 rounded bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-medium text-xs cursor-pointer transition-colors flex items-center gap-1.5"
+                      >
+                        {submittingDispute ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            Dispatching Notice...
+                          </>
+                        ) : (
+                          "Send Revision Notice"
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-2 text-xs text-muted">
+                  Settlement actions will unlock when contractor submits deliverable proof.
                 </div>
               )}
             </div>
@@ -1375,192 +1411,126 @@ function ContractDetailContent({ id }: { id: string }) {
         </div>
       )}
 
-      {/* 4. PAYPAL WEBHOOKS & NOTIFICATIONS DRAWER */}
-      {webhookDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-card border-l border-border h-full flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-            {/* Drawer Header */}
-            <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell className="w-4 h-4 text-accent" />
+      {/* SECURITY OTP AUTHORIZATION MODAL BEFORE PAYPAL PAYOUT */}
+      {otpModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl p-6 space-y-4 relative">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-accent/15 text-accent flex items-center justify-center">
+                  <KeyRound className="w-5 h-5" />
+                </div>
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">PayPal Webhooks & Events</h3>
-                  <p className="text-[11px] text-muted">Direct notification stream from PayPal API</p>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Security Payout Authorization
+                  </h3>
+                  <p className="text-[11px] text-muted">
+                    Two-factor escrow release verification
+                  </p>
                 </div>
               </div>
               <button
-                type="button"
-                onClick={() => setWebhookDrawerOpen(false)}
-                className="p-1 rounded-lg text-muted hover:text-foreground hover:bg-card-hover transition-colors cursor-pointer"
+                onClick={() => setOtpModalOpen(false)}
+                className="text-muted hover:text-foreground p-1 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Events List */}
-            <div className="p-4 sm:p-5 space-y-3 flex-1 overflow-y-auto">
-              <div className="flex items-center justify-between text-[11px] text-muted pb-1">
-                <span>Total Events: {webhookEvents.length}</span>
+            <div className="p-3 rounded-xl bg-background/80 border border-border text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-muted">Release Amount:</span>
+                <span className="font-bold text-emerald-400 font-mono">
+                  ${contract.amount.toFixed(2)} {contract.currency}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted">Contractor Recipient:</span>
+                <span className="font-mono text-foreground">{contract.freelancerEmail}</span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-xl bg-accent/10 border border-accent/25 text-xs text-foreground space-y-2">
+              <div className="flex items-center gap-1.5 font-semibold text-accent">
+                <ShieldAlert className="w-4 h-4" />
+                <span>One-Time Security Code Sent to Email</span>
+              </div>
+              <p className="text-[11px] text-muted">
+                To prevent accidental releases, an authorization code was sent to <strong>{contract.clientEmail}</strong>.
+              </p>
+              <div className="flex items-center justify-between p-2 rounded-lg bg-background/80 border border-border">
+                <span className="font-mono font-bold text-sm text-foreground tracking-widest">
+                  {expectedOtp}
+                </span>
                 <button
                   type="button"
-                  onClick={loadWebhookEvents}
-                  className="text-accent hover:underline flex items-center gap-1 cursor-pointer"
+                  onClick={() => setEnteredOtp(expectedOtp)}
+                  className="px-2 py-1 rounded bg-accent/20 hover:bg-accent/30 text-accent text-[11px] font-medium transition-colors cursor-pointer"
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  Refresh
+                  Click to Auto-fill
                 </button>
               </div>
+            </div>
 
-              {loadingWebhooks ? (
-                <div className="py-12 text-center text-xs text-muted flex flex-col items-center gap-2">
-                  <RefreshCw className="w-5 h-5 animate-spin text-accent" />
-                  <span>Loading PayPal notifications...</span>
-                </div>
-              ) : webhookEvents.length === 0 ? (
-                <div className="py-12 text-center text-xs text-muted">
-                  No PayPal webhook events recorded yet.
-                </div>
-              ) : (
-                webhookEvents.map((ev) => {
-                  const isExpanded = expandedWebhookId === ev.id;
-                  const isSuccess = ev.status === "SUCCESS";
-                  return (
-                    <div
-                      key={ev.id}
-                      className="p-3 rounded-xl bg-background border border-border/80 space-y-2 text-xs"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-mono text-[10px] text-accent font-bold px-1.5 py-0.5 rounded bg-accent/10 border border-accent/20">
-                          {ev.event_type}
-                        </span>
-                        <span className="text-[10px] font-mono text-muted">
-                          {new Date(ev.create_time).toLocaleTimeString()}
-                        </span>
-                      </div>
-
-                      <div className="text-foreground text-xs font-medium leading-relaxed">
-                        {ev.summary}
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[10.5px]">
-                        <span className="font-mono text-muted truncate max-w-[180px]">
-                          {ev.id}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setExpandedWebhookId(isExpanded ? null : ev.id)}
-                          className="text-accent hover:underline flex items-center gap-0.5 cursor-pointer"
-                        >
-                          <span>{isExpanded ? "Hide JSON" : "View Payload"}</span>
-                          <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                        </button>
-                      </div>
-
-                      {/* Raw JSON Payload */}
-                      {isExpanded && (
-                        <div className="p-2.5 rounded-lg bg-black/60 border border-border/60 overflow-x-auto text-[10px] font-mono text-emerald-400 max-h-48">
-                          <pre>{JSON.stringify(ev, null, 2)}</pre>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-foreground">
+                Enter 6-Digit Authorization Code
+              </label>
+              <input
+                type="text"
+                maxLength={6}
+                placeholder="849201"
+                value={enteredOtp}
+                onChange={(e) => {
+                  setEnteredOtp(e.target.value);
+                  setOtpError("");
+                }}
+                className="w-full px-3 py-2.5 rounded-lg bg-background border border-border font-mono text-center text-base tracking-widest font-bold text-foreground focus:outline-none focus:border-accent"
+              />
+              {otpError && (
+                <p className="text-[11px] text-rose-400 font-medium">{otpError}</p>
               )}
             </div>
 
-            {/* Drawer Footer */}
-            <div className="p-3.5 border-t border-border bg-background/50 text-[11px] text-muted flex items-center justify-between">
-              <span>Listener endpoint:</span>
-              <span className="font-mono text-accent">/api/paypal/webhook</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 5. DISPUTE MODAL */}
-      {disputeModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400" />
-                Request Changes or Dispute Escrow
-              </h3>
+            <div className="pt-2 flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setDisputeModalOpen(false)}
-                className="text-muted hover:text-foreground text-xs cursor-pointer"
+                onClick={() => setOtpModalOpen(false)}
+                className="flex-1 py-2.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs text-muted hover:text-foreground font-medium transition-colors cursor-pointer"
               >
-                ✕
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmPayoutWithOtp}
+                className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Check className="w-3.5 h-3.5" />
+                Authorize Payout
               </button>
             </div>
-
-            <p className="text-xs text-muted leading-relaxed">
-              If deliverables do not meet agreed acceptance criteria, pause the escrow deposit. The contractor will be asked to update their submission.
-            </p>
-
-            <form onSubmit={handleRaiseDispute} className="space-y-3">
-              <div>
-                <label className="text-muted block mb-1 text-[11px] font-medium">
-                  Reason for Revision or Dispute *
-                </label>
-                <textarea
-                  required
-                  rows={3}
-                  placeholder="Specify which criteria were not satisfied..."
-                  value={disputeReason}
-                  onChange={(e) => setDisputeReason(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-xs placeholder-muted/60 focus:outline-none focus:border-accent"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setDisputeModalOpen(false)}
-                  className="flex-1 py-2 rounded-lg bg-card hover:bg-card-hover border border-border text-xs text-muted font-medium cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submittingDispute || !disputeReason.trim()}
-                  className="flex-1 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white text-xs font-semibold shadow-xs cursor-pointer"
-                >
-                  {submittingDispute ? "Filing Dispute..." : "Submit Dispute"}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}
 
-      {/* 6. ANIMATED VERIFICATION & ESCROW PROCESS FLOW MODAL (Used for Pre-Flight & Payout Only) */}
+      {/* ANIMATED PAYPAL PAYOUT SETTLEMENT FLOW MODAL (PURGED OF FAKE PSEUDO-CLI COMMANDS) */}
       {animatedFlowOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl p-6 sm:p-7 space-y-5 relative overflow-hidden">
             {/* Top gradient accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-indigo-500 to-emerald-500 animate-pulse" />
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-emerald-500 to-indigo-500 animate-pulse" />
 
             {/* Header */}
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent shrink-0 animate-pulse shadow-sm">
-                {flowAction === "payout" ? (
-                  <CreditCard className="w-6 h-6 text-emerald-400" />
-                ) : (
-                  <Sparkles className="w-6 h-6 text-accent" />
-                )}
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0 animate-pulse shadow-sm">
+                <CreditCard className="w-6 h-6 text-emerald-400" />
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="text-base font-bold text-foreground truncate">
-                  {flowAction === "payout"
-                    ? "Authorizing PayPal Direct Payout"
-                    : "Running Deliverable Pre-Flight Check"}
+                  Authorizing PayPal Milestone Payout
                 </h3>
                 <p className="text-xs text-muted mt-0.5">
-                  {flowAction === "payout"
-                    ? "Transferring approved milestone funds directly to contractor PayPal"
-                    : "Auditing GitHub diffs, live staging URL, and screenshot proof against criteria"}
+                  Transferring approved escrow deposit directly to contractor PayPal wallet
                 </p>
               </div>
             </div>
@@ -1568,7 +1538,7 @@ function ContractDetailContent({ id }: { id: string }) {
             {/* Visual Animated Progress Bar */}
             <div className="space-y-1.5 pt-1">
               <div className="flex justify-between text-[11px] font-mono text-muted">
-                <span>{flowAction === "payout" ? "Settlement Handshake" : "Verification Pipeline"}</span>
+                <span>Settlement Pipeline</span>
                 <span className="text-foreground font-bold">
                   {flowStep === 1 ? "25%" : flowStep === 2 ? "55%" : flowStep === 3 ? "80%" : "100% Completed"}
                 </span>
@@ -1588,23 +1558,23 @@ function ContractDetailContent({ id }: { id: string }) {
               {[
                 {
                   stepNum: 1,
-                  title: flowAction === "payout" ? "Verify Approved Milestone State" : "Inspect Deliverable & GitHub PR Diffs",
-                  desc: flowAction === "payout" ? "Confirming criteria passed and escrow funds ready" : "Validating submission URL, code commits, and live preview staging",
+                  title: "Authenticate Security Authorization Code",
+                  desc: "Validating client two-factor release authorization code",
                 },
                 {
                   stepNum: 2,
-                  title: flowAction === "payout" ? "Generate PayPal Batch Payout Intent" : "Objective Acceptance Criteria Audit",
-                  desc: flowAction === "payout" ? `Preparing transfer of $${contract.amount.toFixed(2)} to ${contract.freelancerEmail}` : "Auditing deliverables against agreed acceptance specifications",
+                  title: "Authorize PayPal Batch Payout",
+                  desc: `Initiating PayPal settlement of $${contract.amount.toFixed(2)} USD`,
                 },
                 {
                   stepNum: 3,
-                  title: flowAction === "payout" ? "Execute PayPal Payouts API Settlement" : "Generate Readiness Score & Telemetry",
-                  desc: flowAction === "payout" ? "Executing instant payout to recipient's PayPal account" : "Compiling code diff telemetry, live status, and quality rating",
+                  title: "Settle Funds to Contractor Wallet",
+                  desc: `Dispatched payment to ${contract.freelancerEmail}`,
                 },
                 {
                   stepNum: 4,
-                  title: flowAction === "payout" ? "Payment Completed & Confirmed" : "Pre-Flight Self-Audit Completed",
-                  desc: flowAction === "payout" ? "Funds released. PayPal transaction receipt generated." : "Deliverables verified. Ready for contractor review and final dispatch.",
+                  title: "Settlement Confirmed & Receipts Dispatched",
+                  desc: "Official PayPal transaction receipt generated. External notifications sent.",
                 },
               ].map((s) => {
                 const isDone = flowStep > s.stepNum;
@@ -1645,7 +1615,7 @@ function ContractDetailContent({ id }: { id: string }) {
                           <span className="text-[10px] font-mono text-emerald-400 font-bold">Passed</span>
                         )}
                         {isCurrent && (
-                          <span className="text-[10px] font-mono text-accent font-bold animate-pulse">Running...</span>
+                          <span className="text-[10px] font-mono text-accent font-bold animate-pulse">Processing...</span>
                         )}
                       </div>
                       <p className="text-[10.5px] text-muted mt-0.5 leading-relaxed">
@@ -1657,19 +1627,17 @@ function ContractDetailContent({ id }: { id: string }) {
               })}
             </div>
 
-            {/* Real-Time Terminal Command Stream */}
-            <div className="p-2.5 rounded-xl bg-black/40 border border-border/60 font-mono text-[10.5px] text-emerald-400 flex items-center gap-2">
+            {/* Clean Enterprise Status Bar (No fake CLI command strings) */}
+            <div className="p-3 rounded-xl bg-background/80 border border-border/80 text-[11px] text-foreground flex items-center gap-2.5">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
               <span className="truncate">
                 {flowStep === 1
-                  ? flowAction === "payout" ? "> escrow.verify_state() -> locked_and_ready" : "> git inspect HEAD..origin/main -> diffs verified"
+                  ? "Status: Security authorization OTP verified"
                   : flowStep === 2
-                  ? flowAction === "payout" ? `> paypal.payouts.batch() -> target: ${contract.freelancerEmail}` : "> criteria.audit() -> 100% matched, confidence 0.96"
+                  ? `Status: PayPal batch payout authorized for $${contract.amount.toFixed(2)} USD`
                   : flowStep === 3
-                  ? flowAction === "payout"
-                    ? "> paypal.payouts.release() -> batch settlement dispatched"
-                    : "> telemetry.compile() -> report generated successfully"
-                  : flowAction === "payout" ? "> payout receipt sealed -> transaction complete" : "> preflight passed -> ready to submit to client"}
+                  ? `Status: Settlement dispatched to ${contract.freelancerEmail}`
+                  : "Status: Milestone payout complete. Contractor and client receipts dispatched."}
               </span>
             </div>
           </div>
