@@ -32,7 +32,7 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
   let textContext = "";
   let imagePart: { inlineData: { data: string; mimeType: string } } | undefined = undefined;
 
-  // 1. Live GitHub PR & Code Diffs Inspection
+  // 1. Live GitHub PR / Repo & Commits Inspection
   if (url && url.includes("github.com")) {
     const prMatch = url.match(/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/i);
     const repoMatch = url.match(/github\.com\/([^/]+)\/([^/]+)/i);
@@ -44,34 +44,35 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
           `https://api.github.com/repos/${owner}/${repo}/pulls/${pullNumber}`,
           {
             headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
-            signal: AbortSignal.timeout(3500),
+            signal: AbortSignal.timeout(4000),
           }
         );
 
         if (prRes.ok) {
           const prData = await prRes.json();
           const filesRes = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/pulls/${pullNumber}/files?per_page=6`,
+            `https://api.github.com/repos/${owner}/${repo}/pulls/${pullNumber}/files?per_page=8`,
             {
               headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
-              signal: AbortSignal.timeout(3500),
+              signal: AbortSignal.timeout(4000),
             }
           );
           const filesData = filesRes.ok ? await filesRes.json() : [];
           const patches = filesData
             .map(
               (f: any) =>
-                `File: ${f.filename} (${f.status})\nPatch:\n${f.patch?.slice(0, 350) || "Binary or large diff"}`
+                `File: ${f.filename} (${f.status}, +${f.additions || 0}/-${f.deletions || 0})\nPatch:\n${f.patch?.slice(0, 450) || "Binary/large diff"}`
             )
             .join("\n---\n");
 
-          textContext += `\n[VERIFIED GITHUB PULL REQUEST DATA]\n`;
-          textContext += `PR Title: ${prData.title}\n`;
-          textContext += `PR State: ${prData.state} (Merged: ${prData.merged || false})\n`;
+          textContext += `\n[VERIFIED LIVE GITHUB PULL REQUEST AUDIT]\n`;
+          textContext += `PR Title: "${prData.title}"\n`;
+          textContext += `PR Author: ${prData.user?.login || "unknown"}\n`;
+          textContext += `State: ${prData.state} (Merged: ${prData.merged || false})\n`;
           textContext += `Commits: ${prData.commits}, Files Changed: ${prData.changed_files}\n`;
-          textContext += `Code Patches:\n${patches.slice(0, 2500)}\n`;
+          textContext += `Actual Code Patches & Diffs:\n${patches.slice(0, 3200)}\n`;
         } else {
-          textContext += `\n[GITHUB INSPECTION]: PR link provided (${url}), API status: HTTP ${prRes.status}.\n`;
+          textContext += `\n[GITHUB INSPECTION]: GitHub PR link provided (${url}), API status: HTTP ${prRes.status}.\n`;
         }
       } catch (err) {
         textContext += `\n[GITHUB INSPECTION]: GitHub PR link provided (${url}).\n`;
@@ -81,48 +82,89 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
       try {
         const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
           headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
-          signal: AbortSignal.timeout(3000),
+          signal: AbortSignal.timeout(3500),
         });
         if (repoRes.ok) {
           const repoData = await repoRes.json();
-          textContext += `\n[VERIFIED GITHUB REPO DATA]\nRepo: ${repoData.full_name}\nDescription: ${repoData.description || "N/A"}\nDefault Branch: ${repoData.default_branch}\nLanguage: ${repoData.language || "N/A"}\n`;
+          const commitsRes = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`,
+            {
+              headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
+              signal: AbortSignal.timeout(3500),
+            }
+          );
+          const commitsData = commitsRes.ok ? await commitsRes.json() : [];
+          const commitList = Array.isArray(commitsData)
+            ? commitsData
+                .map(
+                  (c: any) =>
+                    `- "${c.commit?.message?.trim()?.replace(/\n+/g, " ")}" (by ${c.commit?.author?.name} at ${c.commit?.author?.date})`
+                )
+                .join("\n")
+            : "No commit list accessible";
+
+          textContext += `\n[VERIFIED LIVE GITHUB REPOSITORY & COMMITS]\n`;
+          textContext += `Repo: ${repoData.full_name}\n`;
+          textContext += `Description: ${repoData.description || "N/A"}\n`;
+          textContext += `Default Branch: ${repoData.default_branch}, Language: ${repoData.language || "N/A"}\n`;
+          textContext += `Latest Verified Commits:\n${commitList}\n`;
         }
       } catch (err) {
         textContext += `\n[GITHUB REPO LINK]: ${url}\n`;
       }
     }
   } else if (url && url.startsWith("http")) {
-    // 2. Live Web Application / Staging URL Check
+    // 2. Live Deployed Web Application / Staging Inspection
     try {
       const res = await fetch(url, {
-        headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
-        signal: AbortSignal.timeout(3000),
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ResolvAI/1.0",
+        },
+        signal: AbortSignal.timeout(3500),
       });
+
       if (res.ok) {
         const text = await res.text();
         const titleMatch = text.match(/<title>(.*?)<\/title>/i);
-        const title = titleMatch ? titleMatch[1].trim() : "Live Web Application";
+        const title = titleMatch ? titleMatch[1].trim() : "Live Web Deployment";
         const cleanBody = text
           .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
           .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
           .replace(/<[^>]+>/g, " ")
           .replace(/\s+/g, " ")
           .trim()
-          .slice(0, 1000);
+          .slice(0, 1200);
 
-        textContext += `\n[LIVE STAGING SITE REACHABLE: HTTP 200 OK]\nURL: ${url}\nSite Title: "${title}"\nContent Preview: "${cleanBody}"\n`;
+        textContext += `\n[LIVE DEPLOYED WEB APPLICATION REACHABLE: HTTP 200 OK]\n`;
+        textContext += `Live Staging URL: ${url}\n`;
+        textContext += `Web Page Title: "${title}"\n`;
+        textContext += `Rendered Content Preview: "${cleanBody}"\n`;
       } else {
-        textContext += `\n[LIVE STAGING SITE CHECK]: URL ${url} returned HTTP status ${res.status}.\n`;
+        textContext += `\n[LIVE WEB CHECK]: URL ${url} returned HTTP ${res.status}.\n`;
       }
     } catch (err) {
-      textContext += `\n[LIVE STAGING SITE CHECK]: Link provided (${url}), server connection timed out or blocked.\n`;
+      textContext += `\n[LIVE WEB CHECK]: Link provided (${url}), connection timed out or unreachable.\n`;
     }
   }
 
-  // 3. Live Screenshot / Multimodal Image Fetching
-  if (screenshotUrl && screenshotUrl.startsWith("http")) {
+  // 3. Live Screenshot / Multimodal Image Inspection (Supports Base64 Upload & HTTP URL)
+  if (screenshotUrl && screenshotUrl.startsWith("data:image/")) {
+    const match = screenshotUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (match) {
+      const mimeType = match[1];
+      const base64Data = match[2];
+      imagePart = {
+        inlineData: {
+          data: base64Data,
+          mimeType,
+        },
+      };
+      textContext += `\n[VERIFIED SCREENSHOT FILE UPLOADED]: Contractor uploaded an image screenshot. Gemini Vision is inspecting the visual UI pixels directly against criteria.\n`;
+    }
+  } else if (screenshotUrl && screenshotUrl.startsWith("http")) {
     try {
-      const imgRes = await fetch(screenshotUrl, { signal: AbortSignal.timeout(3500) });
+      const imgRes = await fetch(screenshotUrl, { signal: AbortSignal.timeout(4000) });
       if (imgRes.ok) {
         const contentType = imgRes.headers.get("content-type") || "image/jpeg";
         if (contentType.startsWith("image/")) {
@@ -134,7 +176,7 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
               mimeType: contentType.split(";")[0],
             },
           };
-          textContext += `\n[LIVE VISUAL EVIDENCE ATTACHED]: High-resolution screenshot downloaded and analyzed by Gemini Vision.\n`;
+          textContext += `\n[VERIFIED SCREENSHOT URL ACCESSED]: High-resolution screenshot downloaded and analyzed by Gemini Vision.\n`;
         }
       }
     } catch (err) {
@@ -154,11 +196,45 @@ export async function evaluateMilestone(params: {
   screenshotUrl?: string;
   codeSnippet?: string;
 }): Promise<AuditReport> {
+  // STRICT REAL-WORLD RULE: Notes alone without any link or screenshot is NOT verifiable proof.
+  const hasVerifiableProof =
+    Boolean(params.deliverableUrl && params.deliverableUrl.trim() !== "") ||
+    Boolean(params.screenshotUrl && params.screenshotUrl.trim() !== "");
+
+  if (!hasVerifiableProof) {
+    return {
+      verdict: "DISPUTE",
+      overallScore: 20,
+      confidence: 0.98,
+      summary:
+        "Verification failed: No verifiable deliverable artifact (live link, GitHub repository/PR, or screenshot proof) was provided. Written notes alone cannot release escrow funds.",
+      criteriaResults: params.criteria.map((c) => ({
+        criterion: c,
+        status: "FAIL",
+        score: 20,
+        notes:
+          "Missing live work link, GitHub repository/PR, or visual screenshot proof to verify this criterion.",
+      })),
+      satisfiedItems: [],
+      missingItems: params.criteria,
+      payoutRecommended: false,
+      disputePacket: {
+        claimantSummary:
+          "Contractor submitted written claims without attaching any live URL, code repository, or visual screenshot proof.",
+        identifiedDeficiencies: [
+          "No live website link, GitHub repository/PR, or screenshot image proof attached",
+        ],
+        recommendedResolution:
+          "Contractor must submit a working link (GitHub PR, live deployment, or staging) or upload screenshot proof of the deliverable.",
+      },
+    };
+  }
+
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.startsWith("YOUR_")) {
     try {
-      // 1. Perform live artifact fetching (GitHub PR diffs, live staging HTML, screenshot image)
+      // 1. Perform live artifact fetching (GitHub PR diffs, commits, live staging HTML, screenshot image)
       const { textContext, imagePart } = await inspectDeliverableArtifacts(
         params.deliverableUrl,
         params.screenshotUrl
@@ -184,18 +260,18 @@ ${params.criteria.map((c, i) => `${i + 1}. ${c}`).join("\n")}
 
 SUBMITTED DELIVERABLE PROOF:
 Work Link / URL: ${params.deliverableUrl || "None provided"}
-Screenshot Link: ${params.screenshotUrl || "None provided"}
-Contractor Delivery Notes: ${params.deliverableText || "None provided"}
+Screenshot Proof: ${params.screenshotUrl ? (params.screenshotUrl.startsWith("data:") ? "Direct Image Upload (Base64)" : params.screenshotUrl) : "None provided"}
+Contractor Notes: ${params.deliverableText || "None provided"}
 Additional Artifacts: ${params.codeSnippet || "None"}
 
 ${textContext}
 
 YOUR TASK:
-Examine the live audit data, code diffs, screenshot image, and contractor notes against EACH of the agreed acceptance criteria.
-Evaluate fairly like an expert engineering & project lead:
-- If the deliverable proof (code diffs, live page, screenshot, or notes) satisfies the criteria, score > 85% and verdict "APPROVE".
+Examine the live audit data, code diffs, recent commits, live deployed website content, screenshot image, and contractor notes against EACH of the agreed acceptance criteria.
+Evaluate like a fair, experienced engineering & project lead:
+- If the deliverable proof (code diffs, live page, screenshot image, or commits) satisfies the criteria, score > 85% and verdict "APPROVE".
 - If work is substantially done but minor clarification is recommended, score 65-84% and verdict "REVISE".
-- If the link is completely broken, unrelated, or deliverable is missing, score < 50% and verdict "DISPUTE".
+- If the link is completely broken, unrelated, or deliverable proof does not match, score < 50% and verdict "DISPUTE".
 
 Return strictly valid JSON matching this exact structure:
 {
@@ -208,7 +284,7 @@ Return strictly valid JSON matching this exact structure:
       "criterion": "exact text of criterion",
       "status": "PASS" | "FAIL" | "PARTIAL",
       "score": number (0-100),
-      "notes": "specific evidence why it passed or failed based on the actual inspected code diffs, URL, or notes"
+      "notes": "specific evidence why it passed or failed based on the actual inspected code diffs, live URL, or screenshot"
     }
   ],
   "satisfiedItems": ["string list of what was accomplished"],

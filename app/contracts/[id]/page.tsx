@@ -25,6 +25,7 @@ import {
   X,
   CreditCard,
   Zap,
+  Upload,
 } from "lucide-react";
 import { Contract } from "@/lib/store";
 import { useAuth } from "@/components/AuthContext";
@@ -41,7 +42,22 @@ function ContractDetailContent({ id }: { id: string }) {
   // Contractor Form State
   const [submissionUrl, setSubmissionUrl] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
+  const [screenshotMode, setScreenshotMode] = useState<"upload" | "url">("upload");
   const [submissionNotes, setSubmissionNotes] = useState("");
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload a valid image file (PNG, JPG, WebP).");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setScreenshotUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Pre-flight check state
   const [preflightLoading, setPreflightLoading] = useState(false);
@@ -98,7 +114,7 @@ function ContractDetailContent({ id }: { id: string }) {
   // Contractor: Run Pre-Flight AI Check
   const handleRunPreflight = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!submissionUrl) return;
+    if (!submissionUrl.trim() && !screenshotUrl.trim()) return;
 
     setFlowAction("preflight");
     setFlowStep(1);
@@ -560,59 +576,146 @@ function ContractDetailContent({ id }: { id: string }) {
                   </div>
 
                   <form onSubmit={handleRunPreflight} className="space-y-4 text-xs">
+                    {/* 1. Live Work Link */}
                     <div>
                       <label className="text-muted block mb-1.5 text-[11px] font-medium flex items-center justify-between">
-                        <span>Work Link or GitHub PR *</span>
-                        <span className="text-[10px] text-accent font-normal">Checks commits & code diffs automatically</span>
+                        <span>Work Link (GitHub PR, Repo, or Live Deployed URL)</span>
+                        <span className="text-[10px] text-accent font-normal">
+                          Live inspection of diffs & status
+                        </span>
                       </label>
                       <input
                         type="url"
-                        required
-                        placeholder="https://github.com/org/repo/pull/1, Figma link, or staging URL"
+                        placeholder="https://github.com/org/repo/pull/1 or https://myapp.vercel.app"
                         value={submissionUrl}
                         onChange={(e) => setSubmissionUrl(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs font-mono"
                       />
                     </div>
 
-                    <div>
-                      <label className="text-muted block mb-1.5 text-[11px] font-medium flex items-center justify-between">
-                        <span>Screenshot or Preview Image (Optional)</span>
-                        <span className="text-[10px] text-muted font-normal">Optional image link</span>
-                      </label>
-                      <input
-                        type="url"
-                        placeholder="https://example.com/screenshot.png or preview link"
-                        value={screenshotUrl}
-                        onChange={(e) => setScreenshotUrl(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs font-mono"
-                      />
+                    {/* 2. Visual Proof (Both File Upload and Image Link) */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-muted text-[11px] font-medium">
+                          Visual Screenshot Proof (Gemini Vision)
+                        </label>
+                        <div className="flex items-center gap-1 bg-background/80 p-0.5 rounded-md border border-border text-[10px]">
+                          <button
+                            type="button"
+                            onClick={() => setScreenshotMode("upload")}
+                            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                              screenshotMode === "upload"
+                                ? "bg-accent text-white font-semibold"
+                                : "text-muted hover:text-foreground"
+                            }`}
+                          >
+                            Upload File
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setScreenshotMode("url")}
+                            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                              screenshotMode === "url"
+                                ? "bg-accent text-white font-semibold"
+                                : "text-muted hover:text-foreground"
+                            }`}
+                          >
+                            Paste Link
+                          </button>
+                        </div>
+                      </div>
+
+                      {screenshotMode === "upload" ? (
+                        <div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            id="screenshot-file-input"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                          <label
+                            htmlFor="screenshot-file-input"
+                            className="p-4 border border-dashed border-border/80 hover:border-accent/60 rounded-lg flex flex-col items-center justify-center gap-1.5 cursor-pointer bg-background/40 hover:bg-background/60 transition-all text-center"
+                          >
+                            <Upload className="w-4 h-4 text-accent" />
+                            <span className="text-xs text-foreground font-medium">
+                              Click or drop screenshot image here
+                            </span>
+                            <span className="text-[10px] text-muted">
+                              PNG, JPG, or WebP analyzed directly by Gemini Vision
+                            </span>
+                          </label>
+                        </div>
+                      ) : (
+                        <input
+                          type="url"
+                          placeholder="https://example.com/screenshot.png or image URL"
+                          value={screenshotUrl}
+                          onChange={(e) => setScreenshotUrl(e.target.value)}
+                          className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs font-mono"
+                        />
+                      )}
+
+                      {/* Thumbnail Preview when an image is present */}
+                      {screenshotUrl && (
+                        <div className="relative rounded-lg overflow-hidden border border-border/80 bg-black/40 p-1 flex items-center justify-between">
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={screenshotUrl}
+                              alt="Screenshot preview"
+                              className="w-12 h-12 object-cover rounded border border-border/60"
+                            />
+                            <div className="text-[11px] min-w-0">
+                              <span className="text-foreground font-medium block truncate">
+                                Visual proof attached
+                              </span>
+                              <span className="text-[10px] text-emerald-400 font-mono">
+                                Ready for Gemini Vision check
+                              </span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setScreenshotUrl("")}
+                            className="px-2 py-1 rounded bg-rose-500/15 hover:bg-rose-500 text-rose-400 hover:text-white text-[10px] font-medium transition-all cursor-pointer flex items-center gap-1"
+                          >
+                            <X className="w-3 h-3" />
+                            Remove
+                          </button>
+                        </div>
+                      )}
                     </div>
 
+                    {/* 3. Delivery Notes (Optional Context) */}
                     <div>
                       <label className="text-muted block mb-1.5 text-[11px] font-medium flex items-center justify-between">
-                        <span>Delivery Notes (Optional)</span>
-                        <span className="text-[10px] text-muted font-normal">Optional note for client</span>
+                        <span>Delivery Notes (Optional Context)</span>
+                        <span className="text-[10px] text-muted font-normal">
+                          Any notes or instructions
+                        </span>
                       </label>
                       <textarea
-                        rows={3}
-                        placeholder="Optional: Any quick context, instructions, or notes for the client..."
+                        rows={2}
+                        placeholder="Optional: Brief instructions, deployment notes, or test results..."
                         value={submissionNotes}
                         onChange={(e) => setSubmissionNotes(e.target.value)}
-                        className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs leading-relaxed"
+                        className="w-full px-3.5 py-2 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs leading-relaxed"
                       />
                     </div>
 
-                    <div className="pt-2">
+                    {/* Action Button & Evidence Rule Warning */}
+                    <div className="pt-2 space-y-2">
                       <button
                         type="submit"
-                        disabled={preflightLoading || !submissionUrl}
-                        className="w-full py-3 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-50 text-white font-medium text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                        disabled={preflightLoading || (!submissionUrl.trim() && !screenshotUrl.trim())}
+                        className="w-full py-3 rounded-lg bg-accent hover:bg-accent-hover disabled:opacity-40 text-white font-medium text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                       >
                         {preflightLoading ? (
                           <>
                             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            AI is checking code diffs & milestones...
+                            AI is checking code diffs & proof...
                           </>
                         ) : (
                           <>
@@ -621,6 +724,12 @@ function ContractDetailContent({ id }: { id: string }) {
                           </>
                         )}
                       </button>
+
+                      {!submissionUrl.trim() && !screenshotUrl.trim() && (
+                        <p className="text-[10.5px] text-amber-400 text-center font-medium">
+                          ⚠️ Provide at least one verifiable proof: a work link (GitHub/deployed app) or an uploaded screenshot.
+                        </p>
+                      )}
                     </div>
                   </form>
                 </div>
