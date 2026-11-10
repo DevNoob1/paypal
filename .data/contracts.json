@@ -1,5 +1,102 @@
 [
   {
+    "id": "cnt_nojxre_8476",
+    "title": "Interactive Portfolio with Dark Mode",
+    "description": "Build a fast portfolio site with a responsive navigation bar and contact form.",
+    "amount": 150,
+    "currency": "USD",
+    "clientName": "Sarah Jenkins",
+    "clientEmail": "billing@acmecloud.io",
+    "freelancerName": "alex",
+    "freelancerEmail": "alex@gmail.com",
+    "createdAt": "2026-11-10T17:33:18.476Z",
+    "deadline": "2026-11-17T17:33:18.476Z",
+    "status": "FUNDED_ESCROW",
+    "criteria": [
+      "Responsive navigation bar with theme toggle",
+      "Contact form with email validation"
+    ],
+    "paypalOrderId": "30291873FC2864538",
+    "escrowCapturedAt": "2026-11-10T17:33:36.344Z"
+  },
+  {
+    "id": "cnt_v1h22b_0907",
+    "title": "React Dashboard with Dark Mode & Analytics",
+    "description": "Build a responsive Next.js dashboard with dark mode toggle and real-time revenue analytics charts.",
+    "amount": 150,
+    "currency": "USD",
+    "clientName": "Sarah Jenkins",
+    "clientEmail": "billing@acmecloud.io",
+    "freelancerName": "Alex Rivera",
+    "freelancerEmail": "alex.rivera@devmail.com",
+    "createdAt": "2026-11-10T17:27:50.907Z",
+    "deadline": "2026-11-17T17:27:50.907Z",
+    "status": "PAYOUT_COMPLETED",
+    "criteria": [
+      "Responsive Next.js dashboard layout with light and dark mode toggle",
+      "Interactive analytics charts displaying monthly revenue metrics",
+      "Clean TypeScript interfaces with zero linting errors"
+    ],
+    "paypalOrderId": "7Y879631HY1863627",
+    "escrowCapturedAt": "2026-11-10T22:57:56.4273472+05:30",
+    "submission": {
+      "submittedAt": "2026-11-10T17:29:20.014Z",
+      "notes": "Implemented full dashboard layout with Tailwind CSS dark/light theme switch. Integrated Chart.js analytics for monthly revenue. All TypeScript interfaces typed cleanly with zero build errors.",
+      "url": "https://github.com/alexrivera-dev/nextjs-analytics-dashboard/pull/1",
+      "screenshotUrl": "",
+      "codeSnippet": ""
+    },
+    "auditReport": {
+      "verdict": "APPROVE",
+      "overallScore": 97,
+      "confidence": 0.97,
+      "summary": "The contractor has successfully delivered a responsive Next.js dashboard featuring a functional dark/light mode toggle and interactive monthly revenue analytics charts. TypeScript interfaces are well-defined and consistently applied, indicating a clean codebase.",
+      "criteriaResults": [
+        {
+          "criterion": "Responsive Next.js dashboard layout with light and dark mode toggle",
+          "status": "PASS",
+          "score": 100,
+          "notes": "The GitHub PR demonstrates a Next.js application with a clear dashboard layout and a 'ThemeSwitcher' component implementing dark/light mode using Tailwind CSS, supporting responsiveness as per the contract."
+        },
+        {
+          "criterion": "Interactive analytics charts displaying monthly revenue metrics",
+          "status": "PASS",
+          "score": 100,
+          "notes": "The 'RevenueChart' component in the PR utilizes Chart.js to display monthly revenue data with interactive features like tooltips, fulfilling the analytics requirement."
+        },
+        {
+          "criterion": "Clean TypeScript interfaces with zero linting errors",
+          "status": "PASS",
+          "score": 95,
+          "notes": "TypeScript interfaces, such as 'MonthlyRevenue', are clearly defined and used appropriately throughout the codebase. The code appears clean and well-typed, aligning with the contractor's claim of zero build errors, though direct linting output was not provided for full verification."
+        }
+      ],
+      "satisfiedItems": [
+        "Responsive Next.js dashboard layout",
+        "Light and dark mode toggle implemented with Tailwind CSS",
+        "Interactive analytics charts displaying monthly revenue metrics using Chart.js",
+        "Clean TypeScript interfaces and type usage",
+        "Zero build errors (as stated by contractor and supported by code quality)"
+      ],
+      "missingItems": [],
+      "payoutRecommended": true,
+      "disputePacket": {
+        "claimantSummary": "",
+        "identifiedDeficiencies": [],
+        "recommendedResolution": ""
+      }
+    },
+    "payoutReceipt": {
+      "payoutId": "PYT-31785340",
+      "releasedAt": "2026-11-10T17:29:45.340Z",
+      "amount": 150,
+      "currency": "USD",
+      "receiver": "alex.rivera@devmail.com",
+      "batchStatus": "SUCCESS",
+      "simulated": true
+    }
+  },
+  {
     "id": "cnt_9821_stripe",
     "title": "Customer Checkout & Online Payment Flow",
     "description": "Build a responsive checkout page with credit card validation, discount code support, and automatic receipt generation.",
