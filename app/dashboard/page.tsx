@@ -188,8 +188,8 @@ export default function Dashboard() {
     return matchesFilter && matchesSearch;
   });
 
-  const totalEscrowAmount = stats?.totalEscrow ?? 1250;
-  const totalPaidOutAmount = stats?.totalPaidOut ?? 3450;
+  const totalEscrowAmount = stats?.totalEscrow ?? 0;
+  const totalPaidOutAmount = stats?.totalPaidOut ?? 0;
   const activeCount = contracts.filter((c) => c.status !== "PAYOUT_COMPLETED").length;
   const reviewCount = contracts.filter((c) => c.status === "PENDING_REVIEW" || c.status === "AI_VERIFIED").length;
 
