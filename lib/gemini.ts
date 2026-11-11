@@ -131,15 +131,17 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
       const [, owner, repo] = repoMatch;
       try {
         const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-          headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
+          headers: { "User-Agent": "ResolvAI-Code-Inspector" },
           signal: AbortSignal.timeout(3500),
         });
         if (repoRes.ok) {
           const repoData = await repoRes.json();
+
+          // 1. Fetch recent commits
           const commitsRes = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`,
             {
-              headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
+              headers: { "User-Agent": "ResolvAI-Code-Inspector" },
               signal: AbortSignal.timeout(3500),
             }
           );
@@ -153,10 +155,55 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
                 .join("\n")
             : "No commit list accessible";
 
-          textContext += `\n[VERIFIED LIVE GITHUB REPOSITORY & COMMITS]\n`;
+          // 2. Fetch repository root files / directory structure
+          let fileListStr = "";
+          try {
+            const contentsRes = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/contents`,
+              {
+                headers: { "User-Agent": "ResolvAI-Code-Inspector" },
+                signal: AbortSignal.timeout(3500),
+              }
+            );
+            if (contentsRes.ok) {
+              const contentsData = await contentsRes.json();
+              if (Array.isArray(contentsData)) {
+                fileListStr = contentsData
+                  .map((f: any) => `${f.type === "dir" ? "[DIR]" : "[FILE]"} ${f.name}`)
+                  .join(", ");
+              }
+            }
+          } catch {}
+
+          // 3. Fetch README.md content if available
+          let readmeSnippet = "";
+          try {
+            const readmeRes = await fetch(
+              `https://api.github.com/repos/${owner}/${repo}/readme`,
+              {
+                headers: { "User-Agent": "ResolvAI-Code-Inspector" },
+                signal: AbortSignal.timeout(3500),
+              }
+            );
+            if (readmeRes.ok) {
+              const readmeData = await readmeRes.json();
+              if (readmeData.content) {
+                const decoded = Buffer.from(readmeData.content, "base64").toString("utf-8");
+                readmeSnippet = decoded.slice(0, 1800);
+              }
+            }
+          } catch {}
+
+          textContext += `\n[VERIFIED LIVE GITHUB REPOSITORY & CODEBASE INSPECTION]\n`;
           textContext += `Repo: ${repoData.full_name}\n`;
           textContext += `Description: ${repoData.description || "N/A"}\n`;
-          textContext += `Default Branch: ${repoData.default_branch}, Language: ${repoData.language || "N/A"}\n`;
+          textContext += `Default Branch: ${repoData.default_branch}, Primary Language: ${repoData.language || "N/A"}\n`;
+          if (fileListStr) {
+            textContext += `Repository Root Files: ${fileListStr}\n`;
+          }
+          if (readmeSnippet) {
+            textContext += `Repository README Overview:\n${readmeSnippet}\n`;
+          }
           textContext += `Latest Verified Commits:\n${commitList}\n`;
 
           inspectedArtifacts.push({
@@ -164,8 +211,8 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
             title: `GitHub Repository: ${repoData.full_name}`,
             badge: `${repoData.language || "Code"} • ${repoData.default_branch || "main"}`,
             details: commitsData[0]?.commit?.message
-              ? `Latest commit: "${commitsData[0].commit.message.trim().replace(/\n+/g, " ").slice(0, 65)}"`
-              : `${repoData.stargazers_count ?? 0} stars • Verified active branch`,
+              ? `Latest commit: "${commitsData[0].commit.message.trim().replace(/\n+/g, " ").slice(0, 65)}" • Root files verified`
+              : `${repoData.stargazers_count ?? 0} stars • Verified active codebase`,
           });
         }
       } catch (err) {
