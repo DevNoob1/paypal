@@ -1061,7 +1061,7 @@ function ContractDetailContent({ id }: { id: string }) {
                         </div>
                         <button
                           type="button"
-                          onClick={() => setNotifDrawerOpen(true)}
+                          onClick={() => setShowNotificationsDrawer(true)}
                           className="px-2.5 py-1 rounded bg-accent/15 hover:bg-accent/25 text-accent font-semibold text-[11px] transition-colors cursor-pointer"
                         >
                           View Dispatch Log
@@ -1300,21 +1300,78 @@ function ContractDetailContent({ id }: { id: string }) {
                     </div>
                   </div>
 
-                  <span className="font-mono text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/25">
-                    Score: {audit?.overallScore ?? 95}/100
-                  </span>
+                  {(() => {
+                    const score = audit?.overallScore ?? 0;
+                    const isApproved = audit?.verdict === "APPROVE" || score >= 75;
+                    const isRevision = !isApproved && (audit?.verdict === "REVISE" || score >= 50);
+
+                    return (
+                      <span
+                        className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                          isApproved
+                            ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
+                            : isRevision
+                            ? "text-amber-400 bg-amber-500/10 border-amber-500/25"
+                            : "text-rose-400 bg-rose-500/10 border-rose-500/25"
+                        }`}
+                      >
+                        Score: {score}/100 — {isApproved ? "PASS" : isRevision ? "REVISE REQUIRED" : "UNMET"}
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 {/* AI Review Summary */}
-                <div className="p-3.5 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/25 text-xs text-foreground space-y-1.5">
-                  <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4" />
-                    AI Verification Passed
-                  </div>
-                  <p className="text-xs text-foreground leading-relaxed font-medium">
-                    {audit?.summary || "All agreed criteria were verified against the submitted work."}
-                  </p>
-                </div>
+                {(() => {
+                  const score = audit?.overallScore ?? 0;
+                  const isApproved = audit?.verdict === "APPROVE" || score >= 75;
+                  const isRevision = !isApproved && (audit?.verdict === "REVISE" || score >= 50);
+
+                  return (
+                    <div
+                      className={`p-3.5 rounded-lg border text-xs text-foreground space-y-1.5 ${
+                        isApproved
+                          ? "bg-emerald-500/[0.08] border-emerald-500/25"
+                          : isRevision
+                          ? "bg-amber-500/[0.08] border-amber-500/25"
+                          : "bg-rose-500/[0.08] border-rose-500/25"
+                      }`}
+                    >
+                      <div
+                        className={`font-semibold flex items-center gap-1.5 ${
+                          isApproved
+                            ? "text-emerald-400"
+                            : isRevision
+                            ? "text-amber-400"
+                            : "text-rose-400"
+                        }`}
+                      >
+                        {isApproved ? (
+                          <>
+                            <ShieldCheck className="w-4 h-4" />
+                            AI Verification Passed — Criteria Satisfied
+                          </>
+                        ) : isRevision ? (
+                          <>
+                            <AlertCircle className="w-4 h-4" />
+                            AI Verification Incomplete — Revision Recommended
+                          </>
+                        ) : (
+                          <>
+                            <ShieldAlert className="w-4 h-4" />
+                            AI Verification Unmet — Deficiencies Flagged
+                          </>
+                        )}
+                      </div>
+                      <p className="text-xs text-foreground leading-relaxed font-medium">
+                        {audit?.summary ||
+                          (isApproved
+                            ? "All agreed criteria were verified against the submitted work."
+                            : "Some milestone criteria are incomplete or missing. Review itemized results below.")}
+                      </p>
+                    </div>
+                  );
+                })()}
 
                 {/* Live Inspected Artifacts Card */}
                 {audit?.inspectedArtifacts && audit.inspectedArtifacts.length > 0 && (
@@ -1345,7 +1402,7 @@ function ContractDetailContent({ id }: { id: string }) {
                 )}
 
                 {/* Compact Criteria Checkpoints */}
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <span className="text-[11px] font-semibold text-muted block uppercase tracking-wider">
                     Checked Specifications
                   </span>
@@ -1354,20 +1411,52 @@ function ContractDetailContent({ id }: { id: string }) {
                     status: "PASS" as const,
                     score: 95,
                     notes: "Verified.",
-                  }))).map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="px-3 py-2 rounded-lg bg-background/60 border border-border/50 text-xs flex items-center justify-between gap-2"
-                    >
-                      <span className="flex items-center gap-2 text-foreground">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span>{item.criterion}</span>
-                      </span>
-                      <span className="text-[11px] font-mono text-emerald-400 font-semibold shrink-0">
-                        Pass
-                      </span>
-                    </div>
-                  ))}
+                  }))).map((item, idx) => {
+                    const isItemPass = item.status === "PASS" || item.score >= 75;
+                    const isItemPartial = item.status === "PARTIAL" || (item.score >= 50 && item.score < 75);
+
+                    return (
+                      <div
+                        key={idx}
+                        className={`p-3 rounded-lg border text-xs space-y-1 ${
+                          isItemPass
+                            ? "bg-background/60 border-border/50"
+                            : isItemPartial
+                            ? "bg-amber-500/[0.04] border-amber-500/30"
+                            : "bg-rose-500/[0.04] border-rose-500/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2 text-foreground font-medium">
+                            {isItemPass ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                            ) : isItemPartial ? (
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            ) : (
+                              <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                            )}
+                            <span>{item.criterion}</span>
+                          </span>
+                          <span
+                            className={`text-[11px] font-mono font-semibold shrink-0 ${
+                              isItemPass
+                                ? "text-emerald-400"
+                                : isItemPartial
+                                ? "text-amber-400"
+                                : "text-rose-400"
+                            }`}
+                          >
+                            {isItemPass ? "Pass" : isItemPartial ? "Partial" : "Unmet"} ({item.score}%)
+                          </span>
+                        </div>
+                        {item.notes && (
+                          <p className="text-[11px] text-muted pl-5 leading-relaxed">
+                            {item.notes}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

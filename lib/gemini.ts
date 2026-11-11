@@ -419,7 +419,7 @@ export async function evaluateMilestone(params: {
         model: "gemini-2.5-flash",
         generationConfig: {
           responseMimeType: "application/json",
-          temperature: 0.2,
+          temperature: 0.0,
         },
       });
 
@@ -515,7 +515,7 @@ function simulateEvaluation(params: {
 
   for (const crit of params.criteria) {
     if (hasProof) {
-      const score = Math.floor(92 + Math.random() * 6);
+      const score = 95;
       criteriaResults.push({
         criterion: crit,
         status: "PASS",
@@ -527,7 +527,7 @@ function simulateEvaluation(params: {
       satisfied.push(crit);
       totalScore += score;
     } else {
-      const score = Math.floor(40 + Math.random() * 15);
+      const score = 35;
       criteriaResults.push({
         criterion: crit,
         status: "FAIL",
@@ -614,7 +614,7 @@ export async function generateMilestoneBreakdown(params: {
         model: "gemini-2.5-flash",
         generationConfig: {
           responseMimeType: "application/json",
-          temperature: 0.2,
+          temperature: 0.0,
         },
       });
 
