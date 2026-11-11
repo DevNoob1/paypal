@@ -32,6 +32,7 @@ export async function POST(
       criteria: contract.criteria,
       deliverableText: submission.notes,
       deliverableUrl: submission.url,
+      secondaryUrl: body.liveUrl || body.secondaryUrl || "",
       screenshotUrl: submission.screenshotUrl,
       codeSnippet: submission.codeSnippet,
     });

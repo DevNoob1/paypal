@@ -48,7 +48,11 @@ export interface MilestoneGenerationResult {
   totalAllocated: number;
 }
 
-async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string): Promise<{
+async function inspectDeliverableArtifacts(
+  url?: string,
+  screenshotUrl?: string,
+  secondaryUrl?: string
+): Promise<{
   textContext: string;
   imagePart?: { inlineData: { data: string; mimeType: string } };
   inspectedArtifacts: InspectedArtifact[];
@@ -57,8 +61,64 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
   let imagePart: { inlineData: { data: string; mimeType: string } } | undefined = undefined;
   const inspectedArtifacts: InspectedArtifact[] = [];
 
+  // Helper to inspect live HTTP endpoint
+  const inspectLiveUrl = async (targetUrl: string, label: string = "Live Deployment") => {
+    try {
+      const res = await fetch(targetUrl, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ResolvAI/1.0",
+        },
+        signal: AbortSignal.timeout(3500),
+      });
+
+      if (res.ok) {
+        const text = await res.text();
+        const titleMatch = text.match(/<title>(.*?)<\/title>/i);
+        const pageTitle = titleMatch ? titleMatch[1].trim() : label;
+        const cleanBody = text
+          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+          .replace(/<[^>]+>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 1400);
+
+        textContext += `\n[LIVE DEPLOYED WEB APPLICATION REACHABLE: HTTP 200 OK]\n`;
+        textContext += `Live URL: ${targetUrl}\n`;
+        textContext += `Page Title: "${pageTitle}"\n`;
+        textContext += `Page Content Preview: "${cleanBody}"\n`;
+
+        inspectedArtifacts.push({
+          type: "live_web",
+          title: `${label}: "${pageTitle.slice(0, 40)}"`,
+          badge: "HTTP 200 OK",
+          details: `Endpoint verified active. Response preview: "${cleanBody.slice(0, 85)}..."`,
+        });
+        return true;
+      } else {
+        textContext += `\n[LIVE WEB CHECK]: URL ${targetUrl} returned HTTP ${res.status}.\n`;
+        inspectedArtifacts.push({
+          type: "live_web",
+          title: label,
+          badge: `HTTP ${res.status}`,
+          details: `Target: ${targetUrl}`,
+        });
+      }
+    } catch {
+      textContext += `\n[LIVE WEB CHECK]: Link provided (${targetUrl}), connection timed out or unreachable.\n`;
+      inspectedArtifacts.push({
+        type: "live_web",
+        title: label,
+        badge: "Inspected",
+        details: `Target: ${targetUrl}`,
+      });
+    }
+    return false;
+  };
+
   // 1. Live GitHub PR / Repo & Commits Inspection
-  if (url && url.includes("github.com")) {
+  if (url && (url.includes("github.com") || url.includes("github.io"))) {
     const prMatch = url.match(/github\.com\/([^/]+)\/([^/]+)\/pull\/(\d+)/i);
     const repoMatch = url.match(/github\.com\/([^/]+)\/([^/]+)/i);
 
@@ -68,7 +128,7 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
         const prRes = await fetch(
           `https://api.github.com/repos/${owner}/${repo}/pulls/${pullNumber}`,
           {
-            headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
+            headers: { "User-Agent": "ResolvAI-Bot" },
             signal: AbortSignal.timeout(4000),
           }
         );
@@ -78,7 +138,7 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
           const filesRes = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/pulls/${pullNumber}/files?per_page=8`,
             {
-              headers: { "User-Agent": "ResolvAI-Escrow-Bot" },
+              headers: { "User-Agent": "ResolvAI-Bot" },
               signal: AbortSignal.timeout(4000),
             }
           );
@@ -118,7 +178,7 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
             details: `Target: ${owner}/${repo} • Status code: ${prRes.status}`,
           });
         }
-      } catch (err) {
+      } catch {
         textContext += `\n[GITHUB INSPECTION]: GitHub PR link provided (${url}).\n`;
         inspectedArtifacts.push({
           type: "github_pr",
@@ -129,19 +189,24 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
       }
     } else if (repoMatch) {
       const [, owner, repo] = repoMatch;
+      let detectedDemoUrl: string | null = null;
+
       try {
         const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-          headers: { "User-Agent": "ResolvAI-Code-Inspector" },
+          headers: { "User-Agent": "ResolvAI-Bot" },
           signal: AbortSignal.timeout(3500),
         });
+
         if (repoRes.ok) {
           const repoData = await repoRes.json();
+          if (repoData.homepage && typeof repoData.homepage === "string" && repoData.homepage.startsWith("http")) {
+            detectedDemoUrl = repoData.homepage;
+          }
 
-          // 1. Fetch recent commits
           const commitsRes = await fetch(
             `https://api.github.com/repos/${owner}/${repo}/commits?per_page=5`,
             {
-              headers: { "User-Agent": "ResolvAI-Code-Inspector" },
+              headers: { "User-Agent": "ResolvAI-Bot" },
               signal: AbortSignal.timeout(3500),
             }
           );
@@ -155,54 +220,12 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
                 .join("\n")
             : "No commit list accessible";
 
-          // 2. Fetch repository root files / directory structure
-          let fileListStr = "";
-          try {
-            const contentsRes = await fetch(
-              `https://api.github.com/repos/${owner}/${repo}/contents`,
-              {
-                headers: { "User-Agent": "ResolvAI-Code-Inspector" },
-                signal: AbortSignal.timeout(3500),
-              }
-            );
-            if (contentsRes.ok) {
-              const contentsData = await contentsRes.json();
-              if (Array.isArray(contentsData)) {
-                fileListStr = contentsData
-                  .map((f: any) => `${f.type === "dir" ? "[DIR]" : "[FILE]"} ${f.name}`)
-                  .join(", ");
-              }
-            }
-          } catch {}
-
-          // 3. Fetch README.md content if available
-          let readmeSnippet = "";
-          try {
-            const readmeRes = await fetch(
-              `https://api.github.com/repos/${owner}/${repo}/readme`,
-              {
-                headers: { "User-Agent": "ResolvAI-Code-Inspector" },
-                signal: AbortSignal.timeout(3500),
-              }
-            );
-            if (readmeRes.ok) {
-              const readmeData = await readmeRes.json();
-              if (readmeData.content) {
-                const decoded = Buffer.from(readmeData.content, "base64").toString("utf-8");
-                readmeSnippet = decoded.slice(0, 1800);
-              }
-            }
-          } catch {}
-
-          textContext += `\n[VERIFIED LIVE GITHUB REPOSITORY & CODEBASE INSPECTION]\n`;
+          textContext += `\n[VERIFIED LIVE GITHUB REPOSITORY & COMMITS]\n`;
           textContext += `Repo: ${repoData.full_name}\n`;
           textContext += `Description: ${repoData.description || "N/A"}\n`;
-          textContext += `Default Branch: ${repoData.default_branch}, Primary Language: ${repoData.language || "N/A"}\n`;
-          if (fileListStr) {
-            textContext += `Repository Root Files: ${fileListStr}\n`;
-          }
-          if (readmeSnippet) {
-            textContext += `Repository README Overview:\n${readmeSnippet}\n`;
+          textContext += `Default Branch: ${repoData.default_branch}, Language: ${repoData.language || "N/A"}\n`;
+          if (repoData.homepage) {
+            textContext += `Homepage/Demo URL: ${repoData.homepage}\n`;
           }
           textContext += `Latest Verified Commits:\n${commitList}\n`;
 
@@ -211,11 +234,11 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
             title: `GitHub Repository: ${repoData.full_name}`,
             badge: `${repoData.language || "Code"} • ${repoData.default_branch || "main"}`,
             details: commitsData[0]?.commit?.message
-              ? `Latest commit: "${commitsData[0].commit.message.trim().replace(/\n+/g, " ").slice(0, 65)}" • Root files verified`
-              : `${repoData.stargazers_count ?? 0} stars • Verified active codebase`,
+              ? `Latest commit: "${commitsData[0].commit.message.trim().replace(/\n+/g, " ").slice(0, 65)}"`
+              : `${repoData.stargazers_count ?? 0} stars • Verified active branch`,
           });
         }
-      } catch (err) {
+      } catch {
         textContext += `\n[GITHUB REPO LINK]: ${url}\n`;
         inspectedArtifacts.push({
           type: "github_repo",
@@ -224,62 +247,53 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
           details: `Target: ${url}`,
         });
       }
+
+      // Read repository README.md for architecture, overview, and demo URLs
+      try {
+        const readmeRes = await fetch(
+          `https://raw.githubusercontent.com/${owner}/${repo}/HEAD/README.md`,
+          { signal: AbortSignal.timeout(3000) }
+        );
+        if (readmeRes.ok) {
+          const readmeText = await readmeRes.text();
+          textContext += `\n[REPOSITORY README.MD OVERVIEW]:\n${readmeText.slice(0, 1800)}\n`;
+
+          if (!detectedDemoUrl) {
+            const demoMatch = readmeText.match(
+              /https?:\/\/[a-zA-Z0-9-]+\.(?:vercel\.app|netlify\.app|github\.io|pages\.dev|railway\.app|onrender\.com)[^\s)\]>]*/i
+            );
+            if (demoMatch) {
+              detectedDemoUrl = demoMatch[0];
+            }
+          }
+
+          inspectedArtifacts.push({
+            type: "github_repo",
+            title: `Repository Documentation (README)`,
+            badge: "Inspected",
+            details: "Read project architecture, components, and deployment documentation.",
+          });
+        }
+      } catch {
+        // ignore
+      }
+
+      // If a demo URL was detected in the repo or README, inspect it
+      if (detectedDemoUrl) {
+        await inspectLiveUrl(detectedDemoUrl, "Auto-Detected Live Demo");
+      }
     }
   } else if (url && url.startsWith("http")) {
-    // 2. Live Deployed Web Application / Staging Inspection
-    try {
-      const res = await fetch(url, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 ResolvAI/1.0",
-        },
-        signal: AbortSignal.timeout(3500),
-      });
-
-      if (res.ok) {
-        const text = await res.text();
-        const titleMatch = text.match(/<title>(.*?)<\/title>/i);
-        const title = titleMatch ? titleMatch[1].trim() : "Live Web Deployment";
-        const cleanBody = text
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-          .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-          .replace(/<[^>]+>/g, " ")
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 1200);
-
-        textContext += `\n[LIVE DEPLOYED WEB APPLICATION REACHABLE: HTTP 200 OK]\n`;
-        textContext += `Live Staging URL: ${url}\n`;
-        textContext += `Web Page Title: "${title}"\n`;
-        textContext += `Rendered Content Preview: "${cleanBody}"\n`;
-
-        inspectedArtifacts.push({
-          type: "live_web",
-          title: `Live Deployment: "${title.slice(0, 40)}"`,
-          badge: "HTTP 200 OK",
-          details: `Staging endpoint verified active • Response preview: "${cleanBody.slice(0, 85)}..."`,
-        });
-      } else {
-        textContext += `\n[LIVE WEB CHECK]: URL ${url} returned HTTP ${res.status}.\n`;
-        inspectedArtifacts.push({
-          type: "live_web",
-          title: `Live Staging URL`,
-          badge: `HTTP ${res.status}`,
-          details: `Target: ${url}`,
-        });
-      }
-    } catch (err) {
-      textContext += `\n[LIVE WEB CHECK]: Link provided (${url}), connection timed out or unreachable.\n`;
-      inspectedArtifacts.push({
-        type: "live_web",
-        title: `Live Staging URL`,
-        badge: "Connection Inspected",
-        details: `Target: ${url}`,
-      });
-    }
+    // 2. Direct Live Deployed Web Application Inspection
+    await inspectLiveUrl(url, "Live Web Deployment");
   }
 
-  // 3. Live Screenshot / Multimodal Image Inspection (Supports Base64 Upload & HTTP URL)
+  // 3. Secondary/Live URL if explicitly provided by contractor
+  if (secondaryUrl && secondaryUrl.trim().startsWith("http") && secondaryUrl !== url) {
+    await inspectLiveUrl(secondaryUrl.trim(), "Live Deployed Web Application");
+  }
+
+  // 4. Live Screenshot / Multimodal Image Inspection (Supports Base64 Upload & HTTP URL)
   if (screenshotUrl && screenshotUrl.startsWith("data:image/")) {
     const match = screenshotUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
     if (match) {
@@ -322,7 +336,7 @@ async function inspectDeliverableArtifacts(url?: string, screenshotUrl?: string)
           });
         }
       }
-    } catch (err) {
+    } catch {
       textContext += `\n[VISUAL PROOF LINK]: ${screenshotUrl}\n`;
       inspectedArtifacts.push({
         type: "screenshot",
@@ -342,12 +356,14 @@ export async function evaluateMilestone(params: {
   criteria: string[];
   deliverableText: string;
   deliverableUrl?: string;
+  secondaryUrl?: string;
   screenshotUrl?: string;
   codeSnippet?: string;
 }): Promise<AuditReport> {
   // STRICT REAL-WORLD RULE: Notes alone without any link or screenshot is NOT verifiable proof.
   const hasVerifiableProof =
     Boolean(params.deliverableUrl && params.deliverableUrl.trim() !== "") ||
+    Boolean(params.secondaryUrl && params.secondaryUrl.trim() !== "") ||
     Boolean(params.screenshotUrl && params.screenshotUrl.trim() !== "");
 
   if (!hasVerifiableProof) {
@@ -356,7 +372,7 @@ export async function evaluateMilestone(params: {
       overallScore: 20,
       confidence: 0.98,
       summary:
-        "Verification failed: No verifiable deliverable artifact (live link, GitHub repository/PR, or screenshot proof) was provided. Written notes alone cannot release escrow funds.",
+        "Verification failed: No verifiable deliverable artifact (live link, GitHub repository/PR, or screenshot proof) was provided. Written notes alone cannot release payment.",
       criteriaResults: params.criteria.map((c) => ({
         criterion: c,
         status: "FAIL",
@@ -372,7 +388,7 @@ export async function evaluateMilestone(params: {
           type: "notes_only",
           title: "Written Notes Only (Unverified)",
           badge: "Rejected Proof",
-          details: "Escrow guarantee requires objective proof: a working code repository/PR, live URL, or visual screenshot.",
+          details: "Payment verification requires objective proof: a working code repository/PR, live URL, or visual screenshot.",
         },
       ],
       disputePacket: {
@@ -391,10 +407,11 @@ export async function evaluateMilestone(params: {
 
   if (apiKey && apiKey.trim() !== "" && !apiKey.startsWith("YOUR_")) {
     try {
-      // 1. Perform live artifact fetching (GitHub PR diffs, commits, live staging HTML, screenshot image)
+      // 1. Perform live artifact fetching (GitHub PR diffs, commits, README, live staging HTML, screenshot image)
       const { textContext, imagePart, inspectedArtifacts } = await inspectDeliverableArtifacts(
         params.deliverableUrl,
-        params.screenshotUrl
+        params.screenshotUrl,
+        params.secondaryUrl
       );
 
       const genAI = new GoogleGenerativeAI(apiKey);
@@ -416,19 +433,27 @@ Contract Acceptance Criteria:
 ${params.criteria.map((c, i) => `${i + 1}. ${c}`).join("\n")}
 
 SUBMITTED DELIVERABLE PROOF:
-Work Link / URL: ${params.deliverableUrl || "None provided"}
+Work Link / Code Repository: ${params.deliverableUrl || "None provided"}
+Secondary / Live URL: ${params.secondaryUrl || "None provided"}
 Screenshot Proof: ${params.screenshotUrl ? (params.screenshotUrl.startsWith("data:") ? "Direct Image Upload (Base64)" : params.screenshotUrl) : "None provided"}
 Contractor Notes: ${params.deliverableText || "None provided"}
 Additional Artifacts: ${params.codeSnippet || "None"}
 
 ${textContext}
 
-YOUR TASK:
-Examine the live audit data, code diffs, recent commits, live deployed website content, screenshot image, and contractor notes against EACH of the agreed acceptance criteria.
-Evaluate like a fair, experienced engineering & project lead:
-- If the deliverable proof (code diffs, live page, screenshot image, or commits) satisfies the criteria, score > 85% and verdict "APPROVE".
-- If work is substantially done but minor clarification is recommended, score 65-84% and verdict "REVISE".
-- If the link is completely broken, unrelated, or deliverable proof does not match, score < 50% and verdict "DISPUTE".
+OBJECTIVE EVALUATION INSTRUCTIONS:
+1. Multi-Modal Synthesis:
+   - When a contractor provides a GitHub repository and visual screenshot proof, evaluate both together!
+   - If the codebase implements the project structure (components, styling, layouts, form inputs) and the screenshot shows the visual interface built and rendered, mark those criteria as SATISFIED ("PASS").
+   - Do NOT penalize the contractor with a harsh failing score (< 70%) solely because a live hosted domain was not provided separately if the repository code and visual screenshot prove the project was built. If the repository or README contains build/deploy configurations (e.g. Next.js, Vite, Vercel, or build scripts) or references a demo URL, treat deployment and architecture criteria as satisfied.
+   - For UI criteria (e.g. contact form, gallery, responsive layout), if the elements are visibly present in the screenshot or present in the repository code (e.g., contact form component or form inputs), mark them as PASS with constructive notes.
+2. Scoring Standard:
+   - Score >= 80% ("APPROVE"): The deliverables fulfill the core milestone expectations.
+   - Score 55-79% ("REVISE"): Work is mostly completed, but one or two specific items need minor correction or clarification.
+   - Score < 50% ("DISPUTE"): Deliverables are empty, completely broken, or unrelated to the contract scope.
+3. Summary & Criterion Notes:
+   - Provide a concise, clear 2-sentence summary of what was verified from the code diffs, README, live endpoints, and visual screenshot.
+   - For each criterion, state whether it PASSED or NEEDS REVISION and give specific evidence.
 
 Return strictly valid JSON matching this exact structure:
 {

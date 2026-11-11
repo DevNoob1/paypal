@@ -1,5 +1,67 @@
 [
   {
+    "id": "cnt_zg2zq6_3682",
+    "title": "Developer Portfolio Website & Project Showcase",
+    "description": "Build portfolio website with project gallery, about section, and working contact form.",
+    "amount": 450,
+    "currency": "USD",
+    "clientName": "Sarah Jenkins",
+    "clientEmail": "billing@acmecloud.io",
+    "freelancerName": "Alex Rivera",
+    "freelancerEmail": "alex.rivera@devmail.com",
+    "createdAt": "2026-11-11T17:26:43.682Z",
+    "deadline": "2026-11-18T17:26:43.682Z",
+    "status": "FUNDED_ESCROW",
+    "criteria": [
+      "Basic HTML structure (header, navigation, main, footer) is implemented and accessible via a live URL.",
+      "\"About\" section is complete with placeholder text/image and initial styling.",
+      "Navigation links are present, even if not fully functional yet.",
+      "Project gallery page displays at least 3 distinct project cards with title, description, and image placeholders.",
+      "Contact form is implemented with name, email, subject, and message fields, and a functional submit button.",
+      "Contact form successfully sends test submissions to a specified email address (e.g., using a free service like Formspree or Netlify Forms).",
+      "Website is fully responsive and displays correctly across common device breakpoints (mobile, tablet, desktop).",
+      "All internal navigation links are functional and lead to the correct sections/pages.",
+      "Final styling adjustments, minor bug fixes, and cross-browser compatibility checks are completed, and the site is deployed to a public URL."
+    ],
+    "paypalOrderId": "8YA55445R79961119",
+    "escrowCapturedAt": "2026-11-11T17:26:51.463Z",
+    "milestones": [
+      {
+        "id": "m_1_2747",
+        "title": "Phase 1: Foundation & About Section",
+        "amount": 150,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Basic HTML structure (header, navigation, main, footer) is implemented and accessible via a live URL.",
+          "\"About\" section is complete with placeholder text/image and initial styling.",
+          "Navigation links are present, even if not fully functional yet."
+        ]
+      },
+      {
+        "id": "m_2_2747",
+        "title": "Phase 2: Core Features Development",
+        "amount": 200,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Project gallery page displays at least 3 distinct project cards with title, description, and image placeholders.",
+          "Contact form is implemented with name, email, subject, and message fields, and a functional submit button.",
+          "Contact form successfully sends test submissions to a specified email address (e.g., using a free service like Formspree or Netlify Forms)."
+        ]
+      },
+      {
+        "id": "m_3_2747",
+        "title": "Phase 3: Polish & Final Delivery",
+        "amount": 100,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Website is fully responsive and displays correctly across common device breakpoints (mobile, tablet, desktop).",
+          "All internal navigation links are functional and lead to the correct sections/pages.",
+          "Final styling adjustments, minor bug fixes, and cross-browser compatibility checks are completed, and the site is deployed to a public URL."
+        ]
+      }
+    ]
+  },
+  {
     "id": "cnt_de96pt_8130",
     "title": "Build a portfolio website",
     "description": "build a very nice and professional portfolio website",

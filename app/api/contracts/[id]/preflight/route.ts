@@ -23,6 +23,7 @@ export async function POST(
       criteria: contract.criteria,
       deliverableText: body.notes || "Deliverable submission notes provided.",
       deliverableUrl: body.url || "",
+      secondaryUrl: body.liveUrl || body.secondaryUrl || "",
       screenshotUrl: body.screenshotUrl || "",
       codeSnippet: body.codeSnippet || "",
     });

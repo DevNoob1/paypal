@@ -17,6 +17,7 @@ import {
   Check,
   RefreshCw,
   AlertCircle,
+  XCircle,
   Layers,
   X,
   CreditCard,
@@ -43,6 +44,7 @@ function ContractDetailContent({ id }: { id: string }) {
 
   // Contractor Form State
   const [submissionUrl, setSubmissionUrl] = useState("");
+  const [liveDemoUrl, setLiveDemoUrl] = useState("");
   const [screenshotUrl, setScreenshotUrl] = useState("");
   const [screenshotMode, setScreenshotMode] = useState<"upload" | "url">("upload");
   const [submissionNotes, setSubmissionNotes] = useState("");
@@ -141,6 +143,7 @@ function ContractDetailContent({ id }: { id: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: submissionUrl,
+          liveUrl: liveDemoUrl,
           screenshotUrl,
           notes: submissionNotes,
         }),
@@ -197,6 +200,7 @@ function ContractDetailContent({ id }: { id: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: submissionUrl,
+          liveUrl: liveDemoUrl,
           screenshotUrl,
           notes: submissionNotes,
         }),
@@ -498,13 +502,12 @@ function ContractDetailContent({ id }: { id: string }) {
               return (
                 <div
                   key={m.id || idx}
-                  className={`p-3 rounded-lg border text-xs space-y-1.5 ${
-                    mIsPaid
+                  className={`p-3 rounded-lg border text-xs space-y-1.5 ${mIsPaid
                       ? "bg-emerald-500/[0.08] border-emerald-500/30"
                       : mIsReady
-                      ? "bg-amber-500/[0.08] border-amber-500/30"
-                      : "bg-background/50 border-border/70"
-                  }`}
+                        ? "bg-amber-500/[0.08] border-amber-500/30"
+                        : "bg-background/50 border-border/70"
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[10.5px] font-bold text-accent">
@@ -546,11 +549,10 @@ function ContractDetailContent({ id }: { id: string }) {
           <div className="grid grid-cols-3 gap-2 p-1.5 rounded-xl bg-card/60 border border-border/80 text-xs">
             <button
               onClick={() => setActiveTab("submit")}
-              className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${
-                activeTab === "submit"
+              className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 cursor-pointer ${activeTab === "submit"
                   ? "bg-accent text-white shadow-xs font-semibold"
                   : "text-muted hover:text-foreground"
-              }`}
+                }`}
             >
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 1
@@ -563,13 +565,12 @@ function ContractDetailContent({ id }: { id: string }) {
                 if (preflightReport || hasSubmission) setActiveTab("preflight");
               }}
               disabled={!preflightReport && !hasSubmission}
-              className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 ${
-                activeTab === "preflight"
+              className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 ${activeTab === "preflight"
                   ? "bg-accent text-white shadow-xs font-semibold"
                   : !preflightReport && !hasSubmission
-                  ? "text-muted/40 cursor-not-allowed"
-                  : "text-muted hover:text-foreground cursor-pointer"
-              }`}
+                    ? "text-muted/40 cursor-not-allowed"
+                    : "text-muted hover:text-foreground cursor-pointer"
+                }`}
             >
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 2
@@ -582,13 +583,12 @@ function ContractDetailContent({ id }: { id: string }) {
                 if (hasSubmission) setActiveTab("submitted");
               }}
               disabled={!hasSubmission}
-              className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 ${
-                activeTab === "submitted"
+              className={`py-2 px-3 rounded-lg font-medium transition-all text-center flex items-center justify-center gap-1.5 ${activeTab === "submitted"
                   ? "bg-emerald-600 text-white shadow-xs font-semibold"
                   : !hasSubmission
-                  ? "text-muted/40 cursor-not-allowed"
-                  : "text-muted hover:text-foreground cursor-pointer"
-              }`}
+                    ? "text-muted/40 cursor-not-allowed"
+                    : "text-muted hover:text-foreground cursor-pointer"
+                }`}
             >
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 3
@@ -661,16 +661,33 @@ function ContractDetailContent({ id }: { id: string }) {
                     {/* 1. Live Work Link */}
                     <div>
                       <label className="text-muted block mb-1.5 text-[11px] font-medium flex items-center justify-between">
-                        <span>Work Link (GitHub PR, Repo, or Live Staging URL)</span>
+                        <span>Work Link (GitHub Repository, PR, or Project URL)</span>
                         <span className="text-[10px] text-accent font-normal">
-                          Live inspection of diffs & status
+                          Live inspection of diffs & commits
                         </span>
                       </label>
                       <input
                         type="url"
-                        placeholder="https://github.com/org/repo/pull/1 or https://myapp.vercel.app"
+                        placeholder="https://github.com/org/repo or GitHub PR link"
                         value={submissionUrl}
                         onChange={(e) => setSubmissionUrl(e.target.value)}
+                        className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs font-mono"
+                      />
+                    </div>
+
+                    {/* 1B. Optional Live Deployed Website / Demo URL */}
+                    <div>
+                      <label className="text-muted block mb-1.5 text-[11px] font-medium flex items-center justify-between">
+                        <span>Live Deployed Website / Demo URL (Optional)</span>
+                        <span className="text-[10px] text-muted font-normal">
+                          Vercel, Netlify, GitHub Pages, or live staging
+                        </span>
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://myportfolio.vercel.app or deployed website URL"
+                        value={liveDemoUrl}
+                        onChange={(e) => setLiveDemoUrl(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs font-mono"
                       />
                     </div>
@@ -685,22 +702,20 @@ function ContractDetailContent({ id }: { id: string }) {
                           <button
                             type="button"
                             onClick={() => setScreenshotMode("upload")}
-                            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                              screenshotMode === "upload"
+                            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${screenshotMode === "upload"
                                 ? "bg-accent text-white font-semibold"
                                 : "text-muted hover:text-foreground"
-                            }`}
+                              }`}
                           >
                             Upload File
                           </button>
                           <button
                             type="button"
                             onClick={() => setScreenshotMode("url")}
-                            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                              screenshotMode === "url"
+                            className={`px-2 py-0.5 rounded transition-all cursor-pointer ${screenshotMode === "url"
                                 ? "bg-accent text-white font-semibold"
                                 : "text-muted hover:text-foreground"
-                            }`}
+                              }`}
                           >
                             Paste Link
                           </button>
@@ -831,22 +846,78 @@ function ContractDetailContent({ id }: { id: string }) {
                       </p>
                     </div>
 
-                    <span className="font-mono text-sm font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/25">
-                      Score: {preflightReport?.overallScore ?? 94}/100
-                    </span>
+                    {(() => {
+                      const score = preflightReport?.overallScore ?? 94;
+                      const isApproved = preflightReport?.verdict === "APPROVE" || score >= 75;
+                      const isRevision = !isApproved && (preflightReport?.verdict === "REVISE" || score >= 50);
+
+                      return (
+                        <span
+                          className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border ${
+                            isApproved
+                              ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
+                              : isRevision
+                              ? "text-amber-400 bg-amber-500/10 border-amber-500/25"
+                              : "text-rose-400 bg-rose-500/10 border-rose-500/25"
+                          }`}
+                        >
+                          Score: {score}/100 — {isApproved ? "PASS" : isRevision ? "REVISE REQUIRED" : "UNMET"}
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   {/* Summary Box */}
-                  <div className="p-3.5 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/25 text-xs text-foreground space-y-1.5">
-                    <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4" />
-                      Verification Passed — Quality Requirements Satisfied
-                    </div>
-                    <p className="text-xs text-foreground leading-relaxed font-medium">
-                      {preflightReport?.summary ||
-                        "All acceptance criteria are satisfied. Proceed to Step 3 to hand off to the client."}
-                    </p>
-                  </div>
+                  {(() => {
+                    const score = preflightReport?.overallScore ?? 94;
+                    const isApproved = preflightReport?.verdict === "APPROVE" || score >= 75;
+                    const isRevision = !isApproved && (preflightReport?.verdict === "REVISE" || score >= 50);
+
+                    return (
+                      <div
+                        className={`p-3.5 rounded-lg border text-xs text-foreground space-y-1.5 ${
+                          isApproved
+                            ? "bg-emerald-500/[0.08] border-emerald-500/25"
+                            : isRevision
+                            ? "bg-amber-500/[0.08] border-amber-500/25"
+                            : "bg-rose-500/[0.08] border-rose-500/25"
+                        }`}
+                      >
+                        <div
+                          className={`font-semibold flex items-center gap-1.5 ${
+                            isApproved
+                              ? "text-emerald-400"
+                              : isRevision
+                              ? "text-amber-400"
+                              : "text-rose-400"
+                          }`}
+                        >
+                          {isApproved ? (
+                            <>
+                              <ShieldCheck className="w-4 h-4" />
+                              Verification Passed — Quality Requirements Satisfied
+                            </>
+                          ) : isRevision ? (
+                            <>
+                              <AlertCircle className="w-4 h-4" />
+                              Revision Recommended — Minor Adjustments Advised
+                            </>
+                          ) : (
+                            <>
+                              <ShieldAlert className="w-4 h-4" />
+                              Verification Unmet — Deliverable Adjustments Required
+                            </>
+                          )}
+                        </div>
+                        <p className="text-xs text-foreground leading-relaxed font-medium">
+                          {preflightReport?.summary ||
+                            (isApproved
+                              ? "All acceptance criteria are satisfied. Proceed to Step 3 to hand off to the client."
+                              : "Some criteria are incomplete. Check the itemized feedback below and update your deliverable.")}
+                        </p>
+                      </div>
+                    );
+                  })()}
 
                   {/* Live Inspected Artifacts Card */}
                   {preflightReport?.inspectedArtifacts && preflightReport.inspectedArtifacts.length > 0 && (
@@ -876,8 +947,8 @@ function ContractDetailContent({ id }: { id: string }) {
                     </div>
                   )}
 
-                  {/* Compact Criteria Results */}
-                  <div className="space-y-1.5">
+                  {/* Criteria Results */}
+                  <div className="space-y-2">
                     <span className="text-[11px] font-semibold text-muted block uppercase tracking-wider">
                       Checked Specifications
                     </span>
@@ -886,20 +957,52 @@ function ContractDetailContent({ id }: { id: string }) {
                       status: "PASS" as const,
                       score: 95,
                       notes: "Verified.",
-                    }))).map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="px-3 py-2 rounded-lg bg-background/60 border border-border/50 text-xs flex items-center justify-between gap-2"
-                      >
-                        <span className="flex items-center gap-2 text-foreground">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span>{item.criterion}</span>
-                        </span>
-                        <span className="text-[11px] font-mono text-emerald-400 font-semibold shrink-0">
-                          Pass
-                        </span>
-                      </div>
-                    ))}
+                    }))).map((item, idx) => {
+                      const isItemPass = item.status === "PASS" || item.score >= 75;
+                      const isItemPartial = item.status === "PARTIAL" || (item.score >= 50 && item.score < 75);
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`p-3 rounded-lg border text-xs space-y-1 ${
+                            isItemPass
+                              ? "bg-background/60 border-border/50"
+                              : isItemPartial
+                              ? "bg-amber-500/[0.04] border-amber-500/30"
+                              : "bg-rose-500/[0.04] border-rose-500/30"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2 text-foreground font-medium">
+                              {isItemPass ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                              ) : isItemPartial ? (
+                                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                              ) : (
+                                <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                              )}
+                              <span>{item.criterion}</span>
+                            </span>
+                            <span
+                              className={`text-[11px] font-mono font-semibold shrink-0 ${
+                                isItemPass
+                                  ? "text-emerald-400"
+                                  : isItemPartial
+                                  ? "text-amber-400"
+                                  : "text-rose-400"
+                              }`}
+                            >
+                              {isItemPass ? "Pass" : isItemPartial ? "Partial" : "Unmet"} ({item.score}%)
+                            </span>
+                          </div>
+                          {item.notes && (
+                            <p className="text-[11px] text-muted pl-5 leading-relaxed">
+                              {item.notes}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   {/* Action Buttons: Edit or Proceed to Step 3 */}
@@ -939,8 +1042,8 @@ function ContractDetailContent({ id }: { id: string }) {
                           {isPaid
                             ? `Funds deposited to ${contract.freelancerEmail}`
                             : hasSubmission
-                            ? "Client notified. 48-hour review protection active."
-                            : "Pre-check passed! Click below to deliver your work to the client."}
+                              ? "Client notified. 48-hour review protection active."
+                              : "Pre-check passed! Click below to deliver your work to the client."}
                         </p>
                       </div>
                     </div>
@@ -1488,11 +1591,10 @@ function ContractDetailContent({ id }: { id: string }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {/* Scanner 1: Link & Code */}
               <div
-                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-3 ${
-                  linkScanStep === "DONE"
+                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-3 ${linkScanStep === "DONE"
                     ? "bg-emerald-500/[0.08] border-emerald-500/35"
                     : "bg-background/80 border-accent/40 shadow-sm"
-                }`}
+                  }`}
               >
                 {/* Active scan beam animation when scanning */}
                 {linkScanStep === "SCANNING" && (
@@ -1539,11 +1641,10 @@ function ContractDetailContent({ id }: { id: string }) {
 
               {/* Scanner 2: Visual & Image (Gemini Vision) */}
               <div
-                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-3 ${
-                  imageScanStep === "DONE"
+                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-3 ${imageScanStep === "DONE"
                     ? "bg-emerald-500/[0.08] border-emerald-500/35"
                     : "bg-background/80 border-accent/40 shadow-sm"
-                }`}
+                  }`}
               >
                 {/* Active scan beam animation when scanning */}
                 {imageScanStep === "SCANNING" && (
@@ -1589,7 +1690,7 @@ function ContractDetailContent({ id }: { id: string }) {
                   {imageScanStep === "SCANNING" ? (
                     <span className="text-cyan-400 flex items-center gap-1.5 animate-pulse">
                       <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
-                      Gemini Vision scanning UI layout pixels...
+                      Vision scanning UI layout pixels...
                     </span>
                   ) : (
                     <span className="text-emerald-400">
@@ -1601,52 +1702,97 @@ function ContractDetailContent({ id }: { id: string }) {
             </div>
 
             {/* 3rd SECTION: Final AI Verdict & Criteria Verification */}
-            <div
-              className={`p-4 rounded-xl border transition-all duration-300 space-y-2.5 ${
-                verdictStep === "READY"
-                  ? "bg-emerald-500/[0.08] border-emerald-500/35"
-                  : "bg-background/40 border-border/60 opacity-60"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-bold text-foreground">
-                    3. AI Verdict & Criteria Verification
-                  </span>
-                </div>
-                {verdictStep === "READY" ? (
-                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2.5 py-0.5 rounded border border-emerald-500/25">
-                    Score: {preflightReport?.overallScore ?? 94}/100 — PASS
-                  </span>
-                ) : (
-                  <span className="text-[10.5px] font-mono text-muted">
-                    Awaiting parallel scans...
-                  </span>
-                )}
-              </div>
+            {(() => {
+              const score = preflightReport?.overallScore ?? 94;
+              const isApproved = verdictStep === "READY" && (preflightReport?.verdict === "APPROVE" || score >= 75);
+              const isRevision = verdictStep === "READY" && !isApproved && (preflightReport?.verdict === "REVISE" || score >= 50);
+              const isDisputed = verdictStep === "READY" && !isApproved && !isRevision;
 
-              <p className="text-xs text-muted leading-relaxed">
-                {verdictStep === "READY"
-                  ? preflightReport?.summary ||
-                    "Both link and visual proof have been verified. Deliverable meets agreed criteria."
-                  : "Synthesizing evidence from Link Scanner and Visual UI Scanner against the agreed acceptance criteria..."}
-              </p>
-            </div>
+              return (
+                <div
+                  className={`p-4 rounded-xl border transition-all duration-300 space-y-2.5 ${
+                    verdictStep !== "READY"
+                      ? "bg-background/40 border-border/60 opacity-60"
+                      : isApproved
+                      ? "bg-emerald-500/[0.08] border-emerald-500/35"
+                      : isRevision
+                      ? "bg-amber-500/[0.08] border-amber-500/35"
+                      : "bg-rose-500/[0.08] border-rose-500/35"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      {isApproved ? (
+                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                      ) : isRevision ? (
+                        <AlertCircle className="w-4 h-4 text-amber-400" />
+                      ) : (
+                        <ShieldAlert className="w-4 h-4 text-rose-400" />
+                      )}
+                      <span className="text-xs font-bold text-foreground">
+                        3. AI Verdict & Criteria Verification
+                      </span>
+                    </div>
+                    {verdictStep === "READY" ? (
+                      <span
+                        className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded border ${
+                          isApproved
+                            ? "text-emerald-400 bg-emerald-500/15 border-emerald-500/25"
+                            : isRevision
+                            ? "text-amber-400 bg-amber-500/15 border-amber-500/25"
+                            : "text-rose-400 bg-rose-500/15 border-rose-500/25"
+                        }`}
+                      >
+                        Score: {score}/100 — {isApproved ? "PASS" : isRevision ? "REVISE REQUIRED" : "UNMET"}
+                      </span>
+                    ) : (
+                      <span className="text-[10.5px] font-mono text-muted">
+                        Awaiting parallel scans...
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted leading-relaxed">
+                    {verdictStep === "READY"
+                      ? preflightReport?.summary ||
+                        "Both link and visual proof have been verified. Deliverable meets agreed criteria."
+                      : "Synthesizing evidence from Link Scanner and Visual UI Scanner against the agreed acceptance criteria..."}
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Action to proceed */}
-            {verdictStep === "READY" && (
-              <div className="pt-1">
-                <button
-                  type="button"
-                  onClick={handleFinishInspectionModal}
-                  className="w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
-                >
-                  <Check className="w-4 h-4" />
-                  View Detailed Audit Results →
-                </button>
-              </div>
-            )}
+            {verdictStep === "READY" && (() => {
+              const score = preflightReport?.overallScore ?? 94;
+              const isApproved = preflightReport?.verdict === "APPROVE" || score >= 75;
+
+              return (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={handleFinishInspectionModal}
+                    className={`w-full py-3 rounded-lg text-white font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                      isApproved
+                        ? "bg-emerald-600 hover:bg-emerald-500"
+                        : "bg-amber-600 hover:bg-amber-500"
+                    }`}
+                  >
+                    {isApproved ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        View Detailed Audit Results →
+                      </>
+                    ) : (
+                      <>
+                        <AlertCircle className="w-4 h-4" />
+                        Inspect Missing Criteria & Update Deliverable →
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
