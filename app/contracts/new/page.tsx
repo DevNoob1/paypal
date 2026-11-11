@@ -17,6 +17,10 @@ import {
   Check,
   RefreshCw,
   RotateCcw,
+  Bot,
+  ShieldCheck,
+  Cpu,
+  Workflow,
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import { useAuth } from "@/components/AuthContext";
@@ -152,6 +156,15 @@ export default function NewContractPage() {
   // Animated Escrow Creation Flow State
   const [escrowFlowOpen, setEscrowFlowOpen] = useState(false);
   const [escrowFlowStep, setEscrowFlowStep] = useState(1);
+
+  // Autonomous AI Milestone Architect Modal State
+  const [aiArchitectModalOpen, setAiArchitectModalOpen] = useState(false);
+  const [aiArchitectStep, setAiArchitectStep] = useState(1);
+
+  // Autonomous Escrow Order Initialization Modal State (Step 1 submit)
+  const [escrowInitModalOpen, setEscrowInitModalOpen] = useState(false);
+  const [escrowInitStep, setEscrowInitStep] = useState(1);
+
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   // Dynamic calculated amount
@@ -198,6 +211,8 @@ export default function NewContractPage() {
   const handleAIGenerateMilestones = async () => {
     setGeneratingMilestones(true);
     setAiGenerationNote(null);
+    setAiArchitectStep(1);
+    setAiArchitectModalOpen(true);
 
     try {
       const budgetVal = parseFloat(totalCalculatedAmount) || parseFloat(amount) || 600;
@@ -205,7 +220,10 @@ export default function NewContractPage() {
         ? CATEGORY_PRESETS[selectedCategory].label
         : "Software & Engineering";
 
-      const res = await fetch("/api/contracts/ai-generate", {
+      await sleep(650);
+      setAiArchitectStep(2);
+
+      const fetchPromise = fetch("/api/contracts/ai-generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -216,7 +234,18 @@ export default function NewContractPage() {
         }),
       });
 
+      await sleep(750);
+      setAiArchitectStep(3);
+
+      const res = await fetchPromise;
       const data = await res.json();
+
+      await sleep(650);
+      setAiArchitectStep(4);
+      confetti({ particleCount: 120, spread: 75, origin: { y: 0.5 } });
+
+      await sleep(800);
+
       if (data.success && Array.isArray(data.milestones) && data.milestones.length > 0) {
         setMilestones(
           data.milestones.map((m: any, idx: number) => ({
@@ -236,6 +265,7 @@ export default function NewContractPage() {
       console.error("AI milestone generation error:", err);
     } finally {
       setGeneratingMilestones(false);
+      setAiArchitectModalOpen(false);
     }
   };
 
@@ -306,6 +336,8 @@ export default function NewContractPage() {
   const handleProceedToPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setEscrowInitStep(1);
+    setEscrowInitModalOpen(true);
 
     try {
       const finalAmount = parseFloat(totalCalculatedAmount);
@@ -324,6 +356,9 @@ export default function NewContractPage() {
           ? milestones.flatMap((m) => m.criteria)
           : criteria;
 
+      await sleep(650);
+      setEscrowInitStep(2);
+
       // 1. Create a PayPal Order
       const paypalRes = await fetch("/api/paypal/create-order", {
         method: "POST",
@@ -338,6 +373,9 @@ export default function NewContractPage() {
       const orderData = await paypalRes.json();
       const orderId = orderData.id || `PP_ORD_${Date.now()}`;
       setPaypalOrderId(orderId);
+
+      await sleep(750);
+      setEscrowInitStep(3);
 
       // 2. Create the contract
       const contractRes = await fetch("/api/contracts", {
@@ -359,6 +397,12 @@ export default function NewContractPage() {
       });
 
       const data = await contractRes.json();
+
+      await sleep(650);
+      setEscrowInitStep(4);
+      confetti({ particleCount: 100, spread: 65, origin: { y: 0.55 } });
+      await sleep(750);
+
       if (data.contract) {
         setCreatedContractId(data.contract.id);
         setStep("ESCROW_PAYMENT");
@@ -368,6 +412,7 @@ export default function NewContractPage() {
       alert("Failed to initialize contract. Please check your connection.");
     } finally {
       setLoading(false);
+      setEscrowInitModalOpen(false);
     }
   };
 
@@ -1148,6 +1193,282 @@ export default function NewContractPage() {
                   : escrowFlowStep === 3
                   ? `Status: PayPal vault deposit locked ($${totalCalculatedAmount} USD)`
                   : "Status: Milestone escrow active. Contractor notified via email & SMS."}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AUTONOMOUS MILESTONE ARCHITECT MODAL */}
+      {aiArchitectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl p-6 sm:p-7 space-y-5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-accent to-emerald-500 animate-pulse" />
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-purple-400 shrink-0 shadow-sm">
+                <Sparkles className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-foreground truncate">
+                  Autonomous Milestone Architect
+                </h3>
+                <p className="text-xs text-muted mt-0.5">
+                  Deconstructing project requirements, splitting budget, and generating escrow checkpoints
+                </p>
+              </div>
+            </div>
+
+            {/* Visual Animated Progress Bar */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex justify-between text-[11px] font-mono text-muted">
+                <span>Swarm Synthesis Progress</span>
+                <span className="text-foreground font-bold">
+                  {aiArchitectStep === 1 ? "25%" : aiArchitectStep === 2 ? "55%" : aiArchitectStep === 3 ? "80%" : "100% Completed"}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-background border border-border/80 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-500 via-accent to-emerald-500 rounded-full transition-all duration-500"
+                  style={{
+                    width: aiArchitectStep === 1 ? "25%" : aiArchitectStep === 2 ? "55%" : aiArchitectStep === 3 ? "80%" : "100%",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 4 Parallel Agent Step Cards */}
+            <div className="space-y-2.5">
+              {[
+                {
+                  stepNum: 1,
+                  agent: "Agent 1: Scope & Objective Parser",
+                  role: "Deconstructing Deliverable Dependencies",
+                  desc:
+                    aiArchitectStep >= 2
+                      ? "Parsed: Scope deconstructed into sequential deliverable milestones and dependencies"
+                      : "Analyzing project description and category guidelines for phased delivery...",
+                },
+                {
+                  stepNum: 2,
+                  agent: "Agent 2: Phase & Budget Partitioning Engine",
+                  role: "100% Mathematical Allocation",
+                  desc:
+                    aiArchitectStep >= 3
+                      ? `Allocated: $${amount || "600"} USD budget split with balanced payment milestones`
+                      : aiArchitectStep === 2
+                      ? `Partitioning $${amount || "600"} USD across logical delivery phases...`
+                      : "Queued: Awaiting scope deconstruction...",
+                },
+                {
+                  stepNum: 3,
+                  agent: "Agent 3: PayPal Escrow Acceptance Synthesizer",
+                  role: "Objective Verification Rules",
+                  desc:
+                    aiArchitectStep >= 4
+                      ? "Synthesized: Acceptance criteria generated for each milestone with strict checkpoints"
+                      : aiArchitectStep === 3
+                      ? "Drafting clear, testable criteria for client sign-off and AI verification..."
+                      : "Standby: Awaiting budget allocation...",
+                },
+                {
+                  stepNum: 4,
+                  agent: "Architecture Blueprint Ready",
+                  role: "Form Synchronization",
+                  desc: "Milestone structure assembled and ready to populate into your agreement.",
+                },
+              ].map((s) => {
+                const isDone = aiArchitectStep > s.stepNum;
+                const isCurrent = aiArchitectStep === s.stepNum;
+                return (
+                  <div
+                    key={s.stepNum}
+                    className={`p-3 rounded-xl border transition-all duration-300 flex items-start gap-3 ${
+                      isDone
+                        ? "bg-emerald-500/[0.08] border-emerald-500/30 text-foreground"
+                        : isCurrent
+                        ? "bg-purple-500/[0.08] border-purple-500/40 text-foreground shadow-xs"
+                        : "bg-background/40 border-border/50 text-muted opacity-50"
+                    }`}
+                  >
+                    <div className="mt-0.5 shrink-0">
+                      {isDone ? (
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                          <Check className="w-3 h-3" />
+                        </div>
+                      ) : isCurrent ? (
+                        <div className="w-5 h-5 rounded-full bg-purple-500/20 border-2 border-purple-500 text-purple-400 flex items-center justify-center text-xs">
+                          <RefreshCw className="w-3 h-3 animate-spin text-purple-400" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-background border border-border text-muted flex items-center justify-center text-[10px] font-mono font-medium">
+                          {s.stepNum}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-semibold ${isDone ? "text-emerald-400" : isCurrent ? "text-foreground" : "text-muted"}`}>
+                          {s.agent}
+                        </span>
+                        {isDone && (
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">Done</span>
+                        )}
+                        {isCurrent && (
+                          <span className="text-[10px] font-mono text-purple-400 font-bold animate-pulse">Running...</span>
+                        )}
+                      </div>
+                      <div className="text-[10px] font-mono text-muted/70">{s.role}</div>
+                      <p className="text-[10.5px] text-muted mt-0.5 leading-relaxed">
+                        {s.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Status bar */}
+            <div className="p-3 rounded-xl bg-background/80 border border-border/80 text-[11px] text-foreground flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-purple-400 animate-ping shrink-0" />
+              <span className="truncate">
+                {aiArchitectStep === 1
+                  ? "Status: Deconstructing scope into milestones and deliverables..."
+                  : aiArchitectStep === 2
+                  ? `Status: Partitioning $${amount || "600"} USD budget across milestone phases...`
+                  : aiArchitectStep === 3
+                  ? "Status: Synthesizing objective acceptance criteria checkpoints..."
+                  : "Status: Milestone architecture complete! Applying to contract form."}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INITIALIZING PAYPAL ESCROW ORDER MODAL */}
+      {escrowInitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl p-6 sm:p-7 space-y-5 relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-indigo-500 to-emerald-500 animate-pulse" />
+
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent shrink-0 shadow-sm">
+                <CreditCard className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-foreground truncate">
+                  Initializing PayPal Milestone Escrow
+                </h3>
+                <p className="text-xs text-muted mt-0.5">
+                  Validating specifications, minting order rails, and preparing secure escrow vault
+                </p>
+              </div>
+            </div>
+
+            {/* Visual Animated Progress Bar */}
+            <div className="space-y-1.5 pt-1">
+              <div className="flex justify-between text-[11px] font-mono text-muted">
+                <span>Setup Progress</span>
+                <span className="text-foreground font-bold">
+                  {escrowInitStep === 1 ? "25%" : escrowInitStep === 2 ? "55%" : escrowInitStep === 3 ? "80%" : "100% Ready"}
+                </span>
+              </div>
+              <div className="h-2 w-full rounded-full bg-background border border-border/80 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-accent to-emerald-500 rounded-full transition-all duration-500"
+                  style={{
+                    width: escrowInitStep === 1 ? "25%" : escrowInitStep === 2 ? "55%" : escrowInitStep === 3 ? "80%" : "100%",
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* 4 Steps */}
+            <div className="space-y-2.5">
+              {[
+                {
+                  stepNum: 1,
+                  title: "Validate Milestone Specifications",
+                  desc: "Validating acceptance checklist, milestone budgets, and participant wallets",
+                },
+                {
+                  stepNum: 2,
+                  title: "Authorize PayPal Escrow Order",
+                  desc: `Minting purchase intent order on PayPal API rails for $${totalCalculatedAmount} USD`,
+                },
+                {
+                  stepNum: 3,
+                  title: "Register Escrow Agreement on Vault Ledger",
+                  desc: "Establishing locked milestone agreement with buyer and contractor protections",
+                },
+                {
+                  stepNum: 4,
+                  title: "Ready for Escrow Deposit",
+                  desc: "Agreement initialized. Proceeding to PayPal deposit authorization.",
+                },
+              ].map((s) => {
+                const isDone = escrowInitStep > s.stepNum;
+                const isCurrent = escrowInitStep === s.stepNum;
+                return (
+                  <div
+                    key={s.stepNum}
+                    className={`p-3 rounded-xl border transition-all duration-300 flex items-start gap-3 ${
+                      isDone
+                        ? "bg-emerald-500/[0.08] border-emerald-500/30 text-foreground"
+                        : isCurrent
+                        ? "bg-accent/[0.08] border-accent/40 text-foreground shadow-xs"
+                        : "bg-background/40 border-border/50 text-muted opacity-50"
+                    }`}
+                  >
+                    <div className="mt-0.5 shrink-0">
+                      {isDone ? (
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                          <Check className="w-3 h-3" />
+                        </div>
+                      ) : isCurrent ? (
+                        <div className="w-5 h-5 rounded-full bg-accent/20 border-2 border-accent text-accent flex items-center justify-center text-xs">
+                          <RefreshCw className="w-3 h-3 animate-spin text-accent" />
+                        </div>
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-background border border-border text-muted flex items-center justify-center text-[10px] font-mono font-medium">
+                          {s.stepNum}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs font-semibold ${isDone ? "text-emerald-400" : isCurrent ? "text-foreground" : "text-muted"}`}>
+                          {s.title}
+                        </span>
+                        {isDone && (
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">Ready</span>
+                        )}
+                        {isCurrent && (
+                          <span className="text-[10px] font-mono text-accent font-bold animate-pulse">Initializing...</span>
+                        )}
+                      </div>
+                      <p className="text-[10.5px] text-muted mt-0.5 leading-relaxed">
+                        {s.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Status bar */}
+            <div className="p-3 rounded-xl bg-background/80 border border-border/80 text-[11px] text-foreground flex items-center gap-2.5">
+              <span className="w-2 h-2 rounded-full bg-accent animate-ping shrink-0" />
+              <span className="truncate">
+                {escrowInitStep === 1
+                  ? "Status: Specifications validated against contract requirements..."
+                  : escrowInitStep === 2
+                  ? `Status: Minting PayPal purchase intent order for $${totalCalculatedAmount} USD...`
+                  : escrowInitStep === 3
+                  ? "Status: Agreement registered in escrow vault ledger..."
+                  : "Status: Setup complete! Directing to 1-click escrow deposit."}
               </span>
             </div>
           </div>

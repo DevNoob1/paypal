@@ -18,6 +18,7 @@ import {
   TrendingUp,
   BarChart2,
   Zap,
+  Plug,
 } from "lucide-react";
 import { useAuth } from "@/components/AuthContext";
 
@@ -208,7 +209,16 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/integrations"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card/70 hover:bg-card border border-border text-foreground text-xs font-medium transition-all cursor-pointer shadow-xs"
+            title="Configure GitHub, Figma, Vercel & Notification Rails"
+          >
+            <Plug className="w-3.5 h-3.5 text-accent" />
+            <span className="hidden sm:inline">Integrations</span>
+          </Link>
+
           <button
             type="button"
             onClick={() => setIsSignInOpen(true)}

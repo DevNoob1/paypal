@@ -11,6 +11,7 @@ import {
   Shield,
   Plus,
   LayoutDashboard,
+  Plug,
   ChevronDown,
   Sun,
   Moon,
@@ -55,6 +56,17 @@ export function Navbar() {
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
               Dashboard
+            </Link>
+
+            <Link
+              href="/integrations"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${pathname === "/integrations"
+                  ? "bg-white/[0.08] text-foreground font-semibold"
+                  : "text-muted hover:text-foreground"
+                }`}
+            >
+              <Plug className="w-3.5 h-3.5" />
+              Integrations
             </Link>
           </nav>
         </div>
@@ -103,8 +115,8 @@ export function Navbar() {
           >
             <div
               className={`w-5 h-5 rounded-full ${user.role === "client"
-                  ? "bg-accent/20 border-accent/30 text-accent"
-                  : "bg-emerald-500/20 border-emerald-500/30 text-emerald-500"
+                ? "bg-accent/20 border-accent/30 text-accent"
+                : "bg-emerald-500/20 border-emerald-500/30 text-emerald-500"
                 } border flex items-center justify-center text-[10px] font-bold`}
             >
               {user.initials || "AC"}
