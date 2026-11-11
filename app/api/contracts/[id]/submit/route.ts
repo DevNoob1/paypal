@@ -25,17 +25,20 @@ export async function POST(
       codeSnippet: body.codeSnippet || "",
     };
 
-    // Auto-run AI deliverable verification on submission
-    const auditReport = await evaluateMilestone({
-      title: contract.title,
-      description: contract.description,
-      criteria: contract.criteria,
-      deliverableText: submission.notes,
-      deliverableUrl: submission.url,
-      secondaryUrl: body.liveUrl || body.secondaryUrl || "",
-      screenshotUrl: submission.screenshotUrl,
-      codeSnippet: submission.codeSnippet,
-    });
+    // Reuse pre-flight audit report if already verified, avoiding duplicate 5-8s AI calls!
+    const auditReport =
+      body.preflightReport && body.preflightReport.overallScore !== undefined
+        ? body.preflightReport
+        : await evaluateMilestone({
+            title: contract.title,
+            description: contract.description,
+            criteria: contract.criteria,
+            deliverableText: submission.notes,
+            deliverableUrl: submission.url,
+            secondaryUrl: body.liveUrl || body.secondaryUrl || "",
+            screenshotUrl: submission.screenshotUrl,
+            codeSnippet: submission.codeSnippet,
+          });
 
     const newStatus =
       auditReport.verdict === "APPROVE" ? "AI_VERIFIED" : "PENDING_REVIEW";

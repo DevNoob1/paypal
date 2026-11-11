@@ -27,13 +27,13 @@ interface Milestone {
   title: string;
   amount: number;
   status:
-    | "DRAFT"
-    | "FUNDED_ESCROW"
-    | "IN_PROGRESS"
-    | "PENDING_REVIEW"
-    | "AI_VERIFIED"
-    | "PAYOUT_COMPLETED"
-    | "DISPUTED";
+  | "DRAFT"
+  | "FUNDED_ESCROW"
+  | "IN_PROGRESS"
+  | "PENDING_REVIEW"
+  | "AI_VERIFIED"
+  | "PAYOUT_COMPLETED"
+  | "DISPUTED";
   criteria: string[];
   deadline?: string;
   payoutReceipt?: {
@@ -57,13 +57,13 @@ interface Contract {
   createdAt: string;
   deadline: string;
   status:
-    | "DRAFT"
-    | "FUNDED_ESCROW"
-    | "IN_PROGRESS"
-    | "PENDING_REVIEW"
-    | "AI_VERIFIED"
-    | "PAYOUT_COMPLETED"
-    | "DISPUTED";
+  | "DRAFT"
+  | "FUNDED_ESCROW"
+  | "IN_PROGRESS"
+  | "PENDING_REVIEW"
+  | "AI_VERIFIED"
+  | "PAYOUT_COMPLETED"
+  | "DISPUTED";
   criteria: string[];
   paypalOrderId?: string;
   submission?: {
@@ -209,39 +209,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/integrations"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-card/70 hover:bg-card border border-border text-foreground text-xs font-medium transition-all cursor-pointer shadow-xs"
-            title="Configure GitHub, Figma, Vercel & Notification Rails"
-          >
-            <Plug className="w-3.5 h-3.5 text-accent" />
-            <span className="hidden sm:inline">Integrations</span>
-          </Link>
 
-          <button
-            type="button"
-            onClick={() => setIsSignInOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-card/70 hover:bg-card border border-border text-foreground text-xs font-medium transition-all cursor-pointer shadow-xs"
-          >
-            Switch to {user.role === "client" ? "Contractor View" : "Client View"}
-          </button>
-
-          <div data-tour="new-contract-btn">
-            <Link
-              href="/contracts/new"
-              onClick={() => {
-                if (user.role === "contractor") {
-                  loginAs("client");
-                }
-              }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-              New Agreement
-            </Link>
-          </div>
-        </div>
       </div>
 
       {/* 2. Top Metric Cards Grid */}
@@ -638,16 +606,14 @@ export default function Dashboard() {
             <button
               key={tab.val}
               onClick={() => setFilter(tab.val)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                filter === tab.val
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${filter === tab.val
                   ? "bg-white/[0.08] text-foreground font-semibold shadow-xs"
                   : "text-muted hover:text-foreground"
-              }`}
+                }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                filter === tab.val ? "bg-white/[0.12] text-foreground" : "bg-card text-muted"
-              }`}>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${filter === tab.val ? "bg-white/[0.12] text-foreground" : "bg-card text-muted"
+                }`}>
                 {tab.count}
               </span>
             </button>
@@ -780,8 +746,8 @@ export default function Dashboard() {
                         {hasMilestones
                           ? `${completedMilestones} of ${totalMilestonesCount} Milestones`
                           : isPaid
-                          ? "Completed"
-                          : "In Progress"}
+                            ? "Completed"
+                            : "In Progress"}
                       </span>
                       <span className="text-muted flex items-center gap-1 font-mono text-[10px]">
                         <Clock className="w-3 h-3" />
@@ -791,15 +757,14 @@ export default function Dashboard() {
 
                     <div className="w-full h-1.5 rounded-full bg-background border border-border/50 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          isPaid
+                        className={`h-full rounded-full transition-all duration-300 ${isPaid
                             ? "bg-emerald-500 w-full"
                             : isDisputed
-                            ? "bg-rose-500 w-1/2"
-                            : isReviewReady
-                            ? "bg-amber-400 w-4/5"
-                            : "bg-accent w-1/3"
-                        }`}
+                              ? "bg-rose-500 w-1/2"
+                              : isReviewReady
+                                ? "bg-amber-400 w-4/5"
+                                : "bg-accent w-1/3"
+                          }`}
                       />
                     </div>
                   </div>

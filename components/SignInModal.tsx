@@ -38,11 +38,10 @@ export function SignInModal() {
           <button
             type="button"
             onClick={() => loginAs("client")}
-            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
-              user.role === "client"
+            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${user.role === "client"
                 ? "bg-accent/[0.07] border-accent/60 shadow-sm"
                 : "bg-background/60 border-border hover:border-zinc-500/40 hover:bg-card-hover"
-            }`}
+              }`}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
@@ -73,11 +72,10 @@ export function SignInModal() {
           <button
             type="button"
             onClick={() => loginAs("contractor")}
-            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${
-              user.role === "contractor"
+            className={`w-full text-left p-4 rounded-xl border transition-all cursor-pointer ${user.role === "contractor"
                 ? "bg-emerald-500/[0.08] border-emerald-500/60 shadow-sm"
                 : "bg-background/60 border-border hover:border-zinc-500/40 hover:bg-card-hover"
-            }`}
+              }`}
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
@@ -105,13 +103,6 @@ export function SignInModal() {
           </button>
         </div>
 
-        <div className="mt-5 pt-3.5 border-t border-border flex items-center justify-between text-[11px] text-muted">
-          <span>Instant Role Switching</span>
-          <span className="flex items-center gap-1 text-emerald-500 font-medium">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 inline-block" />
-            PayPal Payment Rails Connected
-          </span>
-        </div>
       </div>
     </div>
   );
