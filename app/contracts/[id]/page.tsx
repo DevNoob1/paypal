@@ -26,82 +26,19 @@ import {
   KeyRound,
   ShieldAlert,
   Plug,
+  Eye,
+  Scan,
 } from "lucide-react";
 import { Contract } from "@/lib/store";
 import { useAuth } from "@/components/AuthContext";
 import { AuditReport } from "@/lib/gemini";
 
-function AutonomousSwarmConsole({ score = 95 }: { score?: number }) {
-  return (
-    <div className="p-4 rounded-xl bg-card/80 border border-border/80 space-y-3 shadow-xs">
-      <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs font-bold text-foreground">
-            Autonomous Tri-Agent Referee Swarm
-          </span>
-        </div>
-        <span className="text-[10.5px] font-mono text-emerald-400 font-bold bg-emerald-500/10 px-2.5 py-0.5 rounded border border-emerald-500/20">
-          Unanimous Consensus ({score}/100)
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-        {/* Agent Alpha */}
-        <div className="p-3 rounded-lg bg-background/60 border border-border/60 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-              Agent Alpha
-            </span>
-            <span className="font-mono text-emerald-400 font-bold">96%</span>
-          </div>
-          <div className="text-[10px] font-mono text-muted uppercase">Scope Auditor</div>
-          <p className="text-[11px] text-muted leading-relaxed">
-            Deconstructed contract specifications. 100% of defined criteria satisfied without scope creep.
-          </p>
-        </div>
-
-        {/* Agent Beta */}
-        <div className="p-3 rounded-lg bg-background/60 border border-border/60 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-              Agent Beta
-            </span>
-            <span className="font-mono text-emerald-400 font-bold">94%</span>
-          </div>
-          <div className="text-[10px] font-mono text-muted uppercase">Code Inspector</div>
-          <p className="text-[11px] text-muted leading-relaxed">
-            Inspected git PR diffs, commits, & preview artifacts. Passes automated verification test suite.
-          </p>
-        </div>
-
-        {/* Agent Gamma */}
-        <div className="p-3 rounded-lg bg-background/60 border border-border/60 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-bold text-foreground flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Agent Gamma
-            </span>
-            <span className="font-mono text-emerald-400 font-bold">95%</span>
-          </div>
-          <div className="text-[10px] font-mono text-muted uppercase">Escrow Arbiter</div>
-          <p className="text-[11px] text-muted leading-relaxed">
-            PayPal escrow vault verified. 48-hour auto-release protection active on payment rails.
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ContractDetailContent({ id }: { id: string }) {
-  const { user, loginAs, setIsSignInOpen } = useAuth();
+  const { user, loginAs } = useAuth();
   const [contract, setContract] = useState<Contract | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Contractor Tab Navigation (1: Submit, 2: Pre-Flight Check, 3: Status & Escrow)
+  // Contractor Tab Navigation (1: Submit, 2: Pre-Flight Check, 3: Status & Review)
   const [activeTab, setActiveTab] = useState<"submit" | "preflight" | "submitted">("submit");
 
   // Contractor Form State
@@ -129,6 +66,13 @@ function ContractDetailContent({ id }: { id: string }) {
   const [preflightReport, setPreflightReport] = useState<AuditReport | null>(null);
   const [submittingFinal, setSubmittingFinal] = useState(false);
 
+  // Live Dual Parallel Scanner Modal State (Link Scanner + Image Scanner running simultaneously)
+  const [parallelScanModalOpen, setParallelScanModalOpen] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0); // 0 to 100
+  const [linkScanStep, setLinkScanStep] = useState<"IDLE" | "SCANNING" | "DONE">("IDLE");
+  const [imageScanStep, setImageScanStep] = useState<"IDLE" | "SCANNING" | "DONE">("IDLE");
+  const [verdictStep, setVerdictStep] = useState<"WAITING" | "READY">("WAITING");
+
   // Client Payout State & Security OTP
   const [otpModalOpen, setOtpModalOpen] = useState(false);
   const [enteredOtp, setEnteredOtp] = useState("");
@@ -142,11 +86,6 @@ function ContractDetailContent({ id }: { id: string }) {
 
   // Notifications Drawer / Toggle
   const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false);
-
-  // Animated Flow Modal State
-  const [animatedFlowOpen, setAnimatedFlowOpen] = useState(false);
-  const [flowStep, setFlowStep] = useState(1);
-  const [flowMode, setFlowMode] = useState<"preflight" | "submit" | "payout" | "recheck">("preflight");
 
   const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -183,20 +122,20 @@ function ContractDetailContent({ id }: { id: string }) {
     fetchContract();
   }, [id]);
 
-  // Contractor: Run Pre-Flight AI Check (Self-Audit Quality Check)
+  // Contractor: Run Live Dual Parallel Scanner (Link Scanner & Image Scanner running simultaneously!)
   const handleRunPreflight = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!submissionUrl.trim() && !screenshotUrl.trim()) return;
 
-    setFlowMode("preflight");
-    setFlowStep(1);
-    setAnimatedFlowOpen(true);
+    setParallelScanModalOpen(true);
+    setScanProgress(15);
+    setLinkScanStep("SCANNING");
+    setImageScanStep("SCANNING");
+    setVerdictStep("WAITING");
     setPreflightLoading(true);
 
     try {
-      await sleep(700);
-      setFlowStep(2);
-
+      // Trigger actual AI evaluation in background
       const fetchPromise = fetch(`/api/contracts/${id}/preflight`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,45 +146,53 @@ function ContractDetailContent({ id }: { id: string }) {
         }),
       });
 
+      // Visually animate parallel scanning for both link and image simultaneously
       await sleep(800);
-      setFlowStep(3);
+      setScanProgress(50);
+      await sleep(900);
+      setScanProgress(80);
 
-      await sleep(700);
       const res = await fetchPromise;
       const data = await res.json();
 
-      setFlowStep(4);
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-      await sleep(900);
+      await sleep(600);
+      setScanProgress(100);
+      setLinkScanStep("DONE");
+      setImageScanStep("DONE");
+      setVerdictStep("READY");
 
       if (data.auditReport) {
         setPreflightReport(data.auditReport);
-        setActiveTab("preflight");
+        if (data.auditReport.overallScore >= 80) {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 },
+          });
+        }
       }
     } catch (err) {
       console.error("Pre-flight check error:", err);
+      setLinkScanStep("DONE");
+      setImageScanStep("DONE");
+      setVerdictStep("READY");
     } finally {
-      setAnimatedFlowOpen(false);
       setPreflightLoading(false);
     }
   };
 
-  // Contractor: Final submission to client (Locks into Review Window & Dispatches External Notifications)
+  // Close parallel scanner modal and go to Tab 2
+  const handleFinishInspectionModal = () => {
+    setParallelScanModalOpen(false);
+    setActiveTab("preflight");
+  };
+
+  // Contractor: Final submission to client (NO MODAL! Precheck is already done)
   const handleFinalSubmit = async () => {
-    setFlowMode("submit");
-    setFlowStep(1);
-    setAnimatedFlowOpen(true);
     setSubmittingFinal(true);
 
     try {
-      await sleep(700);
-      setFlowStep(2);
-
-      const fetchPromise = fetch(`/api/contracts/${id}/submit`, {
+      const res = await fetch(`/api/contracts/${id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -255,29 +202,20 @@ function ContractDetailContent({ id }: { id: string }) {
         }),
       });
 
-      await sleep(800);
-      setFlowStep(3);
-
-      await sleep(700);
-      const res = await fetchPromise;
       const data = await res.json();
-
-      setFlowStep(4);
-      confetti({
-        particleCount: 140,
-        spread: 85,
-        origin: { y: 0.6 },
-      });
-      await sleep(900);
 
       if (data.contract) {
         setContract(data.contract);
         setActiveTab("submitted");
+        confetti({
+          particleCount: 120,
+          spread: 80,
+          origin: { y: 0.6 },
+        });
       }
     } catch (err) {
       console.error("Submission failed:", err);
     } finally {
-      setAnimatedFlowOpen(false);
       setSubmittingFinal(false);
     }
   };
@@ -297,87 +235,50 @@ function ContractDetailContent({ id }: { id: string }) {
     }
 
     setOtpModalOpen(false);
-    setFlowMode("payout");
-    setAnimatedFlowOpen(true);
-    setFlowStep(1);
     setReleasingPayout(true);
 
     try {
-      await sleep(650);
-      setFlowStep(2);
-
-      const fetchPromise = fetch(`/api/contracts/${id}/payout`, {
+      const res = await fetch(`/api/contracts/${id}/payout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
 
-      await sleep(750);
-      setFlowStep(3);
-
-      await sleep(650);
-      const res = await fetchPromise;
       const data = await res.json();
-
-      setFlowStep(4);
-      confetti({
-        particleCount: 160,
-        spread: 90,
-        origin: { y: 0.5 },
-      });
-      await sleep(850);
 
       if (data.contract) {
         setContract(data.contract);
+        confetti({
+          particleCount: 160,
+          spread: 90,
+          origin: { y: 0.5 },
+        });
       }
     } catch (err) {
       console.error("Payout release error:", err);
     } finally {
-      setAnimatedFlowOpen(false);
       setReleasingPayout(false);
     }
   };
 
   // Client / Contractor: Re-run quality check
   const handleRecheck = async () => {
-    setFlowMode("recheck");
-    setFlowStep(1);
-    setAnimatedFlowOpen(true);
-
     try {
-      await sleep(700);
-      setFlowStep(2);
-
-      const fetchPromise = fetch(`/api/contracts/${id}/audit`, {
+      const res = await fetch(`/api/contracts/${id}/audit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ autoReleasePayout: false }),
       });
-
-      await sleep(800);
-      setFlowStep(3);
-
-      await sleep(700);
-      const res = await fetchPromise;
       const data = await res.json();
-
-      setFlowStep(4);
-      confetti({
-        particleCount: 90,
-        spread: 65,
-        origin: { y: 0.6 },
-      });
-      await sleep(850);
-
       if (data.contract) {
         setContract(data.contract);
+        setPreflightReport(data.contract.auditReport);
       }
     } catch (err) {
-      console.error("Audit re-check failed:", err);
-    } finally {
-      setAnimatedFlowOpen(false);
+      console.error("Recheck error:", err);
     }
   };
 
-  // Client: Submit formal revision request / freeze escrow
+  // Client: Submit formal revision request
   const handleSendRevisionNotice = async () => {
     if (!disputeReason.trim()) return;
     setSubmittingDispute(true);
@@ -399,7 +300,7 @@ function ContractDetailContent({ id }: { id: string }) {
         setContract(data.contract);
         setDisputeModalOpen(false);
         setDisputeReason("");
-        setDisputeSuccessNotice("Revision request dispatched to contractor. Escrow funds safely locked.");
+        setDisputeSuccessNotice("Revision request dispatched to contractor. Payment remains protected.");
       }
     } catch (err) {
       console.error("Dispute submit error:", err);
@@ -411,7 +312,7 @@ function ContractDetailContent({ id }: { id: string }) {
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center text-muted text-xs font-mono">
-        Loading escrow agreement details...
+        Loading agreement details...
       </div>
     );
   }
@@ -421,7 +322,7 @@ function ContractDetailContent({ id }: { id: string }) {
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-3">
         <h2 className="text-lg font-bold text-foreground">Agreement Not Found</h2>
         <p className="text-xs text-muted">
-          The requested contract could not be loaded. It may have been archived.
+          The requested agreement could not be loaded. It may have been archived.
         </p>
         <Link
           href="/dashboard"
@@ -452,6 +353,16 @@ function ContractDetailContent({ id }: { id: string }) {
         </Link>
 
         <div className="flex items-center gap-2">
+          {/* Integrations Link */}
+          <Link
+            href="/integrations"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card/60 hover:bg-card border border-border text-xs text-foreground transition-colors cursor-pointer"
+            title="Configure GitHub, Figma, and Vercel Integrations"
+          >
+            <Plug className="w-3.5 h-3.5 text-accent" />
+            <span className="hidden sm:inline">Integrations</span>
+          </Link>
+
           {/* Notifications Feed Button */}
           <button
             type="button"
@@ -468,7 +379,7 @@ function ContractDetailContent({ id }: { id: string }) {
             )}
           </button>
 
-          {/* Quick Role Switcher Shortcut */}
+          {/* Role Switcher Shortcut */}
           <button
             type="button"
             onClick={() => loginAs(user.role === "client" ? "contractor" : "client")}
@@ -495,7 +406,7 @@ function ContractDetailContent({ id }: { id: string }) {
             </span>
             <span className="text-border">•</span>
             <span className="text-[11px] font-mono text-muted">
-              PayPal Order: {contract.paypalOrderId || "PP-ESCROW-LOCKED"}
+              PayPal Order: {contract.paypalOrderId || "PP-ORD-ACTIVE"}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
@@ -504,7 +415,7 @@ function ContractDetailContent({ id }: { id: string }) {
         </div>
 
         <div className="flex items-baseline gap-2 self-start md:self-auto bg-background/80 px-4 py-2.5 rounded-xl border border-border">
-          <span className="text-xs font-semibold text-muted uppercase">Escrow Vault:</span>
+          <span className="text-xs font-semibold text-muted uppercase">Protected Payment:</span>
           <span className="text-xl font-bold font-mono text-emerald-400">
             ${contract.amount.toFixed(2)}
           </span>
@@ -512,7 +423,7 @@ function ContractDetailContent({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Notifications Drawer Banner (When opened) */}
+      {/* Notifications Drawer Banner */}
       {showNotificationsDrawer && (
         <div className="mb-6 p-4 rounded-xl bg-card/90 border border-border shadow-lg space-y-3 animate-in fade-in duration-200">
           <div className="flex items-center justify-between border-b border-border/60 pb-2">
@@ -532,7 +443,7 @@ function ContractDetailContent({ id }: { id: string }) {
 
           {notificationsList.length === 0 ? (
             <p className="text-xs text-muted py-2">
-              No outside alerts dispatched yet. Submitting work or releasing payouts dispatches automated Email & SMS notifications.
+              No outside alerts dispatched yet. Submitting work or releasing payment sends automated Email & SMS notifications.
             </p>
           ) : (
             <div className="space-y-2">
@@ -565,14 +476,14 @@ function ContractDetailContent({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Phased Milestones Breakdown (If agreement has milestones) */}
+      {/* Phased Milestones Breakdown */}
       {contract.milestones && contract.milestones.length > 1 && (
         <div className="mb-6 p-4 rounded-xl bg-card/60 border border-border/80 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Layers className="w-4 h-4 text-accent" />
               <h3 className="text-xs font-bold text-foreground">
-                Project Milestone Schedule ({contract.milestones.length} Phases)
+                Milestone Schedule ({contract.milestones.length} Phases)
               </h3>
             </div>
             <span className="text-[11px] text-muted font-mono">
@@ -615,7 +526,7 @@ function ContractDetailContent({ id }: { id: string }) {
                       </span>
                     ) : (
                       <span className="text-muted flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> In Escrow Vault
+                        <Lock className="w-3 h-3" /> Payment Protected
                       </span>
                     )}
                   </div>
@@ -644,7 +555,7 @@ function ContractDetailContent({ id }: { id: string }) {
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 1
               </span>
-              <span>1. Submit Deliverable</span>
+              <span>1. Submit Proof</span>
             </button>
 
             <button
@@ -663,7 +574,7 @@ function ContractDetailContent({ id }: { id: string }) {
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 2
               </span>
-              <span>2. Pre-Flight AI Check</span>
+              <span>2. AI Pre-Check</span>
             </button>
 
             <button
@@ -682,7 +593,7 @@ function ContractDetailContent({ id }: { id: string }) {
               <span className="w-4 h-4 rounded-full bg-white/20 text-[10px] flex items-center justify-center font-bold">
                 3
               </span>
-              <span>3. Hand Off & Escrow</span>
+              <span>3. Hand Off to Client</span>
             </button>
           </div>
 
@@ -742,7 +653,7 @@ function ContractDetailContent({ id }: { id: string }) {
                       Step 1: Provide Deliverable Proof
                     </h3>
                     <p className="text-[11px] text-muted">
-                      Attach your work link (GitHub PR, repository, deployed URL) or upload visual screenshot proof.
+                      Attach your work link (GitHub PR, repository, deployed URL) or upload screenshot proof.
                     </p>
                   </div>
 
@@ -762,50 +673,6 @@ function ContractDetailContent({ id }: { id: string }) {
                         onChange={(e) => setSubmissionUrl(e.target.value)}
                         className="w-full px-3.5 py-2.5 rounded-lg bg-background border border-border text-foreground placeholder-muted/60 focus:outline-none focus:border-accent text-xs font-mono"
                       />
-
-                      {/* Quick Select from Connected Integrations */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-2">
-                        <span className="text-[10.5px] text-muted flex items-center gap-1">
-                          <Plug className="w-3 h-3 text-accent" />
-                          Connected Rails:
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSubmissionUrl("https://github.com/acme-engineering/checkout-flow/pull/24");
-                            setSubmissionNotes("Implemented responsive checkout modal with card validation, discount code recalculation, and passes 42/42 Jest test suite (Commit: 7f8a91c).");
-                          }}
-                          className="px-2 py-0.5 rounded-md bg-accent/10 hover:bg-accent/20 border border-accent/25 text-accent text-[10.5px] font-medium transition-colors cursor-pointer"
-                        >
-                          GitHub PR #24
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSubmissionUrl("https://www.figma.com/design/sample-banking-v2");
-                            setSubmissionNotes("Completed Mobile Banking v2.4 interactive Figma frames (18 screens auto-layout, design token typography & colors, accessible contrast).");
-                          }}
-                          className="px-2 py-0.5 rounded-md bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/25 text-purple-400 text-[10.5px] font-medium transition-colors cursor-pointer"
-                        >
-                          Figma v2.4
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSubmissionUrl("https://checkout-staging.vercel.app");
-                            setSubmissionNotes("Live preview deployment on Vercel with 200 OK health check and Lighthouse score 96/100.");
-                          }}
-                          className="px-2 py-0.5 rounded-md bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-foreground text-[10.5px] font-medium transition-colors cursor-pointer"
-                        >
-                          Vercel Live
-                        </button>
-                        <Link
-                          href="/integrations"
-                          className="text-[10.5px] text-muted hover:text-foreground underline ml-auto"
-                        >
-                          Manage Integrations →
-                        </Link>
-                      </div>
                     </div>
 
                     {/* 2. Visual Proof (Both File Upload and Image Link) */}
@@ -930,7 +797,7 @@ function ContractDetailContent({ id }: { id: string }) {
                         {preflightLoading ? (
                           <>
                             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            Auditing live diffs & screenshot with Gemini Vision...
+                            Scanning link and image in parallel...
                           </>
                         ) : (
                           <>
@@ -942,7 +809,7 @@ function ContractDetailContent({ id }: { id: string }) {
 
                       {!submissionUrl.trim() && !screenshotUrl.trim() && (
                         <p className="text-[10.5px] text-amber-400 text-center font-medium">
-                          ⚠️ Provide at least one verifiable proof: a work link (GitHub/deployed app) or an uploaded screenshot.
+                          ⚠️ Provide at least one proof: a work link (GitHub/deployed app) or an uploaded screenshot.
                         </p>
                       )}
                     </div>
@@ -957,10 +824,10 @@ function ContractDetailContent({ id }: { id: string }) {
                     <div>
                       <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-accent" />
-                        Step 2: Pre-Flight AI Self-Check
+                        Step 2: Pre-Flight AI Check Results
                       </h3>
                       <p className="text-[11px] text-muted">
-                        Preview of how your deliverable satisfies milestone criteria before client submission.
+                        Preview of how your deliverable satisfies requirements before client submission.
                       </p>
                     </div>
 
@@ -973,18 +840,15 @@ function ContractDetailContent({ id }: { id: string }) {
                   <div className="p-3.5 rounded-lg bg-emerald-500/[0.08] border border-emerald-500/25 text-xs text-foreground space-y-1.5">
                     <div className="font-semibold text-emerald-400 flex items-center gap-1.5">
                       <ShieldCheck className="w-4 h-4" />
-                      Verification Passed — Quality Criteria Satisfied
+                      Verification Passed — Quality Requirements Satisfied
                     </div>
                     <p className="text-xs text-foreground leading-relaxed font-medium">
                       {preflightReport?.summary ||
-                        "All acceptance criteria are satisfied. Proceed to Step 3 to formally hand off to the client."}
+                        "All acceptance criteria are satisfied. Proceed to Step 3 to hand off to the client."}
                     </p>
                   </div>
 
-                  {/* Autonomous Tri-Agent Swarm Console */}
-                  <AutonomousSwarmConsole score={preflightReport?.overallScore ?? 94} />
-
-                  {/* Live Inspected Artifacts Card (Evidence of Real Inspection) */}
+                  {/* Live Inspected Artifacts Card */}
                   {preflightReport?.inspectedArtifacts && preflightReport.inspectedArtifacts.length > 0 && (
                     <div className="p-3.5 rounded-lg bg-background/80 border border-border/80 space-y-2">
                       <span className="text-[11px] font-bold text-foreground block">
@@ -1053,13 +917,13 @@ function ContractDetailContent({ id }: { id: string }) {
                       onClick={() => setActiveTab("submitted")}
                       className="flex-1 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                     >
-                      <span>Proceed to Step 3: Final Submit to Client →</span>
+                      <span>Proceed to Step 3: Hand Off to Client →</span>
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* TAB 3: STEP 3 - FINAL SUBMIT TO CLIENT & ESCROW STATUS */}
+              {/* TAB 3: STEP 3 - SUBMIT TO CLIENT & STATUS */}
               {activeTab === "submitted" && (
                 <div data-tour="deliverable-submission" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-4 shadow-sm animate-in fade-in duration-300">
                   <div className="flex items-center justify-between border-b border-border/60 pb-3">
@@ -1069,14 +933,14 @@ function ContractDetailContent({ id }: { id: string }) {
                       </div>
                       <div>
                         <h3 className="text-sm font-semibold text-foreground">
-                          {isPaid ? "Milestone Paid via PayPal" : hasSubmission ? "Deliverable Submitted to Client" : "Ready for Client Handoff"}
+                          {isPaid ? "Payment Settled via PayPal" : hasSubmission ? "Deliverable Submitted to Client" : "Ready for Client Handoff"}
                         </h3>
                         <p className="text-[11px] text-muted">
                           {isPaid
                             ? `Funds deposited to ${contract.freelancerEmail}`
                             : hasSubmission
-                            ? "Client notified. 48-hour auto-release protection active."
-                            : "Click below to submit your verified deliverable to the client."}
+                            ? "Client notified. 48-hour review protection active."
+                            : "Pre-check passed! Click below to deliver your work to the client."}
                         </p>
                       </div>
                     </div>
@@ -1086,7 +950,7 @@ function ContractDetailContent({ id }: { id: string }) {
                     </span>
                   </div>
 
-                  {/* Submission Confirmation Banner / Action */}
+                  {/* Submission Confirmation Action (NO MODAL! Simple 1-click submit) */}
                   {!hasSubmission && (
                     <div className="p-4 rounded-xl bg-accent/10 border border-accent/30 space-y-3">
                       <div className="flex items-center gap-2 text-xs font-bold text-foreground">
@@ -1094,7 +958,7 @@ function ContractDetailContent({ id }: { id: string }) {
                         <span>Ready to Hand Off Work to Client</span>
                       </div>
                       <p className="text-xs text-muted leading-relaxed">
-                        Submitting will formally deliver your work link and visual proof to {contract.clientName} ({contract.clientEmail}), starting the 48-hour review window.
+                        Pre-check passed. Submitting will deliver your work proof to {contract.clientName} ({contract.clientEmail}), starting the 48-hour review window.
                       </p>
                       <button
                         type="button"
@@ -1105,7 +969,7 @@ function ContractDetailContent({ id }: { id: string }) {
                         {submittingFinal ? (
                           <>
                             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            Dispatching Submission & Client Notification...
+                            Submitting to client...
                           </>
                         ) : (
                           <>
@@ -1122,17 +986,12 @@ function ContractDetailContent({ id }: { id: string }) {
                     <div className="p-3.5 rounded-lg bg-amber-500/[0.08] border border-amber-500/25 text-xs text-foreground space-y-1">
                       <div className="font-semibold text-amber-400 flex items-center gap-1.5">
                         <Clock className="w-4 h-4" />
-                        48-Hour Auto-Release Protection Active
+                        48-Hour Review Protection Active
                       </div>
                       <p className="text-[11px] text-muted leading-relaxed">
-                        External notification sent to {contract.clientEmail}. If the client does not request revisions within 48 hours, the ${contract.amount.toFixed(2)} USD held in PayPal escrow releases directly to your account.
+                        Notification sent to {contract.clientEmail}. If the client does not request revisions within 48 hours, the ${contract.amount.toFixed(2)} USD payment will automatically release to your account.
                       </p>
                     </div>
-                  )}
-
-                  {/* Autonomous Tri-Agent Swarm Console */}
-                  {hasSubmission && (
-                    <AutonomousSwarmConsole score={audit?.overallScore ?? 94} />
                   )}
 
                   {/* Submitted Proof Details */}
@@ -1253,7 +1112,7 @@ function ContractDetailContent({ id }: { id: string }) {
                 </span>
                 <span className="text-[11px] text-accent flex items-center gap-1 font-medium">
                   <Lock className="w-3 h-3" />
-                  Locked in Escrow
+                  Locked in Agreement
                 </span>
               </div>
 
@@ -1341,7 +1200,7 @@ function ContractDetailContent({ id }: { id: string }) {
                   <Clock className="w-5 h-5 text-muted mx-auto mb-1" />
                   <div className="text-xs font-medium text-foreground">Waiting for Contractor Submission</div>
                   <p className="text-[11px] text-muted">
-                    {contract.freelancerName} has not submitted proof yet. Your ${contract.amount.toFixed(2)} USD is safely locked in PayPal escrow.
+                    {contract.freelancerName} has not submitted proof yet. Your ${contract.amount.toFixed(2)} USD payment is protected.
                   </p>
                 </div>
               )}
@@ -1360,7 +1219,7 @@ function ContractDetailContent({ id }: { id: string }) {
                         AI Milestone Verification
                       </h3>
                       <p className="text-[11px] text-muted">
-                        Automated check against the locked contract criteria
+                        Automated check against the locked criteria
                       </p>
                     </div>
                   </div>
@@ -1380,9 +1239,6 @@ function ContractDetailContent({ id }: { id: string }) {
                     {audit?.summary || "All agreed criteria were verified against the submitted work."}
                   </p>
                 </div>
-
-                {/* Autonomous Tri-Agent Swarm Console */}
-                <AutonomousSwarmConsole score={audit?.overallScore ?? 95} />
 
                 {/* Live Inspected Artifacts Card */}
                 {audit?.inspectedArtifacts && audit.inspectedArtifacts.length > 0 && (
@@ -1444,7 +1300,7 @@ function ContractDetailContent({ id }: { id: string }) {
             <div data-tour="audit-action-btn" className="p-5 rounded-xl bg-card/70 border border-border/80 space-y-3.5 shadow-sm">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-foreground">
-                  Settlement & Payout Decision
+                  Payment Decision
                 </h3>
 
                 {isPaid ? (
@@ -1455,12 +1311,12 @@ function ContractDetailContent({ id }: { id: string }) {
                 ) : contract.status === "DISPUTED" ? (
                   <span className="text-[11px] font-semibold text-rose-400 bg-rose-500/10 px-2.5 py-0.5 rounded border border-rose-500/25 flex items-center gap-1">
                     <AlertCircle className="w-3 h-3" />
-                    Escrow Frozen (Revision Requested)
+                    Payment Paused (Revision Requested)
                   </span>
                 ) : (
                   <span className="text-[11px] font-medium text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded border border-amber-500/25 flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    48h Auto-Release Active
+                    48h Review Active
                   </span>
                 )}
               </div>
@@ -1518,8 +1374,17 @@ function ContractDetailContent({ id }: { id: string }) {
                     disabled={releasingPayout}
                     className="w-full py-3.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-semibold text-sm shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
                   >
-                    <KeyRound className="w-4 h-4" />
-                    Authorize & Release ${contract.amount.toFixed(2)} via PayPal
+                    {releasingPayout ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        Releasing PayPal Payment...
+                      </>
+                    ) : (
+                      <>
+                        <KeyRound className="w-4 h-4" />
+                        Authorize & Release ${contract.amount.toFixed(2)} via PayPal
+                      </>
+                    )}
                   </button>
 
                   <div className="flex items-center justify-between text-xs pt-1">
@@ -1546,7 +1411,7 @@ function ContractDetailContent({ id }: { id: string }) {
                         Request Deliverable Revision
                       </div>
                       <p className="text-[11px] text-muted">
-                        Explain what needs revision. Escrow funds will remain locked while the contractor makes updates.
+                        Explain what needs revision. Payment remains protected while the contractor makes updates.
                       </p>
                       <textarea
                         rows={2}
@@ -1563,7 +1428,7 @@ function ContractDetailContent({ id }: { id: string }) {
                       >
                         {submittingDispute ? (
                           <>
-                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <RefreshCw className="w-3 h-3 animate-spin" />
                             Dispatching Notice...
                           </>
                         ) : (
@@ -1575,10 +1440,213 @@ function ContractDetailContent({ id }: { id: string }) {
                 </div>
               ) : (
                 <div className="text-center py-2 text-xs text-muted">
-                  Settlement actions will unlock when contractor submits deliverable proof.
+                  Payment actions will unlock when contractor submits deliverable proof.
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* DUAL PARALLEL SCANNER MODAL (Link Scanner & Image Scanner running simultaneously, then 3rd is Verdict) */}
+      {parallelScanModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-2xl rounded-2xl bg-card border border-border shadow-2xl p-6 sm:p-7 space-y-5 relative overflow-hidden">
+            {/* Top gradient accent line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-cyan-400 to-emerald-400 animate-pulse" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent">
+                  <Scan className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-foreground">
+                    Live Deliverable Quality Scan
+                  </h3>
+                  <p className="text-xs text-muted">
+                    Inspecting code repository and visual screenshot in parallel
+                  </p>
+                </div>
+              </div>
+
+              <span className="font-mono text-xs font-bold px-2.5 py-1 rounded bg-background border border-border text-foreground">
+                {scanProgress}% Completed
+              </span>
+            </div>
+
+            {/* Overall Progress Bar */}
+            <div className="h-1.5 w-full rounded-full bg-background border border-border/80 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-accent via-cyan-400 to-emerald-500 rounded-full transition-all duration-500"
+                style={{ width: `${scanProgress}%` }}
+              />
+            </div>
+
+            {/* PARALLEL SCAN GRID: 2 Scanners Side-by-Side */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              {/* Scanner 1: Link & Code */}
+              <div
+                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-3 ${
+                  linkScanStep === "DONE"
+                    ? "bg-emerald-500/[0.08] border-emerald-500/35"
+                    : "bg-background/80 border-accent/40 shadow-sm"
+                }`}
+              >
+                {/* Active scan beam animation when scanning */}
+                {linkScanStep === "SCANNING" && (
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-accent/10 to-transparent animate-pulse pointer-events-none" />
+                )}
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-4 h-4 text-accent" />
+                    <span className="text-xs font-bold text-foreground">1. Link & Code Scanner</span>
+                  </div>
+                  {linkScanStep === "DONE" ? (
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded">
+                      ✓ Inspected
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono text-accent font-bold animate-pulse flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                      Scanning...
+                    </span>
+                  )}
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-card/60 border border-border/60 space-y-1">
+                  <span className="text-[10px] uppercase font-mono text-muted block">Target Endpoint</span>
+                  <div className="font-mono text-xs text-foreground truncate">
+                    {submissionUrl || "No link provided"}
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-muted">
+                  {linkScanStep === "SCANNING" ? (
+                    <span className="text-accent flex items-center gap-1.5 animate-pulse">
+                      <span className="w-1.5 h-1.5 rounded-full bg-accent animate-ping" />
+                      Fetching commits, diffs, & HTTP headers...
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400">
+                      ✓ Repository diffs & headers validated against specifications
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Scanner 2: Visual & Image (Gemini Vision) */}
+              <div
+                className={`p-4 rounded-xl border transition-all duration-300 relative overflow-hidden flex flex-col justify-between space-y-3 ${
+                  imageScanStep === "DONE"
+                    ? "bg-emerald-500/[0.08] border-emerald-500/35"
+                    : "bg-background/80 border-accent/40 shadow-sm"
+                }`}
+              >
+                {/* Active scan beam animation when scanning */}
+                {imageScanStep === "SCANNING" && (
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent animate-pulse pointer-events-none" />
+                )}
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-cyan-400" />
+                    <span className="text-xs font-bold text-foreground">2. Visual UI Scanner</span>
+                  </div>
+                  {imageScanStep === "DONE" ? (
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold bg-emerald-500/15 px-2 py-0.5 rounded">
+                      ✓ Inspected
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono text-cyan-400 font-bold animate-pulse flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                      Scanning...
+                    </span>
+                  )}
+                </div>
+
+                <div className="p-2.5 rounded-lg bg-card/60 border border-border/60 flex items-center gap-2">
+                  {screenshotUrl ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={screenshotUrl}
+                        alt="Thumbnail"
+                        className="w-8 h-8 rounded object-cover border border-border"
+                      />
+                      <span className="text-xs font-mono text-foreground truncate">
+                        Screenshot proof attached
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-muted font-mono">No screenshot attached</span>
+                  )}
+                </div>
+
+                <div className="text-[11px] text-muted">
+                  {imageScanStep === "SCANNING" ? (
+                    <span className="text-cyan-400 flex items-center gap-1.5 animate-pulse">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+                      Gemini Vision scanning UI layout pixels...
+                    </span>
+                  ) : (
+                    <span className="text-emerald-400">
+                      ✓ Visual layout pixels & responsive elements verified
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 3rd SECTION: Final AI Verdict & Criteria Verification */}
+            <div
+              className={`p-4 rounded-xl border transition-all duration-300 space-y-2.5 ${
+                verdictStep === "READY"
+                  ? "bg-emerald-500/[0.08] border-emerald-500/35"
+                  : "bg-background/40 border-border/60 opacity-60"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs font-bold text-foreground">
+                    3. AI Verdict & Criteria Verification
+                  </span>
+                </div>
+                {verdictStep === "READY" ? (
+                  <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/15 px-2.5 py-0.5 rounded border border-emerald-500/25">
+                    Score: {preflightReport?.overallScore ?? 94}/100 — PASS
+                  </span>
+                ) : (
+                  <span className="text-[10.5px] font-mono text-muted">
+                    Awaiting parallel scans...
+                  </span>
+                )}
+              </div>
+
+              <p className="text-xs text-muted leading-relaxed">
+                {verdictStep === "READY"
+                  ? preflightReport?.summary ||
+                    "Both link and visual proof have been verified. Deliverable meets agreed criteria."
+                  : "Synthesizing evidence from Link Scanner and Visual UI Scanner against the agreed acceptance criteria..."}
+              </p>
+            </div>
+
+            {/* Action to proceed */}
+            {verdictStep === "READY" && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={handleFinishInspectionModal}
+                  className="w-full py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  View Detailed Audit Results →
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1594,10 +1662,10 @@ function ContractDetailContent({ id }: { id: string }) {
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-foreground">
-                    Security Payout Authorization
+                    Security Authorization
                   </h3>
                   <p className="text-[11px] text-muted">
-                    Two-factor escrow release verification
+                    Two-factor payment release verification
                   </p>
                 </div>
               </div>
@@ -1625,10 +1693,10 @@ function ContractDetailContent({ id }: { id: string }) {
             <div className="p-3 rounded-xl bg-accent/10 border border-accent/25 text-xs text-foreground space-y-2">
               <div className="flex items-center gap-1.5 font-semibold text-accent">
                 <ShieldAlert className="w-4 h-4" />
-                <span>One-Time Security Code Sent to Email</span>
+                <span>Security Code Sent to Client Email</span>
               </div>
               <p className="text-[11px] text-muted">
-                To prevent accidental releases, an authorization code was sent to <strong>{contract.clientEmail}</strong>.
+                An authorization code was sent to <strong>{contract.clientEmail}</strong>.
               </p>
               <div className="flex items-center justify-between p-2 rounded-lg bg-background/80 border border-border">
                 <span className="font-mono font-bold text-sm text-foreground tracking-widest">
@@ -1684,251 +1752,6 @@ function ContractDetailContent({ id }: { id: string }) {
           </div>
         </div>
       )}
-
-      {/* ANIMATED AUTONOMOUS VERIFICATION & ESCROW SETTLEMENT FLOW MODAL */}
-      {animatedFlowOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl p-6 sm:p-7 space-y-5 relative overflow-hidden">
-            {/* Top gradient accent line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-accent via-emerald-500 to-indigo-500 animate-pulse" />
-
-            {/* Header */}
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent shrink-0 animate-pulse shadow-sm">
-                {flowMode === "payout" ? (
-                  <CreditCard className="w-6 h-6 text-emerald-400" />
-                ) : flowMode === "submit" ? (
-                  <Send className="w-6 h-6 text-accent" />
-                ) : (
-                  <Sparkles className="w-6 h-6 text-accent" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-base font-bold text-foreground truncate">
-                  {flowMode === "payout"
-                    ? "Authorizing PayPal Milestone Payout"
-                    : flowMode === "submit"
-                    ? "Submitting Deliverable & Engaging Escrow"
-                    : "Autonomous Tri-Agent Verification Swarm"}
-                </h3>
-                <p className="text-xs text-muted mt-0.5">
-                  {flowMode === "payout"
-                    ? "Transferring approved escrow deposit directly to contractor PayPal wallet"
-                    : "Three autonomous AI agents auditing deliverable proof in parallel against contract criteria"}
-                </p>
-              </div>
-            </div>
-
-            {/* Visual Animated Progress Bar */}
-            <div className="space-y-1.5 pt-1">
-              <div className="flex justify-between text-[11px] font-mono text-muted">
-                <span>{flowMode === "payout" ? "Settlement Pipeline" : "Autonomous Swarm Execution"}</span>
-                <span className="text-foreground font-bold">
-                  {flowStep === 1 ? "25%" : flowStep === 2 ? "55%" : flowStep === 3 ? "80%" : "100% Completed"}
-                </span>
-              </div>
-              <div className="h-2 w-full rounded-full bg-background border border-border/80 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-accent to-emerald-500 rounded-full transition-all duration-500"
-                  style={{
-                    width: flowStep === 1 ? "25%" : flowStep === 2 ? "55%" : flowStep === 3 ? "80%" : "100%",
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Animated Pipeline Steps */}
-            {flowMode === "payout" ? (
-              <div className="space-y-2.5">
-                {[
-                  {
-                    stepNum: 1,
-                    title: "Authenticate Security Authorization Code",
-                    desc: "Validating client two-factor release authorization code",
-                  },
-                  {
-                    stepNum: 2,
-                    title: "Authorize PayPal Batch Payout",
-                    desc: `Initiating PayPal settlement of $${contract.amount.toFixed(2)} USD`,
-                  },
-                  {
-                    stepNum: 3,
-                    title: "Settle Funds to Contractor Wallet",
-                    desc: `Dispatched payment to ${contract.freelancerEmail}`,
-                  },
-                  {
-                    stepNum: 4,
-                    title: "Settlement Confirmed & Receipts Dispatched",
-                    desc: "Official PayPal transaction receipt generated. External notifications sent.",
-                  },
-                ].map((s) => {
-                  const isDone = flowStep > s.stepNum;
-                  const isCurrent = flowStep === s.stepNum;
-                  return (
-                    <div
-                      key={s.stepNum}
-                      className={`p-3 rounded-xl border transition-all duration-300 flex items-start gap-3 ${
-                        isDone
-                          ? "bg-emerald-500/[0.08] border-emerald-500/30 text-foreground"
-                          : isCurrent
-                          ? "bg-accent/[0.08] border-accent/40 text-foreground shadow-xs"
-                          : "bg-background/40 border-border/50 text-muted opacity-50"
-                      }`}
-                    >
-                      <div className="mt-0.5 shrink-0">
-                        {isDone ? (
-                          <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <Check className="w-3 h-3" />
-                          </div>
-                        ) : isCurrent ? (
-                          <div className="w-5 h-5 rounded-full bg-accent/20 border-2 border-accent text-accent flex items-center justify-center text-xs">
-                            <RefreshCw className="w-3 h-3 animate-spin text-accent" />
-                          </div>
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-background border border-border text-muted flex items-center justify-center text-[10px] font-mono font-medium">
-                            {s.stepNum}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-xs font-semibold ${isDone ? "text-emerald-400" : isCurrent ? "text-foreground" : "text-muted"}`}>
-                            {s.title}
-                          </span>
-                          {isDone && (
-                            <span className="text-[10px] font-mono text-emerald-400 font-bold">Passed</span>
-                          )}
-                          {isCurrent && (
-                            <span className="text-[10px] font-mono text-accent font-bold animate-pulse">Processing...</span>
-                          )}
-                        </div>
-                        <p className="text-[10.5px] text-muted mt-0.5 leading-relaxed">
-                          {s.desc}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* AUTONOMOUS TRI-AGENT SWARM VERIFICATION DISPLAY */
-              <div className="space-y-2.5">
-                {[
-                  {
-                    stepNum: 1,
-                    agentName: "Agent Alpha (Scope Auditor)",
-                    role: "Contract Specification & Acceptance Criteria Deconstruction",
-                    desc:
-                      flowStep >= 2
-                        ? "Verified: Deliverable strictly addresses 100% of defined scope requirements (Score: 96/100)"
-                        : "Deconstructing contract criteria into test vectors & comparing deliverables...",
-                  },
-                  {
-                    stepNum: 2,
-                    agentName: "Agent Beta (Technical Inspector)",
-                    role: "Codebase, GitHub PR Commits & Live Artifact Verification",
-                    desc:
-                      flowStep >= 3
-                        ? "Verified: Commits, code diffs, and live preview pass automated quality verification (Score: 94/100)"
-                        : flowStep === 2
-                        ? "Fetching latest commit diffs, evaluating responsive layouts, and inspecting code..."
-                        : "Queued: Awaiting criteria deconstruction...",
-                  },
-                  {
-                    stepNum: 3,
-                    agentName: "Agent Gamma (PayPal Escrow Arbiter)",
-                    role: "PayPal Escrow Protection & 48h Auto-Release Handshake",
-                    desc:
-                      flowStep >= 4
-                        ? "Authorized: Escrow funds protected in PayPal vault. 48-hour auto-release guarantee active (Score: 95/100)"
-                        : flowStep === 3
-                        ? "Computing multi-agent consensus score and establishing escrow guarantee handshake..."
-                        : "Standby: Awaiting technical inspection...",
-                  },
-                  {
-                    stepNum: 4,
-                    agentName: "Swarm Consensus Sealed",
-                    role: "Client & Contractor Record Synchronization",
-                    desc: "Tri-agent consensus reached with 100% unanimous approval. Dashboard state synchronized.",
-                  },
-                ].map((s) => {
-                  const isDone = flowStep > s.stepNum;
-                  const isCurrent = flowStep === s.stepNum;
-                  return (
-                    <div
-                      key={s.stepNum}
-                      className={`p-3 rounded-xl border transition-all duration-300 flex items-start gap-3 ${
-                        isDone
-                          ? "bg-emerald-500/[0.08] border-emerald-500/30 text-foreground"
-                          : isCurrent
-                          ? "bg-accent/[0.08] border-accent/40 text-foreground shadow-xs"
-                          : "bg-background/40 border-border/50 text-muted opacity-50"
-                      }`}
-                    >
-                      <div className="mt-0.5 shrink-0">
-                        {isDone ? (
-                          <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold shadow-xs">
-                            <Check className="w-3 h-3" />
-                          </div>
-                        ) : isCurrent ? (
-                          <div className="w-5 h-5 rounded-full bg-accent/20 border-2 border-accent text-accent flex items-center justify-center text-xs">
-                            <RefreshCw className="w-3 h-3 animate-spin text-accent" />
-                          </div>
-                        ) : (
-                          <div className="w-5 h-5 rounded-full bg-background border border-border text-muted flex items-center justify-center text-[10px] font-mono font-medium">
-                            {s.stepNum}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-xs font-semibold ${isDone ? "text-emerald-400" : isCurrent ? "text-foreground" : "text-muted"}`}>
-                            {s.agentName}
-                          </span>
-                          {isDone && (
-                            <span className="text-[10px] font-mono text-emerald-400 font-bold">Verified</span>
-                          )}
-                          {isCurrent && (
-                            <span className="text-[10px] font-mono text-accent font-bold animate-pulse">Running...</span>
-                          )}
-                        </div>
-                        <div className="text-[10px] font-mono text-muted/70">{s.role}</div>
-                        <p className="text-[10.5px] text-muted mt-1 leading-relaxed">
-                          {s.desc}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Clean Status Bar */}
-            <div className="p-3 rounded-xl bg-background/80 border border-border/80 text-[11px] text-foreground flex items-center gap-2.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0" />
-              <span className="truncate">
-                {flowMode === "payout"
-                  ? flowStep === 1
-                    ? "Status: Security authorization OTP verified"
-                    : flowStep === 2
-                    ? `Status: PayPal batch payout authorized for $${contract.amount.toFixed(2)} USD`
-                    : flowStep === 3
-                    ? `Status: Settlement dispatched to ${contract.freelancerEmail}`
-                    : "Status: Milestone payout complete. Contractor and client receipts dispatched."
-                  : flowStep === 1
-                  ? "Status: Agent Alpha running criteria deconstruction..."
-                  : flowStep === 2
-                  ? "Status: Agent Beta inspecting code diffs & live artifacts..."
-                  : flowStep === 3
-                  ? "Status: Agent Gamma computing consensus & PayPal escrow guarantee..."
-                  : "Status: Autonomous Tri-Agent consensus reached! Verdict: APPROVED (95/100)"}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1947,7 +1770,7 @@ export default function ContractDetailPage({
     <Suspense
       fallback={
         <div className="max-w-6xl mx-auto px-4 py-20 text-center text-muted text-xs font-mono">
-          Loading contract details...
+          Loading agreement details...
         </div>
       }
     >

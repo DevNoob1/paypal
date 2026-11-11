@@ -55,7 +55,7 @@ export async function POST(
       channel: "EMAIL" as const,
       recipient: contract.clientEmail,
       subject: `Payment Receipt: Milestone Settlement Complete for "${contract.title}"`,
-      message: `Your PayPal escrow authorization of $${contract.amount.toFixed(2)} USD has settled to ${contract.freelancerName}. Receipt ID: ${payoutReceipt.payoutId}.`,
+      message: `Your PayPal payment of $${contract.amount.toFixed(2)} USD has settled to ${contract.freelancerName}. Receipt ID: ${payoutReceipt.payoutId}.`,
       status: "DELIVERED" as const,
     };
 

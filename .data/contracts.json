@@ -1,5 +1,65 @@
 [
   {
+    "id": "cnt_de96pt_8130",
+    "title": "Build a portfolio website",
+    "description": "build a very nice and professional portfolio website",
+    "amount": 650,
+    "currency": "USD",
+    "clientName": "Sarah Jenkins",
+    "clientEmail": "billing@acmecloud.io",
+    "freelancerName": "Alex Rivera",
+    "freelancerEmail": "alex.rivera@devmail.com",
+    "createdAt": "2026-11-11T17:01:28.130Z",
+    "deadline": "2026-11-18T17:01:28.131Z",
+    "status": "FUNDED_ESCROW",
+    "criteria": [
+      "Approved wireframes or mockups for key pages (Home, About, Portfolio, Contact) are provided.",
+      "Chosen tech stack (e.g., static site generator, framework) and project repository initialized on GitHub.",
+      "All core pages (Home, About, Portfolio, Contact) are developed and accessible via a staging URL.",
+      "Client-provided content (text, images, project details) is integrated into the respective pages.",
+      "Website is responsive and displays correctly on desktop and mobile devices.",
+      "All requested minor revisions based on client feedback are implemented.",
+      "Website is successfully deployed to a live URL (e.g., Netlify, Vercel, GitHub Pages).",
+      "Basic SEO elements (meta titles, descriptions) are implemented for key pages."
+    ],
+    "paypalOrderId": "8A049658CP719225E",
+    "escrowCapturedAt": "2026-11-11T17:01:36.759Z",
+    "milestones": [
+      {
+        "id": "m_1_2414",
+        "title": "Phase 1: Planning & Design Concept",
+        "amount": 175,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "Approved wireframes or mockups for key pages (Home, About, Portfolio, Contact) are provided.",
+          "Chosen tech stack (e.g., static site generator, framework) and project repository initialized on GitHub."
+        ]
+      },
+      {
+        "id": "m_2_2414",
+        "title": "Phase 2: Core Development & Content Integration",
+        "amount": 300,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "All core pages (Home, About, Portfolio, Contact) are developed and accessible via a staging URL.",
+          "Client-provided content (text, images, project details) is integrated into the respective pages.",
+          "Website is responsive and displays correctly on desktop and mobile devices."
+        ]
+      },
+      {
+        "id": "m_3_2414",
+        "title": "Phase 3: Finalization & Deployment",
+        "amount": 175,
+        "status": "FUNDED_ESCROW",
+        "criteria": [
+          "All requested minor revisions based on client feedback are implemented.",
+          "Website is successfully deployed to a live URL (e.g., Netlify, Vercel, GitHub Pages).",
+          "Basic SEO elements (meta titles, descriptions) are implemented for key pages."
+        ]
+      }
+    ]
+  },
+  {
     "id": "cnt_0ayyia_1396",
     "title": "Mobile Banking App Figma Redesign",
     "description": "Create 12 high-fidelity mobile frames and clickable prototype in Figma",

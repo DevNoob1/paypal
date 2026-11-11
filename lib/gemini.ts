@@ -621,9 +621,16 @@ function generateFallbackMilestones(
   description?: string,
   budget: number = 600
 ): MilestoneGenerationResult {
-  const cat = (category || "").toLowerCase();
+  const combinedText = `${category || ""} ${title || ""} ${description || ""}`.toLowerCase();
 
-  if (cat.includes("figma") || cat.includes("design") || cat.includes("ui")) {
+  if (
+    combinedText.includes("figma") ||
+    combinedText.includes("design") ||
+    combinedText.includes("ui") ||
+    combinedText.includes("ux") ||
+    combinedText.includes("wireframe") ||
+    combinedText.includes("prototype")
+  ) {
     const p1 = Math.round(budget * 0.3);
     const p2 = Math.round(budget * 0.5);
     const p3 = budget - (p1 + p2);
@@ -668,7 +675,14 @@ function generateFallbackMilestones(
     };
   }
 
-  if (cat.includes("content") || cat.includes("writing") || cat.includes("seo") || cat.includes("copy")) {
+  if (
+    combinedText.includes("content") ||
+    combinedText.includes("writing") ||
+    combinedText.includes("seo") ||
+    combinedText.includes("copy") ||
+    combinedText.includes("article") ||
+    combinedText.includes("documentation")
+  ) {
     const p1 = Math.round(budget * 0.35);
     const p2 = Math.round(budget * 0.45);
     const p3 = budget - (p1 + p2);
@@ -710,7 +724,14 @@ function generateFallbackMilestones(
     };
   }
 
-  if (cat.includes("art") || cat.includes("brand") || cat.includes("3d") || cat.includes("creative")) {
+  if (
+    combinedText.includes("art") ||
+    combinedText.includes("brand") ||
+    combinedText.includes("3d") ||
+    combinedText.includes("creative") ||
+    combinedText.includes("logo") ||
+    combinedText.includes("illustration")
+  ) {
     const p1 = Math.round(budget * 0.4);
     const p2 = budget - p1;
     return {

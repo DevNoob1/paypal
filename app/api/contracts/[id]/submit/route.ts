@@ -54,8 +54,8 @@ export async function POST(
       timestamp: new Date().toISOString(),
       channel: "SMS" as const,
       recipient: "+1 (555) 019-2834",
-      subject: "ResolvAI Escrow Alert",
-      message: `ResolvAI: Deliverable submitted for ${contract.title.slice(0, 30)}... Review & authorize escrow release in portal.`,
+      subject: "ResolvAI Payment Alert",
+      message: `ResolvAI: Deliverable submitted for ${contract.title.slice(0, 30)}... Review & authorize payment release in portal.`,
       status: "DELIVERED" as const,
     };
 
