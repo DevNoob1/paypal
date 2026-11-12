@@ -56,22 +56,7 @@ export default function NewContractPage() {
   const [deadline, setDeadline] = useState("");
 
   // Phased Milestones State
-  const [milestones, setMilestones] = useState<FormMilestone[]>([
-    {
-      id: "m_1",
-      title: "Phase 1: Initial Setup & Architecture",
-      amount: "200.00",
-      criteria: ["Project setup complete with core features implemented"],
-      newCriterionText: "",
-    },
-    {
-      id: "m_2",
-      title: "Phase 2: Final Delivery & Review",
-      amount: "250.00",
-      criteria: ["All deliverables tested and ready for production"],
-      newCriterionText: "",
-    },
-  ]);
+  const [milestones, setMilestones] = useState<FormMilestone[]>([]);
 
   useEffect(() => {
     const d = new Date(Date.now() + 14 * 86400000).toISOString().split("T")[0];
@@ -87,10 +72,10 @@ export default function NewContractPage() {
 
   // Dynamic calculated amount
   const totalCalculatedAmount =
-    agreementMode === "phased"
+    agreementMode === "phased" && milestones.length > 0
       ? milestones
-          .reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0)
-          .toFixed(2)
+        .reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0)
+        .toFixed(2)
       : amount || "0.00";
 
   // Reset form clean
@@ -102,15 +87,7 @@ export default function NewContractPage() {
     setNewCriterion("");
     setAiGenerationNote(null);
     setAgreementMode("phased");
-    setMilestones([
-      {
-        id: "m_1",
-        title: "",
-        amount: "",
-        criteria: [],
-        newCriterionText: "",
-      },
-    ]);
+    setMilestones([]);
   };
 
   // Simple, fast AI Milestone Generator (no 4-step modal!)
@@ -190,7 +167,6 @@ export default function NewContractPage() {
   };
 
   const removeMilestone = (id: string) => {
-    if (milestones.length <= 1) return;
     setMilestones(milestones.filter((m) => m.id !== id));
   };
 
@@ -200,10 +176,10 @@ export default function NewContractPage() {
       milestones.map((m) =>
         m.id === milestoneId
           ? {
-              ...m,
-              criteria: [...m.criteria, text.trim()],
-              newCriterionText: "",
-            }
+            ...m,
+            criteria: [...m.criteria, text.trim()],
+            newCriterionText: "",
+          }
           : m
       )
     );
@@ -229,11 +205,11 @@ export default function NewContractPage() {
       const payloadMilestones =
         agreementMode === "phased"
           ? milestones.map((m) => ({
-              id: m.id,
-              title: m.title.trim() || "Milestone Deliverable",
-              amount: parseFloat(m.amount) || 100,
-              criteria: m.criteria.length > 0 ? m.criteria : ["Deliverable satisfies agreed scope"],
-            }))
+            id: m.id,
+            title: m.title.trim() || "Milestone Deliverable",
+            amount: parseFloat(m.amount) || 100,
+            criteria: m.criteria.length > 0 ? m.criteria : ["Deliverable satisfies agreed scope"],
+          }))
           : undefined;
 
       const payloadCriteria =
@@ -325,8 +301,8 @@ export default function NewContractPage() {
     (agreementMode === "single"
       ? !title.trim() || !amount.trim() || criteria.length === 0
       : !title.trim() ||
-        milestones.length === 0 ||
-        milestones.some((m) => !m.title.trim() || !m.amount.trim() || m.criteria.length === 0));
+      milestones.length === 0 ||
+      milestones.some((m) => !m.title.trim() || !m.amount.trim() || m.criteria.length === 0));
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
@@ -353,11 +329,8 @@ export default function NewContractPage() {
 
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-          Create New Agreement
+          Create New Contract
         </h1>
-        <p className="text-xs text-muted mt-1">
-          Lock payment safely with milestone protections. Payment releases only when deliverable proof satisfies agreed requirements.
-        </p>
       </div>
 
       {user.role === "contractor" && (
@@ -547,23 +520,42 @@ export default function NewContractPage() {
             </div>
 
             <div className="space-y-4">
-              {milestones.map((milestone, mIdx) => (
-                <div
-                  key={milestone.id}
-                  className="p-4 rounded-xl bg-background/80 border border-border/80 space-y-3"
-                >
-                  {/* Milestone Header */}
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-md bg-accent/15 text-accent font-mono text-xs font-bold flex items-center justify-center">
-                        {mIdx + 1}
-                      </span>
-                      <span className="text-xs font-bold text-foreground">
-                        Milestone {mIdx + 1}
-                      </span>
-                    </div>
+              {milestones.length === 0 ? (
+                <div className="py-8 px-4 text-center border border-dashed border-border/80 rounded-xl space-y-3 bg-card/20">
+                  <Sparkles className="w-6 h-6 text-accent mx-auto opacity-70" />
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-foreground">
+                      No milestones added yet
+                    </p>
+                    <p className="text-[11px] text-muted max-w-sm mx-auto">
+                      Click &quot;✨ Generate Milestones with AI&quot; in Section 1 to auto-generate phases from your project description, or add them manually below.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addMilestone}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs text-foreground font-medium transition-colors cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add Milestone Manually
+                  </button>
+                </div>
+              ) : milestones.map((milestone, mIdx) => (
+                  <div
+                    key={milestone.id}
+                    className="p-4 rounded-xl bg-background/80 border border-border/80 space-y-3"
+                  >
+                    {/* Milestone Header */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="w-6 h-6 rounded-md bg-accent/15 text-accent font-mono text-xs font-bold flex items-center justify-center">
+                          {mIdx + 1}
+                        </span>
+                        <span className="text-xs font-bold text-foreground">
+                          Milestone {mIdx + 1}
+                        </span>
+                      </div>
 
-                    {milestones.length > 1 && (
                       <button
                         type="button"
                         onClick={() => removeMilestone(milestone.id)}
@@ -572,8 +564,7 @@ export default function NewContractPage() {
                         <Trash2 className="w-3.5 h-3.5" />
                         <span>Remove</span>
                       </button>
-                    )}
-                  </div>
+                    </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                     <div className="sm:col-span-8">
@@ -677,14 +668,16 @@ export default function NewContractPage() {
               ))}
 
               {/* Add Phase Button */}
-              <button
-                type="button"
-                onClick={addMilestone}
-                className="w-full py-2.5 rounded-xl border border-dashed border-border hover:border-accent/60 bg-card/40 hover:bg-card/70 text-accent font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Add Another Milestone</span>
-              </button>
+              {milestones.length > 0 && (
+                <button
+                  type="button"
+                  onClick={addMilestone}
+                  className="w-full py-2.5 rounded-xl border border-dashed border-border hover:border-accent/60 bg-card/40 hover:bg-card/70 text-accent font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>+ Add Another Milestone</span>
+                </button>
+              )}
             </div>
           </div>
 
