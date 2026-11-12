@@ -50,8 +50,8 @@ export function Navbar() {
             <Link
               href="/dashboard"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${pathname === "/dashboard"
-                  ? "bg-white/[0.08] text-foreground font-semibold"
-                  : "text-muted hover:text-foreground"
+                ? "bg-white/[0.08] text-foreground font-semibold"
+                : "text-muted hover:text-foreground"
                 }`}
             >
               <LayoutDashboard className="w-3.5 h-3.5" />
@@ -61,8 +61,8 @@ export function Navbar() {
             <Link
               href="/integrations"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md font-medium transition-colors ${pathname === "/integrations"
-                  ? "bg-white/[0.08] text-foreground font-semibold"
-                  : "text-muted hover:text-foreground"
+                ? "bg-white/[0.08] text-foreground font-semibold"
+                : "text-muted hover:text-foreground"
                 }`}
             >
               <Plug className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export function Navbar() {
             className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent hover:bg-accent-hover text-white text-xs font-medium shadow-sm transition-all"
           >
             <Plus className="w-3.5 h-3.5" />
-            New Contract
+            Create Contract
           </Link>
         </div>
       </div>

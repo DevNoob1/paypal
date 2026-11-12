@@ -1307,13 +1307,12 @@ function ContractDetailContent({ id }: { id: string }) {
 
                     return (
                       <span
-                        className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border ${
-                          isApproved
-                            ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
-                            : isRevision
+                        className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border ${isApproved
+                          ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/25"
+                          : isRevision
                             ? "text-amber-400 bg-amber-500/10 border-amber-500/25"
                             : "text-rose-400 bg-rose-500/10 border-rose-500/25"
-                        }`}
+                          }`}
                       >
                         Score: {score}/100 — {isApproved ? "PASS" : isRevision ? "REVISE REQUIRED" : "UNMET"}
                       </span>
@@ -1329,22 +1328,20 @@ function ContractDetailContent({ id }: { id: string }) {
 
                   return (
                     <div
-                      className={`p-3.5 rounded-lg border text-xs text-foreground space-y-1.5 ${
-                        isApproved
-                          ? "bg-emerald-500/[0.08] border-emerald-500/25"
-                          : isRevision
+                      className={`p-3.5 rounded-lg border text-xs text-foreground space-y-1.5 ${isApproved
+                        ? "bg-emerald-500/[0.08] border-emerald-500/25"
+                        : isRevision
                           ? "bg-amber-500/[0.08] border-amber-500/25"
                           : "bg-rose-500/[0.08] border-rose-500/25"
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`font-semibold flex items-center gap-1.5 ${
-                          isApproved
-                            ? "text-emerald-400"
-                            : isRevision
+                        className={`font-semibold flex items-center gap-1.5 ${isApproved
+                          ? "text-emerald-400"
+                          : isRevision
                             ? "text-amber-400"
                             : "text-rose-400"
-                        }`}
+                          }`}
                       >
                         {isApproved ? (
                           <>
@@ -1418,13 +1415,12 @@ function ContractDetailContent({ id }: { id: string }) {
                     return (
                       <div
                         key={idx}
-                        className={`p-3 rounded-lg border text-xs space-y-1 ${
-                          isItemPass
-                            ? "bg-background/60 border-border/50"
-                            : isItemPartial
+                        className={`p-3 rounded-lg border text-xs space-y-1 ${isItemPass
+                          ? "bg-background/60 border-border/50"
+                          : isItemPartial
                             ? "bg-amber-500/[0.04] border-amber-500/30"
                             : "bg-rose-500/[0.04] border-rose-500/30"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-2 text-foreground font-medium">
@@ -1438,13 +1434,12 @@ function ContractDetailContent({ id }: { id: string }) {
                             <span>{item.criterion}</span>
                           </span>
                           <span
-                            className={`text-[11px] font-mono font-semibold shrink-0 ${
-                              isItemPass
-                                ? "text-emerald-400"
-                                : isItemPartial
+                            className={`text-[11px] font-mono font-semibold shrink-0 ${isItemPass
+                              ? "text-emerald-400"
+                              : isItemPartial
                                 ? "text-amber-400"
                                 : "text-rose-400"
-                            }`}
+                              }`}
                           >
                             {isItemPass ? "Pass" : isItemPartial ? "Partial" : "Unmet"} ({item.score}%)
                           </span>
@@ -1892,28 +1887,6 @@ function ContractDetailContent({ id }: { id: string }) {
               <div className="flex justify-between">
                 <span className="text-muted">Contractor Recipient:</span>
                 <span className="font-mono text-foreground">{contract.freelancerEmail}</span>
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-accent/10 border border-accent/25 text-xs text-foreground space-y-2">
-              <div className="flex items-center gap-1.5 font-semibold text-accent">
-                <ShieldAlert className="w-4 h-4" />
-                <span>Security Code Sent to Client Email</span>
-              </div>
-              <p className="text-[11px] text-muted">
-                An authorization code was sent to <strong>{contract.clientEmail}</strong>.
-              </p>
-              <div className="flex items-center justify-between p-2 rounded-lg bg-background/80 border border-border">
-                <span className="font-mono font-bold text-sm text-foreground tracking-widest">
-                  {expectedOtp}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setEnteredOtp(expectedOtp)}
-                  className="px-2 py-1 rounded bg-accent/20 hover:bg-accent/30 text-accent text-[11px] font-medium transition-colors cursor-pointer"
-                >
-                  Click to Auto-fill
-                </button>
               </div>
             </div>
 

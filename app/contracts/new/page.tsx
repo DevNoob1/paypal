@@ -36,7 +36,7 @@ export default function NewContractPage() {
   const [step, setStep] = useState<"DETAILS" | "CONFIRM_PAYMENT">("DETAILS");
 
   // Agreement Structure Mode: "single" vs "phased"
-  const [agreementMode, setAgreementMode] = useState<"single" | "phased">("phased");
+  const [agreementMode, setAgreementMode] = useState<"single" | "phased">("single");
 
   // AI Milestone Generation State
   const [generatingMilestones, setGeneratingMilestones] = useState(false);
@@ -72,7 +72,7 @@ export default function NewContractPage() {
 
   // Dynamic calculated amount
   const totalCalculatedAmount =
-    agreementMode === "phased" && milestones.length > 0
+    milestones.length > 0
       ? milestones
         .reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0)
         .toFixed(2)
@@ -86,7 +86,7 @@ export default function NewContractPage() {
     setCriteria([]);
     setNewCriterion("");
     setAiGenerationNote(null);
-    setAgreementMode("phased");
+    setAgreementMode("single");
     setMilestones([]);
   };
 
@@ -167,7 +167,11 @@ export default function NewContractPage() {
   };
 
   const removeMilestone = (id: string) => {
-    setMilestones(milestones.filter((m) => m.id !== id));
+    const updated = milestones.filter((m) => m.id !== id);
+    setMilestones(updated);
+    if (updated.length === 0) {
+      setAgreementMode("single");
+    }
   };
 
   const addMilestoneCriterion = (milestoneId: string, text: string) => {
@@ -201,9 +205,9 @@ export default function NewContractPage() {
     setLoading(true);
 
     try {
-      const finalAmount = parseFloat(totalCalculatedAmount);
+      const finalAmount = parseFloat(totalCalculatedAmount) || parseFloat(amount) || 100;
       const payloadMilestones =
-        agreementMode === "phased"
+        milestones.length > 0
           ? milestones.map((m) => ({
             id: m.id,
             title: m.title.trim() || "Milestone Deliverable",
@@ -213,9 +217,11 @@ export default function NewContractPage() {
           : undefined;
 
       const payloadCriteria =
-        agreementMode === "phased"
+        milestones.length > 0
           ? milestones.flatMap((m) => m.criteria)
-          : criteria;
+          : criteria.length > 0
+            ? criteria
+            : ["Deliverable satisfies agreed scope and requirements"];
 
       // 1. Create a PayPal Order
       const paypalRes = await fetch("/api/paypal/create-order", {
@@ -245,7 +251,7 @@ export default function NewContractPage() {
           clientEmail: clientEmail.trim() || user.email,
           freelancerName: freelancerName.trim() || "Alex Rivera",
           freelancerEmail: freelancerEmail.trim() || "alex.rivera@devmail.com",
-          criteria: payloadCriteria.length > 0 ? payloadCriteria : ["Deliverable implemented to standard"],
+          criteria: payloadCriteria,
           milestones: payloadMilestones,
           paypalOrderId: orderId,
         }),
@@ -298,11 +304,10 @@ export default function NewContractPage() {
 
   const isSubmitDisabled =
     loading ||
-    (agreementMode === "single"
-      ? !title.trim() || !amount.trim() || criteria.length === 0
-      : !title.trim() ||
-      milestones.length === 0 ||
-      milestones.some((m) => !m.title.trim() || !m.amount.trim() || m.criteria.length === 0));
+    !title.trim() ||
+    (milestones.length > 0
+      ? milestones.some((m) => !m.title.trim() || !m.amount.trim())
+      : !amount.trim() || parseFloat(amount) <= 0);
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
@@ -329,7 +334,7 @@ export default function NewContractPage() {
 
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-          Create New Contract
+          Create New Agreement
         </h1>
       </div>
 
@@ -436,7 +441,7 @@ export default function NewContractPage() {
                 ) : (
                   <>
                     <Sparkles className="w-3.5 h-3.5" />
-                    ✨ Generate Milestones with AI (${amount || totalCalculatedAmount || "450"})
+                    Generate Milestones with AI (${amount || totalCalculatedAmount || "450"})
                   </>
                 )}
               </button>
@@ -512,35 +517,40 @@ export default function NewContractPage() {
                 <span className="h-5 w-5 rounded-md bg-accent/15 text-accent flex items-center justify-center text-xs font-bold">
                   3
                 </span>
-                Milestones & Acceptance Requirements ({milestones.length})
+                {milestones.length > 0
+                  ? `Milestones Schedule (${milestones.length} Phases)`
+                  : "Milestone Schedule (Optional)"}
               </h2>
-              <div className="text-xs font-mono font-bold text-emerald-400">
-                Total: ${totalCalculatedAmount} USD
-              </div>
+              {milestones.length > 0 && (
+                <div className="text-xs font-mono font-bold text-emerald-400">
+                  Total: ${totalCalculatedAmount} USD
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
               {milestones.length === 0 ? (
-                <div className="py-8 px-4 text-center border border-dashed border-border/80 rounded-xl space-y-3 bg-card/20">
-                  <Sparkles className="w-6 h-6 text-accent mx-auto opacity-70" />
-                  <div className="space-y-1">
-                    <p className="text-xs font-semibold text-foreground">
-                      No milestones added yet
-                    </p>
-                    <p className="text-[11px] text-muted max-w-sm mx-auto">
-                      Click &quot;✨ Generate Milestones with AI&quot; in Section 1 to auto-generate phases from your project description, or add them manually below.
+                <div className="p-4 rounded-xl border border-dashed border-border/80 bg-background/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                  <div className="space-y-0.5 text-center sm:text-left">
+                    <div className="font-semibold text-foreground flex items-center gap-1.5 justify-center sm:justify-start">
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      Single Milestone Agreement (Default)
+                    </div>
+                    <p className="text-[11px] text-muted">
+                      Full budget (${amount || "0.00"}) is protected in escrow. Click &quot;✨ Generate Milestones with AI&quot; in Section 1 to auto-split into phases, or add phases manually.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={addMilestone}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs text-foreground font-medium transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-card hover:bg-card-hover border border-border text-xs text-foreground font-medium flex items-center gap-1.5 shrink-0 cursor-pointer transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Add Milestone Manually
+                    <span>+ Add Milestone Phase</span>
                   </button>
                 </div>
-              ) : milestones.map((milestone, mIdx) => (
+              ) : (
+                milestones.map((milestone, mIdx) => (
                   <div
                     key={milestone.id}
                     className="p-4 rounded-xl bg-background/80 border border-border/80 space-y-3"
@@ -566,106 +576,107 @@ export default function NewContractPage() {
                       </button>
                     </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-                    <div className="sm:col-span-8">
-                      <label className="block text-[11px] font-medium text-muted mb-1">
-                        Milestone Deliverable Title *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. Core App Feature Implementation"
-                        value={milestone.title}
-                        onChange={(e) => updateMilestone(milestone.id, "title", e.target.value)}
-                        className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground placeholder-muted/60 focus:outline-none focus:border-accent"
-                      />
-                    </div>
-
-                    <div className="sm:col-span-4">
-                      <label className="block text-[11px] font-medium text-muted mb-1">
-                        Milestone Amount ($USD) *
-                      </label>
-                      <div className="relative">
-                        <DollarSign className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                    <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                      <div className="sm:col-span-8">
+                        <label className="block text-[11px] font-medium text-muted mb-1">
+                          Milestone Deliverable Title *
+                        </label>
                         <input
-                          type="number"
-                          min="1"
-                          step="1.00"
+                          type="text"
                           required
-                          placeholder="200.00"
-                          value={milestone.amount}
-                          onChange={(e) => updateMilestone(milestone.id, "amount", e.target.value)}
-                          className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-card border border-border text-xs font-mono font-bold text-foreground placeholder-muted/50 focus:outline-none focus:border-accent"
+                          placeholder="e.g. Core App Feature Implementation"
+                          value={milestone.title}
+                          onChange={(e) => updateMilestone(milestone.id, "title", e.target.value)}
+                          className="w-full px-3 py-1.5 rounded-lg bg-card border border-border text-xs text-foreground placeholder-muted/60 focus:outline-none focus:border-accent"
                         />
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Milestone Checklist Criteria */}
-                  <div className="space-y-1.5 pt-1">
-                    <label className="block text-[10.5px] font-semibold text-muted uppercase tracking-wider">
-                      Acceptance Requirements for Milestone {mIdx + 1} *
-                    </label>
-                    {milestone.criteria.length === 0 ? (
-                      <div className="py-2.5 px-3 border border-dashed border-border/60 rounded-lg text-[11px] text-muted">
-                        No requirements added yet. Add at least 1 requirement below.
-                      </div>
-                    ) : (
-                      milestone.criteria.map((c, cIdx) => (
-                        <div
-                          key={cIdx}
-                          className="flex items-center justify-between gap-2 p-2 rounded-lg bg-card/60 border border-border/60 text-xs text-foreground"
-                        >
-                          <div className="flex items-center gap-1.5">
-                            <Check className="w-3 h-3 text-emerald-400 shrink-0" />
-                            <span>{c}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeMilestoneCriterion(milestone.id, cIdx)}
-                            className="text-muted hover:text-rose-400 p-0.5 cursor-pointer"
-                            title="Remove requirement"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
+                      <div className="sm:col-span-4">
+                        <label className="block text-[11px] font-medium text-muted mb-1">
+                          Milestone Amount ($USD) *
+                        </label>
+                        <div className="relative">
+                          <DollarSign className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                          <input
+                            type="number"
+                            min="1"
+                            step="1.00"
+                            required
+                            placeholder="200.00"
+                            value={milestone.amount}
+                            onChange={(e) => updateMilestone(milestone.id, "amount", e.target.value)}
+                            className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-card border border-border text-xs font-mono font-bold text-foreground placeholder-muted/50 focus:outline-none focus:border-accent"
+                          />
                         </div>
-                      ))
-                    )}
+                      </div>
+                    </div>
 
-                    {/* Add criterion to this milestone */}
-                    <div className="flex gap-2 pt-1">
-                      <input
-                        type="text"
-                        placeholder="e.g. Working checkout form passing tests..."
-                        value={milestone.newCriterionText || ""}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setMilestones(
-                            milestones.map((m) =>
-                              m.id === milestone.id ? { ...m, newCriterionText: val } : m
-                            )
-                          );
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            addMilestoneCriterion(milestone.id, milestone.newCriterionText || "");
-                          }
-                        }}
-                        className="flex-1 px-2.5 py-1 rounded-md bg-card border border-border text-xs text-foreground placeholder-muted/60 focus:outline-none focus:border-accent"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => addMilestoneCriterion(milestone.id, milestone.newCriterionText || "")}
-                        className="px-2.5 py-1 rounded-md bg-card hover:bg-card-hover border border-border text-xs text-foreground font-medium flex items-center gap-1 cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        Add
-                      </button>
+                    {/* Milestone Checklist Criteria */}
+                    <div className="space-y-1.5 pt-1">
+                      <label className="block text-[10.5px] font-semibold text-muted uppercase tracking-wider">
+                        Acceptance Requirements for Milestone {mIdx + 1}
+                      </label>
+                      {milestone.criteria.length === 0 ? (
+                        <div className="py-2.5 px-3 border border-dashed border-border/60 rounded-lg text-[11px] text-muted">
+                          No specific criteria added yet.
+                        </div>
+                      ) : (
+                        milestone.criteria.map((c, cIdx) => (
+                          <div
+                            key={cIdx}
+                            className="flex items-center justify-between gap-2 p-2 rounded-lg bg-card/60 border border-border/60 text-xs text-foreground"
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                              <span>{c}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeMilestoneCriterion(milestone.id, cIdx)}
+                              className="text-muted hover:text-rose-400 p-0.5 cursor-pointer"
+                              title="Remove requirement"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+
+                      {/* Add criterion to this milestone */}
+                      <div className="flex gap-2 pt-1">
+                        <input
+                          type="text"
+                          placeholder="e.g. Working checkout form passing tests..."
+                          value={milestone.newCriterionText || ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setMilestones(
+                              milestones.map((m) =>
+                                m.id === milestone.id ? { ...m, newCriterionText: val } : m
+                              )
+                            );
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              addMilestoneCriterion(milestone.id, milestone.newCriterionText || "");
+                            }
+                          }}
+                          className="flex-1 px-2.5 py-1 rounded-md bg-card border border-border text-xs text-foreground placeholder-muted/60 focus:outline-none focus:border-accent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => addMilestoneCriterion(milestone.id, milestone.newCriterionText || "")}
+                          className="px-2.5 py-1 rounded-md bg-card hover:bg-card-hover border border-border text-xs text-foreground font-medium flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Add
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
 
               {/* Add Phase Button */}
               {milestones.length > 0 && (
@@ -675,7 +686,7 @@ export default function NewContractPage() {
                   className="w-full py-2.5 rounded-xl border border-dashed border-border hover:border-accent/60 bg-card/40 hover:bg-card/70 text-accent font-medium text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>+ Add Another Milestone</span>
+                  <span>+ Add Another Milestone Phase</span>
                 </button>
               )}
             </div>
