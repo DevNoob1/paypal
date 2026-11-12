@@ -334,7 +334,7 @@ export default function NewContractPage() {
 
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-          Create New Agreement
+          Create New Contract
         </h1>
       </div>
 
