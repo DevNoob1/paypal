@@ -607,8 +607,8 @@ export default function Dashboard() {
               key={tab.val}
               onClick={() => setFilter(tab.val)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${filter === tab.val
-                  ? "bg-white/[0.08] text-foreground font-semibold shadow-xs"
-                  : "text-muted hover:text-foreground"
+                ? "bg-white/[0.08] text-foreground font-semibold shadow-xs"
+                : "text-muted hover:text-foreground"
                 }`}
             >
               <span>{tab.label}</span>
@@ -758,12 +758,12 @@ export default function Dashboard() {
                     <div className="w-full h-1.5 rounded-full bg-background border border-border/50 overflow-hidden">
                       <div
                         className={`h-full rounded-full transition-all duration-300 ${isPaid
-                            ? "bg-emerald-500 w-full"
-                            : isDisputed
-                              ? "bg-rose-500 w-1/2"
-                              : isReviewReady
-                                ? "bg-amber-400 w-4/5"
-                                : "bg-accent w-1/3"
+                          ? "bg-emerald-500 w-full"
+                          : isDisputed
+                            ? "bg-rose-500 w-1/2"
+                            : isReviewReady
+                              ? "bg-amber-400 w-4/5"
+                              : "bg-accent w-1/3"
                           }`}
                       />
                     </div>
